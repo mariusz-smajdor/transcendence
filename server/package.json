@@ -1,0 +1,13 @@
+{
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon --legacy-watch src/app.js"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
