@@ -4,7 +4,7 @@
 		"rootDir": "src/ts",
 		"target": "ES6",
 		"module": "ES6",
-		"moduleResolution": "Node",
+		"moduleResolution": "node",
 		"strict": true
 	},
 	"include": ["src/ts"],
