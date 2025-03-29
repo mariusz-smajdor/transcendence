@@ -1,7 +1,8 @@
 #!/bin/bash
 
-echo "Starting TypeScript watch..."
+echo "Building the project..."
 cd client
+npm install
 npm run build &
 cd ..
 
