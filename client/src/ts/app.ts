@@ -1,1 +1,5 @@
-console.log('Hello World!');
+import { Router } from './router.js';
+
+document.addEventListener("DOMContentLoaded", () => {
+	new Router();
+});

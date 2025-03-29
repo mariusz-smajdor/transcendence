@@ -7,6 +7,6 @@
 		"moduleResolution": "node",
 		"strict": true
 	},
-	"include": ["src/ts"],
+	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules"]
 }
