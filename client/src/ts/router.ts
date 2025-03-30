@@ -1,9 +1,11 @@
+import Header from './components/header.js';
 import Register from './views/register.js';
 import Login from './views/login.js';
 import NotFound from './views/notfound.js';
 
 export class Router {
-	private routes: { [key: string]: () => string };
+	private rootElement: HTMLElement | null = document.getElementById('app');
+	private routes: { [key: string]: () => Node };
 
 	constructor() {
 		this.routes = {
@@ -11,6 +13,7 @@ export class Router {
 			'/register': Register,
 		};
 
+		this.rootElement!.appendChild(Header());
 		window.addEventListener('popstate', this.loadRoute.bind(this));
 		document.body.addEventListener('click', (event) => {
 			const target = event.target as HTMLAnchorElement;
@@ -31,6 +34,6 @@ export class Router {
 	private loadRoute() {
 		const path = location.pathname;
 		const view = this.routes[path] || NotFound;
-		document.getElementById('app')!.innerHTML = view();
+		this.rootElement!.appendChild(view());
 	}
 }
