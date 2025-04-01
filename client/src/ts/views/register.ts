@@ -103,23 +103,23 @@ function Heading(): HTMLElement {
 
 export default function Register(): HTMLElement {
 	// create secrion container element
-	const section = document.createElement('section');
-	section.classList.add('max-w-md', 'mx-auto', 'mt-10', 'p-6');
+	const form = document.createElement('form');
+	form.classList.add('max-w-md', 'mx-auto', 'mt-10', 'p-6');
 
-	section.appendChild(Heading());
-	section.appendChild(PictureInput());
-	section.appendChild(Input('text', 'Username'));
-	section.appendChild(Input('email', 'Email'));
-	section.appendChild(Input('password', 'Password'));
-	section.appendChild(Input('password', 'Confirm Password'));
-	section.appendChild(
+	form.appendChild(Heading());
+	form.appendChild(PictureInput());
+	form.appendChild(Input('text', 'Username'));
+	form.appendChild(Input('email', 'Email'));
+	form.appendChild(Input('password', 'Password'));
+	form.appendChild(Input('password', 'Confirm Password'));
+	form.appendChild(
 		Button({
 			type: 'submit',
 			content: 'Sign Up',
 		})
 	);
-	section.appendChild(Separator());
-	section.appendChild(GoogleButton());
+	form.appendChild(Separator());
+	form.appendChild(GoogleButton());
 
-	return section;
+	return form;
 }
