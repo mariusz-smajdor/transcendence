@@ -13,7 +13,6 @@ export class Router {
 			'/register': Register,
 		};
 
-		this.rootElement!.appendChild(Header());
 		window.addEventListener('popstate', this.loadRoute.bind(this));
 		document.body.addEventListener('click', (event) => {
 			const target = event.target as HTMLAnchorElement;
@@ -27,6 +26,8 @@ export class Router {
 	}
 
 	navigateTo(url: string) {
+		console.log(url);
+		alert('Navigating to ' + url);
 		history.pushState(null, '', url);
 		this.loadRoute();
 	}
@@ -34,6 +35,9 @@ export class Router {
 	private loadRoute() {
 		const path = location.pathname;
 		const view = this.routes[path] || NotFound;
+		if (view !== NotFound) {
+			this.rootElement!.appendChild(Header());
+		}
 		this.rootElement!.appendChild(view());
 	}
 }

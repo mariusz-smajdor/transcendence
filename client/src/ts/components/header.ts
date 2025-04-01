@@ -3,7 +3,7 @@ function NavLink(text: string, href: string): HTMLAnchorElement {
 
 	link.href = href;
 	link.textContent = text;
-	link.classList.add('text-gray-700', 'hover:underline');
+	link.classList.add('text-gray-900', 'hover:underline');
 	return link;
 }
 
