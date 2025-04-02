@@ -46,53 +46,6 @@ function Input(type: string, placeholder: string): HTMLElement {
 	return input;
 }
 
-function PictureInput() {
-	const wrapper = document.createElement('div');
-	wrapper.classList.add('relative', 'w-full');
-
-	const clickableElement = document.createElement('div');
-	clickableElement.classList.add(
-		'rounded-full',
-		'border',
-		'border-gray-300',
-		'p-2',
-		'mb-4',
-		'w-40',
-		'h-40',
-		'cursor-pointer',
-		'flex',
-		'items-center',
-		'justify-center',
-		'text-gray-500',
-		'hover:bg-gray-100'
-	);
-	clickableElement.textContent = 'Upload Avatar';
-
-	const fileInput = document.createElement('input');
-	fileInput.type = 'file';
-	fileInput.classList.add('hidden');
-	fileInput.accept = 'image/*';
-
-	clickableElement.addEventListener('click', () => {
-		fileInput.click();
-	});
-
-	fileInput.addEventListener('change', (e) => {
-		const target = e.target;
-		if (target && target instanceof HTMLInputElement && target.files) {
-			const file = target.files[0];
-			if (file) {
-				console.log(file.name);
-			}
-		}
-	});
-
-	wrapper.appendChild(clickableElement);
-	wrapper.appendChild(fileInput);
-
-	return wrapper;
-}
-
 function Heading(): HTMLElement {
 	const heading = document.createElement('h1');
 	heading.textContent = 'Register';
@@ -110,11 +63,7 @@ export default function Register(): HTMLElement {
 	const passwordInput = Input('password', 'Password') as HTMLInputElement;
 	const confirmPasswordInput = Input('password', 'Confirm Password') as HTMLInputElement;
 
-	const pictureInputWrapper = PictureInput();
-	const fileInput = pictureInputWrapper.querySelector('input[type=file]') as HTMLInputElement;
-
 	form.appendChild(Heading());
-	form.appendChild(pictureInputWrapper);
 	form.appendChild(usernameInput);
 	form.appendChild(emailInput);
 	form.appendChild(passwordInput);
@@ -135,9 +84,6 @@ export default function Register(): HTMLElement {
 		formData.append('email', emailInput.value);
 		formData.append('password', passwordInput.value);
 		formData.append('confirmPassword', confirmPasswordInput.value);
-		if (fileInput.files?.[0]) {
-			formData.append('avatar', fileInput.files[0]);
-		}
 
 		try {
 			const response = await fetch('http://localhost:3000/register', {
