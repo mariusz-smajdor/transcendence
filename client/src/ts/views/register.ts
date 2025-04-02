@@ -128,19 +128,29 @@ export default function Register(): HTMLElement {
 	form.appendChild(Separator());
 	form.appendChild(GoogleButton());
 
-	form.addEventListener('submit', (event) => {
+	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
-		const formData = {
-			username: usernameInput.value,
-			email: emailInput.value,
-			password: passwordInput.value,
-			confirmPassword: confirmPasswordInput.value,
-			avatar: fileInput.files?.[0] || null,
-		};
+		const formData = new FormData();
+		formData.append('username', usernameInput.value);
+		formData.append('email', emailInput.value);
+		formData.append('password', passwordInput.value);
+		formData.append('confirmPassword', confirmPasswordInput.value);
+		if (fileInput.files?.[0]) {
+			formData.append('avatar', fileInput.files[0]);
+		}
 
-		console.log('Form Data:', formData);
+		try {
+			const response = await fetch('http://localhost:3000/register', {
+				method: 'POST',
+				body: formData,
+			});
+
+			const result = await response.json();
+			console.log('Server Response:', result);
+		} catch (error) {
+			console.error('Error submitting form:', error);
+		}
 	});
 
 	return form;
 }
-
