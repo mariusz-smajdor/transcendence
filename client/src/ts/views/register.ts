@@ -102,16 +102,23 @@ function Heading(): HTMLElement {
 }
 
 export default function Register(): HTMLElement {
-	// create secrion container element
 	const form = document.createElement('form');
 	form.classList.add('max-w-md', 'mx-auto', 'mt-10', 'p-6');
 
+	const usernameInput = Input('text', 'Username') as HTMLInputElement;
+	const emailInput = Input('email', 'Email') as HTMLInputElement;
+	const passwordInput = Input('password', 'Password') as HTMLInputElement;
+	const confirmPasswordInput = Input('password', 'Confirm Password') as HTMLInputElement;
+
+	const pictureInputWrapper = PictureInput();
+	const fileInput = pictureInputWrapper.querySelector('input[type=file]') as HTMLInputElement;
+
 	form.appendChild(Heading());
-	form.appendChild(PictureInput());
-	form.appendChild(Input('text', 'Username'));
-	form.appendChild(Input('email', 'Email'));
-	form.appendChild(Input('password', 'Password'));
-	form.appendChild(Input('password', 'Confirm Password'));
+	form.appendChild(pictureInputWrapper);
+	form.appendChild(usernameInput);
+	form.appendChild(emailInput);
+	form.appendChild(passwordInput);
+	form.appendChild(confirmPasswordInput);
 	form.appendChild(
 		Button({
 			type: 'submit',
@@ -121,5 +128,19 @@ export default function Register(): HTMLElement {
 	form.appendChild(Separator());
 	form.appendChild(GoogleButton());
 
+	form.addEventListener('submit', (event) => {
+		event.preventDefault();
+		const formData = {
+			username: usernameInput.value,
+			email: emailInput.value,
+			password: passwordInput.value,
+			confirmPassword: confirmPasswordInput.value,
+			avatar: fileInput.files?.[0] || null,
+		};
+
+		console.log('Form Data:', formData);
+	});
+
 	return form;
 }
+
