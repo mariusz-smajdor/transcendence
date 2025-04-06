@@ -1,17 +1,17 @@
 {
-  "type": "module",
-  "scripts": {
-    "start": "node src/app.js",
-    "dev": "nodemon --legacy-watch src/app.js"
-  },
-  "dependencies": {
-    "@fastify/cors": "^11.0.1",
-    "@fastify/multipart": "^9.0.3",
-    "fastify": "^5.2.1",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.9"
-  }
+	"dependencies": {
+		"@fastify/cookie": "^11.0.2",
+		"@fastify/cors": "^11.0.1",
+		"@fastify/jwt": "^9.1.0",
+		"@fastify/multipart": "^9.0.3",
+		"@fastify/websocket": "^11.0.2",
+		"better-sqlite3": "^11.9.1",
+		"fastify": "^5.2.2"
+	},
+	"devDependencies": {
+		"nodemon": "^3.1.9"
+	},
+	"scripts": {
+		"dev": "nodemon server.js"
+	}
 }
