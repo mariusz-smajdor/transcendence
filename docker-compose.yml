@@ -1,17 +1,17 @@
 services:
-  server:
-    build: ./server
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./server:/app
-      - ./server/database:/app/database
-      - /app/node_modules
+    server:
+        build: ./server
+        ports:
+            - '3000:3000'
+        volumes:
+            - ./server:/app
+            - ./server/database:/app/database
+            - /app/node_modules
 
-  client:
-    build: ./client
-    ports:
-      - "8080:80"
-    volumes:
-      - ./client:/usr/share/nginx/html
-    restart: always
+    client:
+        build: ./client
+        ports:
+            - '8080:80'
+        volumes:
+            - ./client:/usr/share/nginx/html
+        restart: always
