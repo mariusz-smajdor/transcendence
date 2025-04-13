@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# Vova was here
 echo "Building the project..."
 cd client
 npm install
