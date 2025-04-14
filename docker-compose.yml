@@ -5,7 +5,6 @@ services:
             - '3000:3000'
         volumes:
             - ./server:/app
-            - ./server/database:/app/database
             - /app/node_modules
 
     client:
