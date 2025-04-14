@@ -1,5 +1,5 @@
 import { Router } from './router.js';
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
 	new Router();
 });

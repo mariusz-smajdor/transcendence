@@ -27,15 +27,15 @@ export function GoogleButton(): HTMLElement {
 	button.classList.add(
 		'relative',
 		'bg-white',
-		'text-slate-900',
 		'border',
+		'text-slate-900',
 		'border-gray-300',
-		'hover:bg-gray-100',
+		'hover:bg-gray-100'
 	);
-// append svg icon from ../assets/google.svg
+
 	const svg = document.createElement('img');
 	svg.src = '../../assets/google.svg';
-	svg.classList.add('w-6', 'h-6', 'absolute', 'left-26');
+	svg.classList.add('h-6', 'w-6', 'absolute', 'left-26');
 	svg.alt = 'Google logo';
 	button.prepend(svg);
 	return button;
