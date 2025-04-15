@@ -4,7 +4,12 @@ import { Icon } from '../components/icon.js';
 
 function LogoWrapper() {
 	const wrapper = document.createElement('div');
-	wrapper.classList.add('flex', 'items-center', 'gap-2');
+	wrapper.classList.add('flex', 'items-center', 'gap-2', 'cursor-pointer');
+
+	wrapper.addEventListener('click', () => {
+		window.location.href = '/';
+	});
+
 	return wrapper;
 }
 
@@ -20,7 +25,13 @@ export default function Header(): HTMLElement {
 			classes: ['text-xl'],
 		})
 	);
-	logoWrapper.appendChild(Title({ level: 2, content: 'Super Pong' }));
+	logoWrapper.appendChild(
+		Title({
+			level: 2,
+			content: 'Super Pong',
+			classes: ['text-nowrap'],
+		})
+	);
 	container.appendChild(logoWrapper);
 	header.appendChild(container);
 	return header;
