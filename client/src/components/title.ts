@@ -1,4 +1,4 @@
-import { ComponentProps } from '../types/component';
+import { type ComponentProps } from '../types/component';
 
 interface TitileProps extends ComponentProps {
 	level: 1 | 2 | 3 | 4 | 5 | 6;

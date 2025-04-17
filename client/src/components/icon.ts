@@ -1,5 +1,5 @@
-import { ComponentProps } from '../types/component';
 import { type IconNode, createElement } from 'lucide';
+import { type ComponentProps } from '../types/component';
 
 interface IconProps extends ComponentProps {
 	icon: IconNode;
