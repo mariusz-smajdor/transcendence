@@ -1,7 +1,8 @@
-import Header from './components/header.js';
+import Home from './views/home.js';
 import Register from './views/register.js';
 import Login from './views/login.js';
 import NotFound from './views/notfound.js';
+import Header from './layout/header.js';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -9,6 +10,7 @@ export class Router {
 
 	constructor() {
 		this.routes = {
+			'/': Home,
 			'/login': Login,
 			'/register': Register,
 		};
