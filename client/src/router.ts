@@ -1,8 +1,8 @@
-import Home from './views/home.js';
-import Register from './views/register.js';
-import Login from './views/login.js';
-import NotFound from './views/notfound.js';
-import Header from './layout/header.js';
+import Home from './views/home.ts';
+import Register from './views/register.ts';
+import Login from './views/login.ts';
+import NotFound from './views/notfound.ts';
+import Header from './layout/header.ts';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');

@@ -1,17 +1,20 @@
 {
+	"name": "client",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
 	"scripts": {
-		"build": "concurrently \"tsc --watch\" \"npx @tailwindcss/cli -i ./src/css/tailwind/input.css -o ./src/css/tailwind/output.css --watch\""
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview"
 	},
 	"devDependencies": {
-		"@tailwindcss/cli": "^4.0.16",
-		"concurrently": "^9.1.2",
-		"prettier": "^3.5.3",
-		"prettier-plugin-tailwindcss": "^0.6.11",
-		"tailwindcss": "^4.0.16",
-		"typescript": "^5.8.2"
+		"typescript": "~5.7.2",
+		"vite": "^6.3.1"
 	},
 	"dependencies": {
+		"@tailwindcss/vite": "^4.1.4",
 		"lucide": "^0.488.0",
-		"vite": "^6.3.1"
+		"tailwindcss": "^4.1.4"
 	}
 }
