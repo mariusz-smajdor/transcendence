@@ -9,5 +9,9 @@
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"tailwindcss": "^4.0.16",
 		"typescript": "^5.8.2"
+	},
+	"dependencies": {
+		"lucide": "^0.488.0",
+		"vite": "^6.3.1"
 	}
 }

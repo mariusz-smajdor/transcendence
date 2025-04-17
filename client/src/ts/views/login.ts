@@ -36,7 +36,7 @@ function Input(type: string, placeholder: string): HTMLElement {
 	input.classList.add(
 		'rounded',
 		'border',
-		'border-gray-300',
+		'border-border',
 		'p-2',
 		'mb-4',
 		'w-full'

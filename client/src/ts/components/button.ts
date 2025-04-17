@@ -1,20 +1,19 @@
-interface ButtonType {
-	type: 'button' | 'submit' | 'reset';
+interface ButtonProps {
 	content: string;
+	type?: 'button' | 'submit' | 'reset';
 }
 
-export function Button({ type, content }: ButtonType): HTMLElement {
+export function Button({ content, type = 'button' }: ButtonProps) {
 	const button = document.createElement('button');
+	button.textContent = content;
 	button.type = type;
 	button.classList.add(
+		'flex',
+		'items-center',
+		'gap-2',
 		'rounded-full',
-		'bg-blue-500',
-		'text-white',
-		'p-2',
-		'mb-4',
-		'w-full'
+		'cursor-pointer'
 	);
-	button.textContent = content;
 
 	return button;
 }
