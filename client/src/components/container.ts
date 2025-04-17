@@ -1,6 +1,8 @@
-export function Container(classes: string[] = []): HTMLDivElement {
-	const container: HTMLDivElement = document.createElement('div');
-	container.classList.add('container', 'mx-auto', 'px-6', ...classes);
+import { ComponentProps } from '../types/component';
 
-	return container;
+export function Container({ classes = [] }: ComponentProps) {
+	const div = document.createElement('div');
+	div.classList.add('container', 'mx-auto', 'px-6', ...classes);
+
+	return div;
 }
