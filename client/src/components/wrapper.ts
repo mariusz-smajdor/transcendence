@@ -1,6 +1,8 @@
-export function Wrapper(classes: string[] = []): HTMLDivElement {
-	const wrapper = document.createElement('div');
-	wrapper.classList.add(...classes);
+import { type ComponentProps } from '../types/component';
 
-	return wrapper;
+export function Wrapper({ classes }: ComponentProps) {
+	const div = document.createElement('div');
+	div.classList.add(...classes!);
+
+	return div;
 }
