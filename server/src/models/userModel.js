@@ -1,4 +1,3 @@
-const openDatabase = require('./database')
 const Password = require('../services/passwordService')
 const {
 	validateUserCredentials,
@@ -19,7 +18,7 @@ class User {
 		)
 
 		if (!isValid.success) {
-			return { success: false, message: isValid.message }
+			return { success: false, message: isValid.message, code: 500 }
 		}
 
 		try {
@@ -35,10 +34,24 @@ class User {
 				code: 200,
 			}
 		} catch (err) {
-			if (err.code === 'SQLITE_CONSTRAINT') {
+			if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+				if (err.message.includes('username')) {
+					return {
+						success: false,
+						message: 'Username already exists',
+						code: 400,
+					}
+				}
+				if (err.message.includes('email')) {
+					return {
+						success: false,
+						message: 'Email already exists',
+						code: 400,
+					}
+				}
 				return {
 					success: false,
-					message: 'Username already exists',
+					message: 'User already exists',
 					code: 400,
 				}
 			} else {

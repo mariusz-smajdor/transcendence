@@ -1,7 +1,14 @@
 const User = require('../models/userModel')
 
 const registrationHandler = async (req, res) => {
-	const { username, password, email } = req.body
+	const { username, password, confirmPassword, email } = req.body
+
+	if (password !== confirmPassword) {
+		return res.status(400).send({
+			success: false,
+			message: 'Passwords do not match',
+		})
+	}
 
 	const user = new User(username, password, email)
 
