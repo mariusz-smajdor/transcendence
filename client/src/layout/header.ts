@@ -1,5 +1,4 @@
 import { CircleMinus } from 'lucide';
-
 import { Container } from '../components/container';
 import { Wrapper } from '../components/wrapper';
 import { Icon } from '../components/icon';

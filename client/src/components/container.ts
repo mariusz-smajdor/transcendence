@@ -1,4 +1,4 @@
-import { ComponentProps } from '../types/component';
+import { type ComponentProps } from '../types/component';
 
 export function Container({ classes = [] }: ComponentProps) {
 	const div = document.createElement('div');
