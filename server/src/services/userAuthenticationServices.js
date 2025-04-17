@@ -39,7 +39,7 @@ const validateUserCredentials = (username, password, email) => {
 		}
 	}
 
-	return { success: true }
+	return { success: true, message: 'Valid credentials' }
 }
 
 module.exports = {
