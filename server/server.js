@@ -1,4 +1,4 @@
-const fastify = require("fastify")();
+const fastify = require("fastify")({ logger: true });
 const fjwt = require("@fastify/jwt");
 const fCookie = require("@fastify/cookie");
 const dbConnector = require("./src/models/database");
@@ -71,7 +71,8 @@ fastify.register(privateChatRoutes); // /privateChat/userId
 // Start server after all plugins are loaded
 fastify.ready((err) => {
   if (err) {
-    fastify.log.error("Error during plugin registration:", err);
+    fastify.log.error(err); // Log the actual error object to get full details
+    console.error("Full error during plugin registration:", err); // Extra verbose output
     process.exit(1);
   }
 
