@@ -1,7 +1,8 @@
-export interface LinkProps {
+import { ComponentProps } from '../types/component';
+
+interface LinkProps extends ComponentProps {
 	content: string;
 	href: string;
-	classes?: string[];
 }
 
 export function Link({ content, href, classes = [] }: LinkProps) {
