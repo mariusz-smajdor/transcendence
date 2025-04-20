@@ -8,7 +8,7 @@ interface TitileProps extends ComponentProps {
 export function Title({ level, content, classes = [] }: TitileProps) {
 	const h = document.createElement(`h${level}`);
 	h.textContent = content;
-	h.classList.add('text-xl', ...classes!);
+	h.classList.add('font-bold', 'text-xl', 'mt-7', ...classes!);
 
 	return h;
 }
