@@ -1,8 +1,12 @@
 import { type ComponentProps } from '../types/component';
 
-export function Container({ classes = [] }: ComponentProps) {
-	const div = document.createElement('div');
-	div.classList.add('container', 'mx-auto', 'px-6', ...classes);
+interface ContainerProps extends ComponentProps {
+	element?: 'div' | 'section' | 'main';
+}
 
-	return div;
+export function Container({ element = 'div', classes = [] }: ContainerProps) {
+	const container = document.createElement(element);
+	container.classList.add('container', 'mx-auto', 'px-6', ...classes);
+
+	return container;
 }
