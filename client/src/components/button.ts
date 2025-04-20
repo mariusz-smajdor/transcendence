@@ -1,4 +1,5 @@
 import type { ButtonProps, ButtonSize, ButtonVariant } from '../types/button';
+import { Img } from './img';
 import { Link } from './link';
 
 function getSizeClasses(size: ButtonSize) {
@@ -8,7 +9,7 @@ function getSizeClasses(size: ButtonSize) {
 		case 'sm':
 			return ['px-3', 'py-1', 'text-sm'];
 		case 'md':
-			return ['px-3', 'py-1'];
+			return ['px-3', 'py-1.5', 'text-sm'];
 		case 'lg':
 			return ['px-4.5', 'py-1.5'];
 	}
@@ -33,7 +34,27 @@ function getVariantClasses(variant: ButtonVariant) {
 				'hover:bg-accent',
 				'hover:border-accent',
 			];
+		case 'outline':
+			return ['bg-transparent', 'border', 'border-accent', 'hover:bg-accent'];
 	}
+}
+
+export function GoogleButton() {
+	const button = Button({
+		type: 'button',
+		content: 'Authorize with Google',
+		variant: 'outline',
+		classes: ['w-full', 'gap-3', 'flex', 'flex-row-reverse', 'justify-center'],
+	});
+	const googleLogo = Img({
+		src: '../../public/google-logo.svg',
+		alt: 'Google logo',
+		width: 18,
+		height: 18,
+	});
+	button.appendChild(googleLogo);
+
+	return button;
 }
 
 export function Button({

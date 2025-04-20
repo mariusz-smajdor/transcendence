@@ -1,80 +1,66 @@
-import { Button, GoogleButton } from '../components/button.js';
+import { Container } from '../components/container';
+import { Wrapper } from '../components/wrapper';
+import { Form, Separator } from '../components/form';
+import { Input } from '../components/input';
+import { Label } from '../components/label';
+import { Title } from '../components/title';
+import { Button, GoogleButton } from '../components/button';
+import { Paragraph } from '../components/paragraph';
+import { Link } from '../components/link';
 
-function Separator(): HTMLElement {
-	const wrapper = document.createElement('div');
-	wrapper.classList.add(
-		'flex',
-		'items-center',
-		'justify-center',
-		'mb-4',
-		'text-gray-500'
-	);
-
-	const separator = document.createElement('div');
-	separator.classList.add(
-		'border-b-1',
-		'border-gray-300',
-		'h-1',
-		'w-full',
-		'mx-1'
-	);
-
-	const span = document.createElement('span');
-	span.textContent = 'or';
-
-	wrapper.appendChild(separator);
-	wrapper.appendChild(span);
-	wrapper.appendChild(separator.cloneNode(true));
+function AuthLink() {
+	const wrapper = Wrapper({
+		classes: ['flex', 'gap-1', 'w-full'],
+	});
+	const p = Paragraph({
+		content: "Don't have an account? ",
+		classes: ['text-sm', 'mt-[0]'],
+	});
+	const link = Link({
+		content: 'Sign up',
+		href: 'register',
+		classes: ['text-sm', 'text-primary'],
+	});
+	p.appendChild(link);
+	wrapper.appendChild(p);
 
 	return wrapper;
 }
 
-function Input(type: string, placeholder: string): HTMLElement {
-	const input = document.createElement('input');
+function AuthForm() {
+	const form = Form({ method: 'POST' });
 
-	input.type = type;
-	input.classList.add(
-		'rounded',
-		'border',
-		'border-border',
-		'p-2',
-		'mb-4',
-		'w-full'
-	);
-	input.placeholder = placeholder;
+	const usernameInput = Input({
+		id: 'username',
+		name: 'username',
+		type: 'text',
+		required: true,
+	});
+	const passwordInput = Input({
+		id: 'password',
+		name: 'password',
+		type: 'password',
+		required: true,
+	});
 
-	return input;
-}
+	const usernameWrapper = Wrapper({});
+	usernameWrapper.appendChild(Label({ content: 'Username', id: 'username' }));
+	usernameWrapper.appendChild(usernameInput);
 
-function Heading(): HTMLElement {
-	const heading = document.createElement('h1');
-	heading.textContent = 'Login';
-	heading.classList.add('text-2xl', 'font-bold', 'mb-4');
+	const passwordWrapper = Wrapper({});
+	passwordWrapper.appendChild(Label({ content: 'Password', id: 'password' }));
+	passwordWrapper.appendChild(passwordInput);
 
-	return heading;
-}
-
-export default function Login(): HTMLElement {
-	const form = document.createElement('form');
-	form.classList.add('max-w-md', 'mx-auto', 'mt-10', 'p-6');
-
-	const usernameInput = Input('text', 'Username') as HTMLInputElement;
-	const passwordInput = Input('password', 'Password') as HTMLInputElement;
-
-	form.appendChild(Heading());
-	form.appendChild(usernameInput);
-	form.appendChild(passwordInput);
 	form.appendChild(
-		Button({
-			type: 'submit',
-			content: 'Sign Up',
-		})
+		Title({ level: 1, content: 'Sign in', classes: ['font-light', 'mt-0'] })
 	);
-	form.appendChild(Separator());
-	form.appendChild(GoogleButton());
+	form.appendChild(usernameWrapper);
+	form.appendChild(passwordWrapper);
+	form.appendChild(Button({ type: 'submit', content: 'Sign in' }));
 
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
+
 		const object = {
 			username: usernameInput.value,
 			password: passwordInput.value,
@@ -98,4 +84,27 @@ export default function Login(): HTMLElement {
 	});
 
 	return form;
+}
+
+export default function Login() {
+	const container = Container({
+		element: 'main',
+		classes: [
+			'h-screen',
+			'flex',
+			'flex-col',
+			'items-center',
+			'justify-center',
+			'gap-4',
+			'w-full',
+			'max-w-sm',
+		],
+	});
+
+	container.appendChild(AuthForm());
+	container.appendChild(AuthLink());
+	container.appendChild(Separator());
+	container.appendChild(GoogleButton());
+
+	return container;
 }
