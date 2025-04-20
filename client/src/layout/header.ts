@@ -1,8 +1,8 @@
-import { CircleMinus, Menu as Bars, LogIn, ClipboardPen } from 'lucide';
+import { Eclipse, Menu as Bars, LogIn, ClipboardPen } from 'lucide';
 import { Container } from '../components/container';
 import { Wrapper } from '../components/wrapper';
 import { Icon } from '../components/icon';
-import { Title } from '../components/title';
+import { Span } from '../components/span';
 import { Button } from '../components/button';
 import { Link } from '../components/link';
 import {
@@ -97,24 +97,20 @@ function Menu() {
 	const wrapper = Wrapper({});
 	wrapper.appendChild(DesktopMenu());
 	wrapper.appendChild(MobileMenu());
+
 	return wrapper;
 }
 
 function Logo() {
 	const wrapper = Wrapper({
-		classes: ['flex', 'cursor-pointer', 'items-center', 'gap-2', 'select-none'],
+		classes: ['flex', 'cursor-pointer', 'items-center', 'gap-1', 'select-none'],
 	});
 	wrapper.addEventListener('click', () => {
 		window.location.href = '/';
 	});
-	wrapper.appendChild(Icon({ icon: CircleMinus, size: 'lg' }));
-	wrapper.appendChild(
-		Title({
-			level: 2,
-			content: 'Super Pong',
-			classes: ['text-nowrap'],
-		})
-	);
+	wrapper.appendChild(Icon({ icon: Eclipse, strokeWidth: 3, size: 'md' }));
+	wrapper.appendChild(Span({ content: 'Super Pong', classes: ['font-bold'] }));
+
 	return wrapper;
 }
 
