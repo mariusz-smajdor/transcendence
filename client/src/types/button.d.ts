@@ -1,7 +1,7 @@
 import { ComponentProps } from './component';
 
 export type ButtonSize = 'icon' | 'sm' | 'md' | 'lg';
-export type ButtonVariant = 'primary' | 'ghost';
+export type ButtonVariant = 'primary' | 'ghost' | 'outline';
 
 interface ButtonSharedProps extends ComponentProps {
 	type?: 'button' | 'submit';
