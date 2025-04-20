@@ -37,7 +37,9 @@ function DesktopMenu() {
 		size: 'sm',
 		href: 'register',
 		content: 'Sign up',
+		classes: ['flex', 'items-center', 'gap-1'],
 	});
+	signUpLink.appendChild(Icon({ icon: ClipboardPen, size: 'sm' }));
 
 	wrapper.appendChild(signInLink);
 	wrapper.appendChild(signUpLink);
