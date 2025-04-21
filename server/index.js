@@ -45,9 +45,10 @@ fastify.after((err) => {
 
 fastify.register(multipart);
 fastify.register(cors, {
-  origin: '*',
+  origin: 'http://localhost:8080',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
+  credentials: true,
 });
 
 // Register websockets
