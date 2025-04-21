@@ -74,38 +74,38 @@ class User {
         };
       }
 
-      // Check if 2FA is enabled (totp_secret exists)
-      if (user.totp_secret) {
-        if (!totpToken) {
-          // 2FA is required but no token provided
-          return {
-            success: false,
-            message: '2FA token required',
-            requires2FA: true,
-            user: {
-              id: user.id,
-              username: user.username,
-              email: user.email,
-            },
-            code: 401,
-          };
-        }
+      // // Check if 2FA is enabled (totp_secret exists)
+      // if (user.totp_secret) {
+      //   if (!totpToken) {
+      //     // 2FA is required but no token provided
+      //     return {
+      //       success: false,
+      //       message: '2FA token required',
+      //       requires2FA: true,
+      //       user: {
+      //         id: user.id,
+      //         username: user.username,
+      //         email: user.email,
+      //       },
+      //       code: 401,
+      //     };
+      //   }
 
-        // Verify TOTP token
-        const isTotpValid = speakeasy.totp.verify({
-          secret: user.totp_secret,
-          encoding: 'base32',
-          token: totpToken,
-        });
+      //   // Verify TOTP token
+      //   const isTotpValid = speakeasy.totp.verify({
+      //     secret: user.totp_secret,
+      //     encoding: 'base32',
+      //     token: totpToken,
+      //   });
 
-        if (!isTotpValid) {
-          return {
-            success: false,
-            message: 'Invalid 2FA token',
-            code: 401,
-          };
-        }
-      }
+      //   if (!isTotpValid) {
+      //     return {
+      //       success: false,
+      //       message: 'Invalid 2FA token',
+      //       code: 401,
+      //     };
+      //   }
+      // }
 
       // Login successful (either no 2FA or 2FA verified)
       return {
