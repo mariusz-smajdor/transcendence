@@ -1,7 +1,7 @@
 import User from '../models/userModel.js';
 
 export const registrationHandler = async (req, res) => {
-  const { username, password, confirmPassword, email, totpToken } = req.body;
+  const { username, password, confirmPassword, email } = req.body;
 
   if (password !== confirmPassword) {
     return res.status(400).send({
@@ -12,34 +12,36 @@ export const registrationHandler = async (req, res) => {
 
   const user = new User(username, password, email);
 
-  const { success, message, code } = await user.register(req.context.config.db);
+  const { success, message, code, qrCode, secret } = await user.register(
+    req.context.config.db,
+  );
 
-  return res.status(code).send({ success, message });
+  return res.status(code).send({ success, message, code, qrCode, secret });
 };
 
 export const loginHandler = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, totpToken } = req.body;
   const userData = new User(username, password);
 
   const { success, message, user, code } = await userData.login(
     req.context.config.db,
+    totpToken,
   );
-  if (success) {
-    const payload = {
-      userId: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    };
-    const token = req.jwt.sign(payload, { expiresIn: '1h' });
-    res.setCookie('access_token', token, {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-    });
-    return res.status(code).send({ success, message, user });
-  } else {
-    return res.status(code).send({ success, message });
-  }
+
+  if (!success) return res.status(code).send({ success, message });
+
+  const payload = {
+    userId: user.id,
+    username: user.username,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+  };
+  const token = req.jwt.sign(payload, { expiresIn: '1h' });
+  res.setCookie('access_token', token, {
+    path: '/',
+    httpOnly: true,
+    secure: true,
+  });
+  return res.status(code).send({ success, message, user });
 };
