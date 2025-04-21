@@ -1,29 +1,32 @@
-const Database = require('better-sqlite3')
-const path = require('path')
-const fp = require('fastify-plugin')
+import Database from 'better-sqlite3';
+import * as path from 'path';
+import fp from 'fastify-plugin';
+import { fileURLToPath } from 'url';
 
-const DB_PATH = path.join(__dirname, '..', '..', 'database.db')
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const DB_PATH = path.join(dirname, '..', '..', 'database.db');
 
 const dbConnector = async (fastify, options) => {
-	const db = new Database(DB_PATH)
+  console.log(DB_PATH);
+  const db = new Database(DB_PATH);
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      totp_secret TEXT NOT NULL
+    );
+  `);
 
-	db.exec(`
-		CREATE TABLE IF NOT EXISTS users (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			username TEXT UNIQUE NOT NULL,
-			password TEXT NOT NULL,
-			email TEXT UNIQUE NOT NULL
-		);
-	`)
+  fastify.decorate('db', db);
+  fastify.addHook('onClose', (instance, done) => {
+    instance.db.close();
+    done();
+  });
 
-	fastify.decorate('db', db)
+  return db;
+};
 
-	fastify.addHook('onClose', (instance, done) => {
-		instance.db.close()
-		done()
-	})
-
-	return db
-}
-
-module.exports = fp(dbConnector)
+export default fp(dbConnector);

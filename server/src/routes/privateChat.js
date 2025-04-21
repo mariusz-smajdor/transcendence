@@ -1,7 +1,7 @@
-const { privateChatHandler } = require('../controllers/privateChatController')
+import { privateChatHandler } from '../controllers/privateChatController.js';
 
 async function privateChatRoutes(fastify) {
-	fastify.get('/privateChat/:userId', { websocket: true }, privateChatHandler)
+  fastify.get('/privateChat/:userId', { websocket: true }, privateChatHandler);
 }
 
-module.exports = privateChatRoutes
+export default privateChatRoutes;

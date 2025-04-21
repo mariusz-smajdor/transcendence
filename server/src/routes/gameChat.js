@@ -1,7 +1,7 @@
-const { gameChatHandler } = require('../controllers/gameChatController')
+import { gameChatHandler } from '../controllers/gameChatController.js';
 
 async function gameChatRoutes(fastify) {
-	fastify.get('/gameChat/:gameId', { websocket: true }, gameChatHandler)
+  fastify.get('/gameChat/:gameId', { websocket: true }, gameChatHandler);
 }
 
-module.exports = gameChatRoutes
+export default gameChatRoutes;
