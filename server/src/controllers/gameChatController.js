@@ -1,26 +1,24 @@
-const {
-	handleGameChatConnection,
-	sendMessageToGameRoom,
-	handleGameChatDisconnection,
-} = require('../services/gameChatService')
+import {
+  handleGameChatConnection,
+  sendMessageToGameRoom,
+  handleGameChatDisconnection,
+} from '../services/gameChatService.js';
 
-const gameChatHandler = (socket, req) => {
-	const gameId = req.params.gameId
+export const gameChatHandler = (socket, req) => {
+  const gameId = req.params.gameId;
 
-	if (!gameId) {
-		socket.close(4000, 'Game ID is required')
-		return
-	}
+  if (!gameId) {
+    socket.close(4000, 'Game ID is required');
+    return;
+  }
 
-	handleGameChatConnection(gameId, socket)
+  handleGameChatConnection(gameId, socket);
 
-	socket.on('message', (message) => {
-		sendMessageToGameRoom(gameId, socket, message)
-	})
+  socket.on('message', (message) => {
+    sendMessageToGameRoom(gameId, socket, message);
+  });
 
-	socket.on('close', () => {
-		handleGameChatDisconnection(gameId, socket)
-	})
-}
-
-module.exports = { gameChatHandler }
+  socket.on('close', () => {
+    handleGameChatDisconnection(gameId, socket);
+  });
+};

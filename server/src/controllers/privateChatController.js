@@ -1,30 +1,28 @@
-const {
-	handlePrivateChatConnection,
-	sendMessageToFriend,
-	handlePrivateChatDisconnection,
-} = require('../services/privateChatService')
+import {
+  handlePrivateChatConnection,
+  sendMessageToFriend,
+  handlePrivateChatDisconnection,
+} from '../services/privateChatService.js';
 
-const privateChatHandler = (socket, req) => {
-	const userId = req.params.userId
+export const privateChatHandler = (socket, req) => {
+  const userId = req.params.userId;
 
-	if (!userId) {
-		socket.close(4000, 'User ID is required')
-		return
-	}
+  if (!userId) {
+    socket.close(4000, 'User ID is required');
+    return;
+  }
 
-	handlePrivateChatConnection(userId, socket)
+  handlePrivateChatConnection(userId, socket);
 
-	socket.on('message', (msg) => {
-		const parsedMessage = JSON.parse(msg.toString())
-		const recipientId = parsedMessage.recipientId
-		const message = parsedMessage.message
+  socket.on('message', (msg) => {
+    const parsedMessage = JSON.parse(msg.toString());
+    const recipientId = parsedMessage.recipientId;
+    const message = parsedMessage.message;
 
-		sendMessageToFriend(userId, recipientId, message)
-	})
+    sendMessageToFriend(userId, recipientId, message);
+  });
 
-	socket.on('close', () => {
-		handlePrivateChatDisconnection(userId, socket)
-	})
-}
-
-module.exports = { privateChatHandler }
+  socket.on('close', () => {
+    handlePrivateChatDisconnection(userId, socket);
+  });
+};
