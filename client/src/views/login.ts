@@ -74,6 +74,7 @@ function AuthForm() {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify(object),
+				credentials: 'include',
 			});
 
 			const result = await response.json();
