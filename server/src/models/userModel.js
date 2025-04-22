@@ -1,9 +1,7 @@
-import openDatabase from './database.js';
 import Password from '../services/passwordService.js';
 import { validateUserCredentials } from '../services/userAuthenticationServices.js';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-
 class User {
   constructor(username, password, email) {
     this.username = username;

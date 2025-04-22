@@ -41,3 +41,23 @@ export const validateUserCredentials = (username, password, email) => {
 
   return { success: true, message: 'Valid credentials' };
 };
+
+export const blacklistToken = (db, token, expiresAt) => {
+  const stmt = db.prepare(
+    'INSERT OR IGNORE INTO blacklisted_tokens (token, expires_at) VALUES (?, ?)',
+  );
+  stmt.run(token, expiresAt);
+};
+
+export const isTokenBlacklisted = (db, token) => {
+  const stmt = db.prepare('SELECT 1 FROM blacklisted_tokens WHERE token = ?');
+  return !!stmt.get(token);
+};
+
+export const cleanExpiredTokens = (db) => {
+  const now = Date.now();
+  const stmt = db.prepare(
+    'DELETE FROM blacklisted_tokens WHERE expires_at < ?',
+  );
+  stmt.run(now);
+};
