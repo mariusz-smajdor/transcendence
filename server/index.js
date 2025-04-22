@@ -8,52 +8,43 @@ import gameChatRoutes from './src/routes/gameChat.js';
 import privateChatRoutes from './src/routes/privateChat.js';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import FastifyWebSocket from '@fastify/websocket';
-import FastifyEnv from '@fastify/env';
+import path from 'path';
+import dotenv from 'dotenv';
 
+// Instantiate fastify
 const fastify = Fastify();
 
-// Register .env handling
-fastify.register(FastifyEnv, {
-  confKey: 'config',
-  schema: {
-    type: 'object',
-    required: ['JWT_SECRET', 'COOKIES_SECRET'],
-    properties: {
-      PORT: { type: 'number', default: 3000 },
-      JWT_SECRET: { type: 'string' },
-      COOKIES_SECRET: { type: 'string' },
-    },
-  },
-  dotenv: true, // Automatically load .env file
+// Read the environment
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = path.resolve(__filename, '..');
+const envFilePath = resolve(__dirname, '.env');
+if (!existsSync(envFilePath)) {
+  console.error(`Error: .env file not found at ${envFilePath}`);
+  process.exit(1);
+}
+dotenv.config({ path: envFilePath });
+
+fastify.register(fjwt, { secret: process.env.JWT_SECRET });
+fastify.register(fCookie, {
+  secret: process.env.COOKIES_SECRET,
+  hook: 'preHandler',
 });
-
-// Register .env dependent plugins
-fastify.after((err) => {
-  if (err) {
-    fastify.log.error('Error loading @fastify/env: ', err);
-    process.exit(1);
-  }
-
-  // Register plugins that depend on fastify.config
-  fastify.register(fjwt, { secret: fastify.config.JWT_SECRET });
-
-  fastify.register(fCookie, {
-    secret: fastify.config.COOKIES_SECRET,
-    hook: 'preHandler',
-  });
-});
-
 fastify.register(multipart);
 fastify.register(cors, {
   origin: '*',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
 });
-
-// Register websockets
 fastify.register(FastifyWebSocket, {
   options: { clientTracking: true },
 });
+
+fastify.register(dbConnector);
+
+// Register routes
+fastify.register(userAuthenticationRoutes);
+fastify.register(gameChatRoutes);
+fastify.register(privateChatRoutes);
 
 fastify.addHook('preHandler', (req, res, next) => {
   req.context = req.context || {};
@@ -61,14 +52,7 @@ fastify.addHook('preHandler', (req, res, next) => {
   return next();
 });
 
-// Register database
-fastify.register(dbConnector);
-
-fastify.register(userAuthenticationRoutes); // /register /login /logout
-fastify.register(gameChatRoutes); // /gameChat/gameId
-fastify.register(privateChatRoutes); // /privateChat/userId
-
-fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
+fastify.listen({ port: process.env.PORT || 3000, host: 'localhost' }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
