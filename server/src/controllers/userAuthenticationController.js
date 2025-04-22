@@ -40,8 +40,48 @@ export const loginHandler = async (req, res) => {
   const token = req.jwt.sign(payload, { expiresIn: '1h' });
   res.setCookie('access_token', token, {
     path: '/',
-    httpOnly: true,
-    secure: true,
+    httpOnly: false,
+    secure: false,
   });
   return res.status(code).send({ success, message, user });
+};
+
+export const logoutHandler = async (req, res) => {
+  const db = req.context.config.db;
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(400).send({ error: 'No Authorization header' });
+  }
+
+  const token = authHeader.split(' ')[1]; // "Bearer <token>"
+
+  try {
+    const decoded = req.server.jwt.decode(token);
+
+    if (!decoded || !decoded.exp) {
+      return res.status(400).send({ error: 'Invalid token' });
+    }
+
+    const expiresAt = decoded.exp * 1000; // Convert to ms
+
+    // Insert token into blacklist table
+    const stmt = db.prepare(
+      'INSERT OR IGNORE INTO blacklisted_tokens (token, expires_at) VALUES (?, ?)',
+    );
+    stmt.run(token, expiresAt);
+
+    res.clearCookie('access_token', {
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Strict',
+    });
+
+    return res.send({ success: true, message: 'Logged out successfully' });
+  } catch (err) {
+    console.error('Logout error:', err);
+    return res
+      .status(500)
+      .send({ success: false, message: 'Logged out successfully' });
+  }
 };

@@ -18,6 +18,11 @@ const dbConnector = async (fastify, options) => {
       email TEXT UNIQUE NOT NULL,
       totp_secret TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS blacklisted_tokens (
+      token TEXT PRIMARY KEY,
+      expires_at INTEGER NOT NULL
+    );
   `);
 
   fastify.decorate('db', db);
