@@ -1,6 +1,0 @@
-client/node_modules
-client/src/js
-client/src/css/tailwind/output.css
-
-server/node_modules
-server/database
