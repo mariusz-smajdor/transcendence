@@ -12,25 +12,34 @@ class User {
   }
 
   async register(db) {
-    const isValid = validateUserCredentials(
-      this.username,
-      this.password,
-      this.email,
-    );
-
-    if (!isValid.success) {
-      return { success: false, message: isValid.message, code: 400 };
+    if (this.password) {
+      const isValid = validateUserCredentials(
+        this.username,
+        this.password,
+        this.email,
+      );
+      if (!isValid.success) {
+        return { success: false, message: isValid.message, code: 400 };
+      }
     }
 
     try {
-      const hashedPassword = await Password.hashPassword(this.password);
+      const hashedPassword = null;
+      if (this.password)
+        hashedPassword = await Password.hashPassword(this.password);
+
       const secret = speakeasy.generateSecret({
         name: `Transcendence:${this.username}`,
       });
 
       db.prepare(
         `INSERT INTO users (username, password, email, totp_secret) VALUES (?, ?, ?, ?)`,
-      ).run(this.username, hashedPassword, this.email, secret.base32);
+      ).run(
+        this.username,
+        hashedPassword ? hashedPassword : 'google',
+        this.email,
+        secret.base32,
+      );
 
       return {
         success: true,
@@ -61,19 +70,20 @@ class User {
         return { success: false, message: 'User not found', code: 404 };
       }
 
-      const isPasswordValid = await Password.comparePassword(
-        this.password,
-        user.password,
-      );
+      if (user.password && this.password !== null) {
+        const isPasswordValid = await Password.comparePassword(
+          this.password,
+          user.password,
+        );
 
-      if (!isPasswordValid) {
-        return {
-          success: false,
-          message: 'Invalid password',
-          code: 401,
-        };
+        if (!isPasswordValid) {
+          return {
+            success: false,
+            message: 'Invalid password',
+            code: 401,
+          };
+        }
       }
-
       // Check if 2FA is enabled (totp_secret exists)
       if (user.totp_secret) {
         if (!totpToken) {

@@ -14,7 +14,7 @@ const dbConnector = async (fastify, options) => {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
+      password TEXT,
       email TEXT UNIQUE NOT NULL,
       totp_secret TEXT NOT NULL
     );

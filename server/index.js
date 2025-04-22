@@ -8,8 +8,11 @@ import gameChatRoutes from './src/routes/gameChat.js';
 import privateChatRoutes from './src/routes/privateChat.js';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import FastifyWebSocket from '@fastify/websocket';
+import oauthPlugin from '@fastify/oauth2';
 import path from 'path';
 import dotenv from 'dotenv';
+import url from 'url';
+import fs, { createReadStream } from 'fs';
 
 // Instantiate fastify
 const fastify = Fastify();
@@ -17,9 +20,9 @@ const fastify = Fastify();
 // Read the environment
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.resolve(__filename, '..');
-const envFilePath = resolve(__dirname, '.env');
-if (!existsSync(envFilePath)) {
-  console.error(`Error: .env file not found at ${envFilePath}`);
+const envFilePath = path.resolve(__dirname, '.env');
+if (!fs.existsSync(envFilePath)) {
+  console.error('Error: .env file not found!');
   process.exit(1);
 }
 dotenv.config({ path: envFilePath });
@@ -39,6 +42,27 @@ fastify.register(FastifyWebSocket, {
   options: { clientTracking: true },
 });
 
+// Register OAuth2
+fastify.register(oauthPlugin, {
+  name: 'googleOAuth2',
+  scope: ['profile', 'email'],
+  credentials: {
+    client: {
+      id: process.env.GOOGLE_CLIENT_ID,
+      secret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+    auth: oauthPlugin.GOOGLE_CONFIGURATION,
+  },
+  startRedirectPath: '/login/google',
+  callbackUri: `http://localhost:${
+    process.env.PORT || 3000
+  }/login/google/callback`,
+  callbackUriParams: {
+    access_type: 'offline', // Ensures refresh token is sent
+  },
+});
+
+// Connect database
 fastify.register(dbConnector);
 
 // Register routes
