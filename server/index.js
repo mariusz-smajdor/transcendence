@@ -9,8 +9,16 @@ import privateChatRoutes from './src/routes/privateChat.js';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
+import {
+  cleanExpiredTokens,
+  isTokenBlacklisted,
+} from './src/services/userAuthenticationServices.js';
 
 const fastify = Fastify();
+
+setTimeout(() => {
+  cleanExpiredTokens(fastify.db);
+}, 60 * 60 * 1000);
 
 // Register .env handling
 fastify.register(FastifyEnv, {
@@ -61,6 +69,17 @@ fastify.addHook('preHandler', (req, res, next) => {
   return next();
 });
 
+fastify.addHook('onRequest', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+
+  if (token && isTokenBlacklisted(fastify.db, token)) {
+    return res
+      .status(401)
+      .send({ success: false, message: 'Token is blacklisted' });
+  }
+});
+
 // Register database
 fastify.register(dbConnector);
 
@@ -68,9 +87,18 @@ fastify.register(userAuthenticationRoutes); // /register /login /logout
 fastify.register(gameChatRoutes); // /gameChat/gameId
 fastify.register(privateChatRoutes); // /privateChat/userId
 
+fastify.get('/', async (req, res) => {
+  return res.status(200).send({
+    success: true,
+    message: 'Welcome to the server',
+  });
+});
+
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
+  } else {
+    console.log(`Server listening on ${fastify.server.address().port}`);
   }
 });
