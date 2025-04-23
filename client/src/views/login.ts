@@ -7,6 +7,8 @@ import { Title } from '../components/title';
 import { Button, GoogleButton } from '../components/button';
 import { Paragraph } from '../components/paragraph';
 import { Link } from '../components/link';
+import { getCookie } from '../utils/cookies';
+import { store } from '../state/store';
 
 function AuthLink() {
 	const wrapper = Wrapper({
@@ -61,24 +63,36 @@ function AuthForm() {
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
 
-		const object = {
+		const user = {
 			username: usernameInput.value,
 			password: passwordInput.value,
 		};
 
 		try {
-			console.log(JSON.stringify(object));
 			const response = await fetch('http://localhost:3000/login', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify(object),
+				body: JSON.stringify(user),
 				credentials: 'include',
 			});
 
 			const result = await response.json();
-			console.log('Server Response:', result);
+			if (response.ok && result.success) {
+				const token = getCookie('access_token');
+				store.setState({
+					accessToken: token,
+					user: result.user,
+				});
+
+				console.log('Login successful:', result);
+				console.log(store.getState());
+				debugger;
+				window.location.href = '/';
+			} else {
+				console.error('Login failed:', result.message || 'Unknown error');
+			}
 		} catch (error) {
 			console.error('Error submitting form:', error);
 		}

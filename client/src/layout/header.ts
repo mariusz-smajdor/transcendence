@@ -11,6 +11,7 @@ import {
 	DropdownItem,
 	DropdownSeparator,
 } from '../components/dropdown-menu';
+import { store } from '../state/store';
 
 function DesktopMenu() {
 	const wrapper = Wrapper({
@@ -41,8 +42,39 @@ function DesktopMenu() {
 	});
 	signUpLink.appendChild(Icon({ icon: ClipboardPen, size: 'sm' }));
 
-	wrapper.appendChild(signInLink);
-	wrapper.appendChild(signUpLink);
+	const signOutLink = Button({
+		variant: 'ghost',
+		size: 'sm',
+		content: 'Sign out',
+		classes: ['flex', 'items-center', 'gap-1'],
+	});
+	signOutLink.appendChild(Icon({ icon: LogIn, size: 'sm' }));
+
+	signOutLink.addEventListener('click', async () => {
+		await fetch('http://localhost:3000/logout', {
+			method: 'POST',
+			headers: {
+				Authorization: `Bearer ${store.getState().accessToken}`,
+			},
+			credentials: 'include',
+		});
+		store.setState({ accessToken: null, user: null });
+		window.location.href = '/';
+	});
+
+	function update(wrapper: HTMLElement) {
+		wrapper.innerHTML = '';
+		const state = store.getState();
+		if (state.accessToken) {
+			wrapper.appendChild(signOutLink);
+		} else {
+			wrapper.appendChild(signInLink);
+			wrapper.appendChild(signUpLink);
+		}
+	}
+
+	update(wrapper);
+	store.subscribe(() => update(wrapper));
 
 	return wrapper;
 }
@@ -63,6 +95,12 @@ function MobileMenu() {
 		classes: ['absolute', 'right-0', 'top-12'],
 	});
 
+	const dropdownTitle = DropdownTitle({
+		content: store.getState().user ? 'Account' : 'Join Super Pong!',
+	});
+	dropdownMenu.appendChild(dropdownTitle);
+	dropdownMenu.appendChild(DropdownSeparator());
+
 	const signInItem = DropdownItem({});
 	const signInLink = Link({
 		content: 'Sign in',
@@ -81,10 +119,54 @@ function MobileMenu() {
 	signUpLink.appendChild(Icon({ icon: ClipboardPen, size: 'sm' }));
 	signUpItem.appendChild(signUpLink);
 
-	dropdownMenu.appendChild(DropdownTitle({ content: 'Account' }));
-	dropdownMenu.appendChild(DropdownSeparator());
-	dropdownMenu.appendChild(signInItem);
-	dropdownMenu.appendChild(signUpItem);
+	const signOutItem = DropdownItem({});
+	const signOutLink = Link({
+		content: 'Sign out',
+		href: '/',
+		classes: ['flex', 'w-full', 'items-center', 'justify-between', 'gap-2'],
+	});
+	signOutLink.appendChild(Icon({ icon: LogIn, size: 'sm' }));
+	signOutLink.addEventListener('click', async (e) => {
+		e.preventDefault();
+
+		try {
+			const res = await fetch('http://localhost:3000/logout', {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${store.getState().accessToken}`,
+				},
+				credentials: 'include',
+			});
+
+			if (res.ok) {
+				store.setState({ accessToken: null, user: null });
+				window.location.href = '/';
+			} else {
+				console.error('Logout failed');
+			}
+		} catch (error) {
+			console.error('Error during logout:', error);
+		}
+	});
+	signOutItem.appendChild(signOutLink);
+
+	function update() {
+		// Remove all items except the title and separator
+		dropdownMenu.replaceChildren(dropdownTitle, DropdownSeparator());
+
+		const state = store.getState();
+		dropdownTitle.textContent = state.user ? 'Account' : 'Join Super Pong!';
+
+		if (state.accessToken) {
+			dropdownMenu.appendChild(signOutItem);
+		} else {
+			dropdownMenu.appendChild(signInItem);
+			dropdownMenu.appendChild(signUpItem);
+		}
+	}
+
+	update();
+	store.subscribe(() => update());
 
 	wrapper.appendChild(dropdownMenu);
 	wrapper.appendChild(toggleButton);

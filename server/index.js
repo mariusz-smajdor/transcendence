@@ -55,7 +55,7 @@ fastify.register(multipart);
 fastify.register(cors, {
   origin: 'http://localhost:8080',
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 });
 

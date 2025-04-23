@@ -47,7 +47,7 @@ export function GoogleButton() {
 		classes: ['w-full', 'gap-3', 'flex', 'flex-row-reverse', 'justify-center'],
 	});
 	const googleLogo = Img({
-		src: '../../public/google-logo.svg',
+		src: 'google-logo.svg',
 		alt: 'Google logo',
 		width: 18,
 		height: 18,

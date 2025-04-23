@@ -4,10 +4,12 @@
 @theme {
 	--font-poppins: 'Poppins', sans-serif;
 
+	--radius: 0.5rem;
+
 	--color-primary: oklch(0.705 0.213 47.604);
 	--color-background: oklch(0.95 0 0.005);
 	--color-foreground: oklch(0.191 0.005 285.823);
-	--color-accent: oklch(0.914 0.001 286.375);
+	--color-accent: oklch(0.868 0.001 286.375);
 	--color-muted: oklch(0.552 0.016 285.938);
 }
 

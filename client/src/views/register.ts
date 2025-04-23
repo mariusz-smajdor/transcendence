@@ -7,6 +7,8 @@ import { Title } from '../components/title';
 import { Button, GoogleButton } from '../components/button';
 import { Paragraph } from '../components/paragraph';
 import { Link } from '../components/link';
+import { getCookie } from '../utils/cookies';
+import { store } from '../state/store';
 
 function AuthLink() {
 	const wrapper = Wrapper({
@@ -74,14 +76,14 @@ function AuthForm() {
 	confirmPasswordWrapper.appendChild(confirmPasswordInput);
 
 	form.appendChild(
-		Title({ level: 1, content: 'Sign in', classes: ['font-light', 'mt-0'] })
+		Title({ level: 1, content: 'Sign up', classes: ['font-light', 'mt-0'] })
 	);
 	form.appendChild(emailWrapper);
 	form.appendChild(usernameWrapper);
 	form.appendChild(passwordWrapper);
 	form.appendChild(confirmPasswordWrapper);
 
-	form.appendChild(Button({ type: 'submit', content: 'Sign in' }));
+	form.appendChild(Button({ type: 'submit', content: 'Sign up' }));
 
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
