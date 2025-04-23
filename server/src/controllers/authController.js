@@ -14,7 +14,7 @@ class AuthController {
       req.context.config.db,
     );
 
-    return res.status(code).send({ success, message, code, qrCode, secret });
+    return res.status(code).send({ success, message, qrCode, secret });
   }
 
   async login(req, res) {
