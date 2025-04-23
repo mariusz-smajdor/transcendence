@@ -1,6 +1,5 @@
-import openDatabase from './database.js';
 import Password from '../services/passwordService.js';
-import { validateUserCredentials } from '../services/userAuthenticationServices.js';
+import authService from '../services/authService.js';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 
@@ -13,7 +12,7 @@ class User {
 
   async register(db) {
     if (this.password) {
-      const isValid = validateUserCredentials(
+      const isValid = authService.validateUserCredentials(
         this.username,
         this.password,
         this.email,

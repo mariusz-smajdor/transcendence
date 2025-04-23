@@ -1,19 +1,51 @@
-import * as userAuthController from '../controllers/userAuthenticationController.js';
 import User from '../models/userModel.js';
 
-async function userAuthenticationRoutes(fastify) {
-  fastify.post('/register', async (req, res) => {
-    req.context.config = { db: fastify.db };
-    return await userAuthController.registrationHandler(req, res);
-  });
-  fastify.post('/login', async (req, res) => {
-    req.context.config = { db: fastify.db };
-    return await userAuthController.loginHandler(req, res);
-  });
-  fastify.get('/login/google/callback', async (req, res) => {
+class AuthController {
+  constructor(fastify) {
+    this.fastify = fastify;
+  }
+
+  async register(req, res) {
+    const { username, password, email } = req.body;
+
+    const user = new User(username, password, email);
+
+    const { success, message, code, qrCode, secret } = await user.register(
+      req.context.config.db,
+    );
+
+    return res.status(code).send({ success, message, code, qrCode, secret });
+  }
+
+  async login(req, res) {
+    const { username, password, totpToken } = req.body;
+    const userData = new User(username, password);
+
+    const { success, message, user, code } = await userData.login(
+      req.context.config.db,
+      totpToken,
+    );
+
+    if (!success) return res.status(code).send({ success, message });
+
+    const payload = {
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+    const token = req.jwt.sign(payload, { expiresIn: '1h' });
+    res.setCookie('access_token', token, {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+    });
+    return res.status(code).send({ success, message, user });
+  }
+
+  async loginGoogle(req, res) {
     try {
-      console.log('Query params', req.query);
-      // Get access token and user info from Google
       const { token } =
         await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
       const userInfoResponse = await fetch(
@@ -60,7 +92,7 @@ async function userAuthenticationRoutes(fastify) {
       console.error(err);
       return res.code(500).send({ error: 'Internal server error' });
     }
-  });
+  }
 }
 
-export default userAuthenticationRoutes;
+export default AuthController;

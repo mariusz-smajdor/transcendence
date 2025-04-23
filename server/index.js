@@ -6,16 +6,16 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import gameChatRoutes from './src/routes/gameChat.js';
 import privateChatRoutes from './src/routes/privateChat.js';
-import userAuthenticationRoutes from './src/routes/userAuthentication.js';
+import authRoutes from './src/routes/authRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import oauthPlugin from '@fastify/oauth2';
 import path from 'path';
 import dotenv from 'dotenv';
 import url from 'url';
-import fs, { createReadStream } from 'fs';
+import fs from 'fs';
 
 // Instantiate fastify
-const fastify = Fastify();
+const fastify = Fastify({ logger: true });
 
 // Read the environment
 const __filename = url.fileURLToPath(import.meta.url);
@@ -66,7 +66,7 @@ fastify.register(oauthPlugin, {
 fastify.register(dbConnector);
 
 // Register routes
-fastify.register(userAuthenticationRoutes);
+fastify.register(authRoutes);
 fastify.register(gameChatRoutes);
 fastify.register(privateChatRoutes);
 
