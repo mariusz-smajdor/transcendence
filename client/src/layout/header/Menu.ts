@@ -1,17 +1,15 @@
-import { Eclipse, Menu as Bars, LogIn, ClipboardPen } from 'lucide';
-import { Container } from '../components/container';
-import { Wrapper } from '../components/wrapper';
-import { Icon } from '../components/icon';
-import { Span } from '../components/span';
-import { Button } from '../components/button';
-import { Link } from '../components/link';
+import { ClipboardPen, LogIn, Menu as Bars } from 'lucide';
 import {
-	DropdownMenu,
-	DropdownTitle,
 	DropdownItem,
+	DropdownMenu,
 	DropdownSeparator,
-} from '../components/dropdown-menu';
-import { store } from '../state/store';
+	DropdownTitle,
+} from '../../components/dropdown-menu';
+import { Icon } from '../../components/icon';
+import { Wrapper } from '../../components/wrapper';
+import { store } from '../../state/store';
+import { Link } from '../../components/link';
+import { Button } from '../../components/button';
 
 function DesktopMenu() {
 	const wrapper = Wrapper({
@@ -151,7 +149,6 @@ function MobileMenu() {
 	signOutItem.appendChild(signOutLink);
 
 	function update() {
-		// Remove all items except the title and separator
 		dropdownMenu.replaceChildren(dropdownTitle, DropdownSeparator());
 
 		const state = store.getState();
@@ -177,50 +174,10 @@ function MobileMenu() {
 	return wrapper;
 }
 
-function Menu() {
+export default function Menu() {
 	const wrapper = Wrapper({});
 	wrapper.appendChild(DesktopMenu());
 	wrapper.appendChild(MobileMenu());
 
 	return wrapper;
-}
-
-function Logo() {
-	const wrapper = Wrapper({
-		classes: ['flex', 'cursor-pointer', 'items-center', 'gap-1', 'select-none'],
-	});
-	wrapper.addEventListener('click', () => {
-		window.location.href = '/';
-	});
-	wrapper.appendChild(Icon({ icon: Eclipse, strokeWidth: 3, size: 'md' }));
-	wrapper.appendChild(Span({ content: 'Super Pong', classes: ['font-bold'] }));
-
-	return wrapper;
-}
-
-export default function Header() {
-	const header = document.createElement('header');
-	header.classList.add(
-		'fixed',
-		'top-0',
-		'z-50',
-		'flex',
-		'h-14',
-		'w-full',
-		'items-center',
-		'border-b',
-		'border-accent',
-		'backdrop-blur-sm',
-		'bg-background/50'
-	);
-
-	const container = Container({
-		classes: ['flex', 'items-center', 'justify-between'],
-	});
-
-	container.appendChild(Logo());
-	container.appendChild(Menu());
-	header.appendChild(container);
-
-	return header;
 }
