@@ -2,7 +2,7 @@ import Home from './views/home';
 import Register from './views/register';
 import Login from './views/login';
 import NotFound from './views/notfound';
-import Header from './layout/header';
+import Header from './layout/header/Header';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
