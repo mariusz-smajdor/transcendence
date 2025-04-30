@@ -1,3 +1,4 @@
+import Header from './layout/header';
 import Home from './views/home';
 
 export class Router {
@@ -22,8 +23,6 @@ export class Router {
 	}
 
 	navigateTo(url: string) {
-		console.log(url);
-		alert('Navigating to ' + url);
 		history.pushState(null, '', url);
 		this.loadRoute();
 	}
@@ -34,6 +33,7 @@ export class Router {
 		const view = this.routes[path];
 		if (this.rootElement) {
 			this.rootElement.innerHTML = '';
+			this.rootElement.appendChild(Header());
 			this.rootElement.appendChild(view());
 		}
 	}
