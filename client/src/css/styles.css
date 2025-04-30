@@ -1,0 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+@import 'tailwindcss';
+@import './animations.css';
+
+@theme {
+	--font-poppins: 'Poppins', sans-serif;
+
+	--radius: 0.5rem;
+
+	--color-white: hsl(247, 13%, 96%);
+	--color-background: hsl(240 20% 14%);
+	--color-foreground: hsl(240 21% 18%);
+	--color-primary: hsl(250 83% 75%);
+	--color-secondary: hsl(291 84% 69%);
+	--color-muted: hsl(215 20.2% 65.1%);
+	--color-border: hsl(240 12% 24%);
+}
+
+body {
+	@apply font-poppins;
+	@apply bg-background text-white;
+}
