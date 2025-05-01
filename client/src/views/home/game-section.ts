@@ -5,7 +5,6 @@ import { Card } from '../../components/card';
 import { Heading } from '../../components/heading';
 import { Icon } from '../../components/icon';
 import { Text } from '../../components/text';
-import { Button } from '../../components/button';
 
 function FriendCard() {
 	const card = Card({
