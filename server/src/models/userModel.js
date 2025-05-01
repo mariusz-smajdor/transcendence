@@ -3,10 +3,11 @@ import { validateUserCredentials } from '../services/userAuthenticationServices.
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 class User {
-  constructor(username, password, email) {
+  constructor(username, password, email, avatar = null) {
     this.username = username;
     this.password = password;
     this.email = email;
+    this.avatar = avatar;
   }
 
   async register(db) {
@@ -16,8 +17,8 @@ class User {
       this.email,
     );
 
-    if (!isValid.success) {
-      return { success: false, message: isValid.message, code: 400 };
+    if (isValid) {
+      return { message: isValid, code: 400 };
     }
 
     try {
@@ -27,11 +28,16 @@ class User {
       });
 
       db.prepare(
-        `INSERT INTO users (username, password, email, totp_secret) VALUES (?, ?, ?, ?)`,
-      ).run(this.username, hashedPassword, this.email, secret.base32);
+        `INSERT INTO users (username, password, email, totp_secret, avatar) VALUES (?, ?, ?, ?, ?)`,
+      ).run(
+        this.username,
+        hashedPassword,
+        this.email,
+        secret.base32,
+        this.avatar,
+      );
 
       return {
-        success: true,
         message: 'User registered successfully',
         qrCode: await QRCode.toDataURL(secret.otpauth_url),
         secret: secret.base32,
@@ -40,12 +46,11 @@ class User {
     } catch (err) {
       if (err.code === 'SQLITE_CONSTRAINT') {
         return {
-          success: false,
           message: 'Username already exists',
           code: 400,
         };
       }
-      return { success: false, message: err.message, code: 500 };
+      return { message: err.message, code: 500 };
     }
   }
 
@@ -66,7 +71,6 @@ class User {
 
       if (!isPasswordValid) {
         return {
-          success: false,
           message: 'Invalid password',
           code: 401,
         };
@@ -107,18 +111,17 @@ class User {
 
       // Login successful (either no 2FA or 2FA verified)
       return {
-        success: true,
         message: 'Login successful',
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
+          avatar: user.avatar,
         },
         code: 200,
       };
     } catch (err) {
       return {
-        success: false,
         message: 'Internal server error',
         code: 500,
       };

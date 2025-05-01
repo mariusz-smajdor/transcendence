@@ -18,28 +18,18 @@ const validateEmail = (email) => {
 
 export const validateUserCredentials = (username, password, email) => {
   if (validateUsername(username)) {
-    return {
-      success: false,
-      message: 'Username must be between 3 and 20 characters',
-    };
+    return 'Username must be between 3 and 20 characters';
   }
 
   if (validatePassword(password)) {
-    return {
-      success: false,
-      message:
-        'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-    };
+    return 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character';
   }
 
   if (validateEmail(email)) {
-    return {
-      success: false,
-      message: 'Invalid email format',
-    };
+    return 'Invalid email format';
   }
 
-  return { success: true, message: 'Valid credentials' };
+  return null;
 };
 
 export const blacklistToken = (db, token, expiresAt) => {
