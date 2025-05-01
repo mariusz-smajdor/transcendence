@@ -1,6 +1,11 @@
-import { Card, Heading, Icon, Wrapper, Span, Button } from '../../components';
-import { Tabs, Trigger, Tab } from '../../components/tabs';
 import { Gamepad2, Users, Bot, Trophy } from 'lucide';
+import { Tabs, Trigger, Tab } from '../../components/tabs';
+import { Wrapper } from '../../components/wrapper';
+import { Card } from '../../components/card';
+import { Heading } from '../../components/heading';
+import { Icon } from '../../components/icon';
+import { Text } from '../../components/text';
+import { Button } from '../../components/button';
 
 function FriendCard() {
 	const card = Card({
@@ -40,7 +45,7 @@ function FriendCard() {
 		content: 'Play with Friend',
 		classes: ['text-[1rem]', 'text-center'],
 	});
-	const description = Span({
+	const description = Text({
 		element: 'p',
 		content: 'Challenge your friend on the same device',
 		classes: ['text-sm', 'text-muted', 'text-center'],
@@ -93,7 +98,7 @@ function OnlineCard() {
 		content: '1v1 Online Match',
 		classes: ['text-[1rem]', 'text-center'],
 	});
-	const description = Span({
+	const description = Text({
 		element: 'p',
 		content: 'Challenge your friend online',
 		classes: ['text-sm', 'text-muted', 'text-center'],
@@ -144,7 +149,7 @@ function AiCard() {
 		content: 'Play with AI',
 		classes: ['text-[1rem]'],
 	});
-	const description = Span({
+	const description = Text({
 		element: 'p',
 		content: 'Challenge AI on the same device',
 		classes: ['text-sm', 'text-muted'],
@@ -221,7 +226,7 @@ function TournamentTab() {
 		content: 'Super Tournament',
 		classes: ['text-center'],
 	});
-	const description = Span({
+	const description = Text({
 		element: 'p',
 		content: 'Compete against other players in a tournament format.',
 		classes: ['text-sm', 'text-muted', 'text-center'],
@@ -234,25 +239,12 @@ function TournamentTab() {
 	textWrapper.appendChild(heading);
 	textWrapper.appendChild(description);
 	iconWrapper.appendChild(icon);
-	// With temporary loggedIn variable
-	let loggedIn = false;
-	if (loggedIn) {
-		buttonWraper.appendChild(Button({ content: 'Join', variant: 'primary' }));
-		buttonWraper.appendChild(
-			Button({
-				content: 'Create',
-				variant: 'outline',
-			})
-		);
-	} else {
-		buttonWraper.appendChild(
-			Span({
-				content: 'You must be authenticated to participate in a tournament!',
-				classes: ['text-secondary', 'text-center', 'font-bold'],
-			})
-		);
-	}
-	// With temporary loggedIn variable
+	buttonWraper.appendChild(
+		Text({
+			content: 'You must be authenticated to participate in a tournament!',
+			classes: ['text-secondary', 'text-center', 'font-bold'],
+		})
+	);
 	card.appendChild(iconWrapper);
 	card.appendChild(textWrapper);
 	card.appendChild(buttonWraper);
@@ -265,7 +257,7 @@ function TournamentTab() {
 export default function GameSection() {
 	const section = Card({
 		element: 'section',
-		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-2', 'lg:gap-6'],
+		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],
 	});
 	const heading = Heading({
 		level: 2,
@@ -276,7 +268,7 @@ export default function GameSection() {
 	heading.prepend(
 		Icon({
 			icon: Gamepad2,
-			size: 'xl',
+			size: 'lg',
 			classes: ['text-secondary', 'glow-secondary-animate'],
 		})
 	);
