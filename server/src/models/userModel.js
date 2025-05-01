@@ -23,7 +23,7 @@ class User {
     }
 
     try {
-      const hashedPassword = null;
+      let hashedPassword = null;
       if (this.password)
         hashedPassword = await Password.hashPassword(this.password);
 

@@ -13,6 +13,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import url from 'url';
 import fs from 'fs';
+import userRoutes from './src/routes/userRoutes.js';
 
 // Instantiate fastify
 const fastify = Fastify({ logger: true });
@@ -66,6 +67,7 @@ fastify.register(oauthPlugin, {
 fastify.register(dbPlugin);
 
 // Register routes
+fastify.register(userRoutes);
 fastify.register(authRoutes);
 fastify.register(gameChatRoutes);
 fastify.register(privateChatRoutes);

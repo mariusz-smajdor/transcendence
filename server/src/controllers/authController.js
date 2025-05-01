@@ -11,7 +11,7 @@ class AuthController {
     const user = new User(username, password, email);
 
     const { success, message, code, qrCode, secret } = await user.register(
-      req.context.config.db,
+      this.fastify.db,
     );
 
     return res.status(code).send({ success, message, qrCode, secret });

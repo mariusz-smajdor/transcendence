@@ -13,21 +13,21 @@ function validateEmail(email) {
 
 class AuthService {
   validateUserCredentials(username, password, email) {
-    if (!AuthService.validateUsername(username)) {
+    if (!validateUsername(username)) {
       return {
         success: false,
         message: 'Malformed username',
       };
     }
 
-    if (!AuthService.validatePassword(password)) {
+    if (!validatePassword(password)) {
       return {
         success: false,
         message: 'Malformed password',
       };
     }
 
-    if (!AuthService.validateEmail(email)) {
+    if (!validateEmail(email)) {
       return {
         success: false,
         message: 'Malformed email',
