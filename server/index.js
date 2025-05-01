@@ -1,7 +1,7 @@
 import Fastify from 'fastify';
 import fjwt from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
-import dbConnector from './src/models/database.js';
+import dbPlugin from './src/plugins/dbPlugin.js';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import gameChatRoutes from './src/routes/gameChat.js';
@@ -63,7 +63,7 @@ fastify.register(oauthPlugin, {
 });
 
 // Connect database
-fastify.register(dbConnector);
+fastify.register(dbPlugin);
 
 // Register routes
 fastify.register(authRoutes);
