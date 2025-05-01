@@ -1,5 +1,10 @@
 import { Languages } from 'lucide';
-import { Wrapper, Container, Heading, Span, Button, Icon } from '../components';
+import { Wrapper } from '../components/wrapper';
+import { Container } from '../components/container';
+import { Heading } from '../components/heading';
+import { Icon } from '../components/icon';
+import { Button } from '../components/button';
+import { Text } from '../components/text';
 
 function Menu() {
 	const menu = Wrapper({});
@@ -19,11 +24,11 @@ function Logo() {
 		level: 1,
 		classes: ['cursor-pointer', 'select-none', 'text-xl'],
 	});
-	const logoContent1 = Span({
+	const logoContent1 = Text({
 		content: 'Super',
 		classes: ['text-primary', 'glow-primary-animate'],
 	});
-	const logoContent2 = Span({
+	const logoContent2 = Text({
 		content: 'Pong',
 		classes: ['text-secondary', 'glow-secondary-animate'],
 	});
