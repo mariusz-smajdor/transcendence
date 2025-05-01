@@ -1,6 +1,6 @@
 import { type ComponentProps } from '../types/component';
 
-type ButtonVariant = 'primary' | 'outline' | 'ghost';
+type ButtonVariant = 'primary' | 'outline' | 'ghost' | 'tab';
 
 type ButtonProps = ComponentProps & {
 	variant?: ButtonVariant;
@@ -16,10 +16,21 @@ function getVariantClasses(variant: ButtonVariant) {
 				'text-white',
 				'border',
 				'border-primary',
-				'hover:bg-primary/80',
-				'hover:border-primary/80',
-				'px-2',
-				'py-1',
+				'hover:bg-primary/50',
+				'hover:border-primary/50',
+				'px-3',
+				'py-1.5',
+			];
+		case 'outline':
+			return [
+				'bg-transparent',
+				'border',
+				'border-secondary',
+				'hover:bg-secondary',
+				'text-secondary',
+				'hover:text-white',
+				'px-3',
+				'py-1.5',
 			];
 		case 'ghost':
 			return [
@@ -27,18 +38,10 @@ function getVariantClasses(variant: ButtonVariant) {
 				'bg-transparent',
 				'border',
 				'border-transparent',
-				'hover:bg-primary',
-				'hover:border-primary',
+				'hover:bg-primary/50',
 			];
-		case 'outline':
-			return [
-				'bg-transparent',
-				'border',
-				'border-primary',
-				'hover:bg-primary',
-				'px-2',
-				'py-1',
-			];
+		case 'tab':
+			return ['bg-accent', 'text-muted', 'px-2', 'py-1', 'hover:text-white'];
 	}
 }
 
@@ -56,6 +59,7 @@ export function Button({
 		'rounded',
 		'transition-colors',
 		'duration-300',
+		'text-sm',
 		...getVariantClasses(variant),
 		...classes
 	);
