@@ -13,7 +13,7 @@
 	--color-primary: hsl(250 83% 75%);
 	--color-secondary: hsl(291 84% 69%);
 	--color-muted: hsl(215 20.2% 65.1%);
-	--color-border: hsl(240 12% 24%);
+	--color-accent: hsl(240 12% 24%);
 }
 
 body {
