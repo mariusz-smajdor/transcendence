@@ -5,14 +5,14 @@ type TextProps = ComponentProps & {
 	content?: string;
 };
 
-export function Span({
+export function Text({
 	element = 'span',
 	content = '',
 	classes = [],
 }: TextProps) {
-	const span = document.createElement(element);
-	span.textContent = content;
-	span.classList.add(...classes!);
+	const text = document.createElement(element);
+	text.textContent = content;
+	text.classList.add(...classes!);
 
-	return span;
+	return text;
 }
