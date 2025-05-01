@@ -17,6 +17,13 @@ class UserService {
     }
     return user;
   };
+
+  findAll = () => {
+    const users = this.db
+      .prepare('SELECT id, username, email FROM users')
+      .all();
+    return users;
+  };
 }
 
 export default UserService;

@@ -17,6 +17,14 @@ class UserController {
       data: user,
     };
   };
+
+  getAll = (req, res) => {
+    const users = this.userService.findAll();
+    res.status(200).send({
+      success: true,
+      data: users,
+    });
+  };
 }
 
 export default UserController;
