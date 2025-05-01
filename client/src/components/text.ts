@@ -1,6 +1,6 @@
 import { type ComponentProps } from '../types/component';
 
-type SpanProps = ComponentProps & {
+type TextProps = ComponentProps & {
 	element?: 'span' | 'p';
 	content?: string;
 };
@@ -9,7 +9,7 @@ export function Span({
 	element = 'span',
 	content = '',
 	classes = [],
-}: SpanProps) {
+}: TextProps) {
 	const span = document.createElement(element);
 	span.textContent = content;
 	span.classList.add(...classes!);
