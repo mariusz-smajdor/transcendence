@@ -7,6 +7,7 @@ async function userRoutes(fastify) {
 
   fastify.get('/users/:id', userController.getById);
   fastify.get('/users', userController.getAll);
+  fastify.put('/users/:id', userController.updateById);
 }
 
 export default userRoutes;

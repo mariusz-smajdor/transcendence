@@ -25,6 +25,17 @@ class UserController {
       data: users,
     });
   };
+
+  updateById = (req, res) => {
+    const isUpdated = this.userService.updateOne(
+      { id: req.params.id },
+      req.body,
+    );
+    if (!isUpdated) {
+      return { success: false, message: "couldn't update the user" };
+    }
+    return { success: true, message: 'user was successfully updated' };
+  };
 }
 
 export default UserController;
