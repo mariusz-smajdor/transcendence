@@ -8,7 +8,7 @@ type HeadingProps = ComponentProps & {
 export function Heading({ level, content = '', classes = [] }: HeadingProps) {
 	const heading = document.createElement(`h${level}`);
 	heading.textContent = content;
-	heading.classList.add('font-bold', 'text-xl', ...classes!);
+	heading.classList.add('font-bold', 'text-lg', ...classes!);
 
 	return heading;
 }
