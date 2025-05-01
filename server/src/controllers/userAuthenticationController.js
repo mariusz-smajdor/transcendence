@@ -1,41 +1,37 @@
 import User from '../models/userModel.js';
+import { sendResponse } from '../utils/response.js';
 
 export const registrationHandler = async (req, res) => {
-  const { username, password, confirmPassword, email } = req.body;
+  const { username, password, confirmPassword, email, avatar } = req.body;
 
-  if (password !== confirmPassword) {
-    return res.status(400).send({
-      success: false,
-      message: 'Passwords do not match',
-    });
-  }
+  if (password !== confirmPassword)
+    return sendResponse(res, 400, 'Passwords do not match');
 
-  const user = new User(username, password, email);
+  const user = new User(username, password, email, avatar);
 
-  const { success, message, code, qrCode, secret } = await user.register(
+  const { message, code, qrCode, secret } = await user.register(
     req.context.config.db,
   );
 
-  return res.status(code).send({ success, message, code, qrCode, secret });
+  return sendResponse(res, code, message, { qrCode, secret });
 };
 
 export const loginHandler = async (req, res) => {
   const { username, password, totpToken } = req.body;
   const userData = new User(username, password);
 
-  const { success, message, user, code } = await userData.login(
+  const { message, user, code } = await userData.login(
     req.context.config.db,
     totpToken,
   );
 
-  if (!success) return res.status(code).send({ success, message });
+  if (code >= 400) return sendResponse(res, code, message);
 
   const payload = {
     userId: user.id,
     username: user.username,
     email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
+    avatar: user.avatar,
   };
   const token = req.jwt.sign(payload, { expiresIn: '1h' });
   res.setCookie('access_token', token, {
@@ -43,29 +39,25 @@ export const loginHandler = async (req, res) => {
     httpOnly: false,
     secure: false,
   });
-  return res.status(code).send({ success, message, user });
+  return sendResponse(res, code, message, user);
 };
 
 export const logoutHandler = async (req, res) => {
   const db = req.context.config.db;
   const authHeader = req.headers.authorization;
 
-  if (!authHeader) {
-    return res.status(400).send({ error: 'No Authorization header' });
-  }
+  if (!authHeader) return sendResponse(res, 400, 'No Authorization header');
 
   const token = authHeader.split(' ')[1]; // "Bearer <token>"
 
   try {
     const decoded = req.server.jwt.decode(token);
 
-    if (!decoded || !decoded.exp) {
-      return res.status(400).send({ error: 'Invalid token' });
-    }
+    if (!decoded || !decoded.exp)
+      return sendResponse(res, 400, 'Invalid token');
 
-    const expiresAt = decoded.exp * 1000; // Convert to ms
+    const expiresAt = decoded.exp * 1000;
 
-    // Insert token into blacklist table
     const stmt = db.prepare(
       'INSERT OR IGNORE INTO blacklisted_tokens (token, expires_at) VALUES (?, ?)',
     );
@@ -77,11 +69,30 @@ export const logoutHandler = async (req, res) => {
       sameSite: 'Strict',
     });
 
-    return res.send({ success: true, message: 'Logged out successfully' });
+    return sendResponse(res, 200, 'Logged out successfully');
   } catch (err) {
     console.error('Logout error:', err);
-    return res
-      .status(500)
-      .send({ success: false, message: 'Logged out successfully' });
+    return sendResponse(res, 500, 'Internal server error');
   }
+};
+
+export const meHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) return sendResponse(res, 400, 'No Authorization header');
+
+  const token = authHeader.split(' ')[1]; // "Bearer <token>"
+  const decoded = req.server.jwt.decode(token);
+  if (!decoded) return sendResponse(res, 400, 'Invalid token');
+  const userId = decoded.userId;
+  const db = req.context.config.db;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  if (!user) return sendResponse(res, 404, 'User not found');
+  const payload = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+  };
+  return sendResponse(res, 200, 'User data retrieved successfuly!', payload);
 };
