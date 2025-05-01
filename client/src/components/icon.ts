@@ -14,9 +14,9 @@ function getSizeClasses(size: Size) {
 		case 'sm':
 			return 'h-4 w-4';
 		case 'lg':
-			return 'h-6 w-6';
+			return 'h-7 w-7';
 		case 'xl':
-			return 'h-8 w-8';
+			return 'h-9 w-9';
 		default:
 			return 'h-5 w-5';
 	}
