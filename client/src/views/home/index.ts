@@ -1,15 +1,7 @@
 import GameSection from './game-section';
+import AuthSection from './auth-section';
 import { Container } from '../../components/container';
 import { Card } from '../../components/card';
-
-function AuthSection() {
-	const card = Card({
-		element: 'section',
-		classes: ['lg:col-span-2'],
-	});
-
-	return card;
-}
 
 export default function Home() {
 	const container = Container({
