@@ -1,7 +1,7 @@
 import { type ComponentProps } from '../types/component';
 
 type WrapperProps = ComponentProps & {
-	element?: 'div' | 'main' | 'section' | 'header';
+	element?: 'div' | 'main' | 'section' | 'header' | 'form';
 };
 
 export function Wrapper({ element = 'div', classes = [] }: WrapperProps) {
