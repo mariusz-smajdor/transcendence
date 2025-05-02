@@ -61,7 +61,17 @@ class UserService {
     return info.changes > 0;
   };
 
-  deleteOne = () => {};
+  deleteOne = ({ id }) => {
+    if (!id) {
+      throw new Error('User id is required to delete the user');
+    }
+
+    const query = `DELETE FROM users WHERE id = ?`;
+    const stmt = this.db.prepare(query);
+    const info = stmt.run(id);
+
+    return !!info.changes;
+  };
 }
 
 export default UserService;

@@ -36,6 +36,15 @@ class UserController {
     }
     return { success: true, message: 'user was successfully updated' };
   };
+
+  deleteById = (req, res) => {
+    const isDeleted = this.userService.deleteOne({ id: req.params.id });
+
+    if (!isDeleted) {
+      return { success: false, message: 'user was not deleted' };
+    }
+    return { success: true, message: 'user was successfully deleted' };
+  };
 }
 
 export default UserController;
