@@ -15,7 +15,13 @@ const dbConnector = async (fastify, options) => {
       username TEXT UNIQUE NOT NULL,
       password TEXT,
       email TEXT UNIQUE NOT NULL,
-      totp_secret TEXT NOT NULL
+      totp_secret TEXT NOT NULL,
+      avatar TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS blacklisted_tokens (
+      token TEXT PRIMARY KEY,
+      expires_at INTEGER NOT NULL
     );
   `);
 

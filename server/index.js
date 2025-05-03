@@ -35,9 +35,10 @@ fastify.register(fCookie, {
 });
 fastify.register(multipart);
 fastify.register(cors, {
-  origin: '*',
+  origin: 'http://localhost:8080',
   methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 });
 fastify.register(FastifyWebSocket, {
   options: { clientTracking: true },
@@ -78,9 +79,22 @@ fastify.addHook('preHandler', (req, res, next) => {
   return next();
 });
 
+fastify.addHook('onRequest', async (req, res) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(' ')[1];
+
+  if (token && isTokenBlacklisted(fastify.db, token)) {
+    return res
+      .status(401)
+      .send({ success: false, message: 'Token is blacklisted' });
+  }
+});
+
 fastify.listen({ port: process.env.PORT || 3000, host: 'localhost' }, (err) => {
   if (err) {
     fastify.log.error(err);
     process.exit(1);
+  } else {
+    console.log(`Server listening on ${fastify.server.address().port}`);
   }
 });
