@@ -3,6 +3,7 @@ import { Heading } from '../../components/heading';
 import { Input } from '../../components/input';
 import { Label } from '../../components/label';
 import { Tab } from '../../components/tabs';
+import { Text } from '../../components/text';
 import { Wrapper } from '../../components/wrapper';
 
 function registerUser(
@@ -13,6 +14,15 @@ function registerUser(
 ) {
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
+
+		if (form.lastChild instanceof HTMLSpanElement) {
+			form.removeChild(form.lastChild);
+		}
+
+		const submitMessage = Text({
+			content: '',
+			classes: ['text-red-400', 'text-xs'],
+		});
 
 		const registerData = {
 			email: emailInput.value,
@@ -29,18 +39,35 @@ function registerUser(
 				body: JSON.stringify(registerData),
 			});
 
-			if (!res.ok) {
-				console.log('Error !res.ok:', res.statusText);
-			}
 			const data = await res.json();
-			if (data.error) {
-				console.log('Error data.error:', data.error);
+			if (!data.success) {
+				submitMessage.textContent = data.message;
+				form.appendChild(submitMessage);
 			} else {
-				console.log('User registered successfully:', data);
-				// Optionally, redirect or show a success message
+				submitMessage.textContent =
+					'Registration successful, you can log in now!';
+				submitMessage.classList.remove('text-red-400');
+				submitMessage.classList.add('text-green-400');
+				form.appendChild(submitMessage);
+				emailInput.value = '';
+				usernameInput.value = '';
+				passwordInput.value = '';
+				setTimeout(() => {
+					const loginTab = document.querySelector(
+						'[data-value="login"]'
+					) as HTMLButtonElement;
+					loginTab.click();
+					submitMessage.textContent = '';
+					if (form.lastChild instanceof HTMLSpanElement) {
+						form.removeChild(form.lastChild);
+					}
+				}, 3000);
 			}
 		} catch (error) {
-			console.error('Error registering user:', error);
+			if (error instanceof Error) {
+				submitMessage.textContent = error.message;
+				form.appendChild(submitMessage);
+			}
 		}
 	});
 }
