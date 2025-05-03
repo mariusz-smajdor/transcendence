@@ -5,6 +5,46 @@ import { Label } from '../../components/label';
 import { Tab } from '../../components/tabs';
 import { Wrapper } from '../../components/wrapper';
 
+function registerUser(
+	form: HTMLFormElement,
+	emailInput: HTMLInputElement,
+	usernameInput: HTMLInputElement,
+	passwordInput: HTMLInputElement
+) {
+	form.addEventListener('submit', async (event) => {
+		event.preventDefault();
+
+		const registerData = {
+			email: emailInput.value,
+			username: usernameInput.value,
+			password: passwordInput.value,
+		};
+
+		try {
+			const res = await fetch('http://localhost:3000/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(registerData),
+			});
+
+			if (!res.ok) {
+				console.log('Error !res.ok:', res.statusText);
+			}
+			const data = await res.json();
+			if (data.error) {
+				console.log('Error data.error:', data.error);
+			} else {
+				console.log('User registered successfully:', data);
+				// Optionally, redirect or show a success message
+			}
+		} catch (error) {
+			console.error('Error registering user:', error);
+		}
+	});
+}
+
 export default function Register() {
 	const tab = Tab({
 		value: 'register',
@@ -17,8 +57,9 @@ export default function Register() {
 	});
 	const form = Wrapper({
 		element: 'form',
+		method: 'POST',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
-	});
+	}) as HTMLFormElement;
 	const emailLabel = Label({
 		content: 'Email address:',
 		classes: ['flex', 'flex-col', 'gap-2'],
@@ -52,6 +93,8 @@ export default function Register() {
 		placeholder: '********',
 		required: true,
 	});
+
+	registerUser(form, emailInput, usernameInput, passwordInput);
 
 	emailLabel.appendChild(emailInput);
 	usernameLabel.appendChild(usernameInput);
