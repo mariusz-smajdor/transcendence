@@ -43,7 +43,12 @@ export function Trigger({ content, value }: TriggerProps) {
 	return button;
 }
 
-export function Tabs({ classes, defaultValue, triggers, tabs }: TabsProps) {
+export function Tabs({
+	classes = [],
+	defaultValue,
+	triggers,
+	tabs,
+}: TabsProps) {
 	const wrapper = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6', ...classes!],
 	});
