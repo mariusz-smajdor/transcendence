@@ -4,8 +4,6 @@ import fCookie from '@fastify/cookie';
 import dbPlugin from './src/plugins/dbPlugin.js';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import gameChatRoutes from './src/routes/gameChat.js';
-import privateChatRoutes from './src/routes/privateChat.js';
 import authRoutes from './src/routes/authRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import oauthPlugin from '@fastify/oauth2';
@@ -70,8 +68,6 @@ fastify.register(dbPlugin);
 // Register routes
 fastify.register(userRoutes);
 fastify.register(authRoutes);
-fastify.register(gameChatRoutes);
-fastify.register(privateChatRoutes);
 
 fastify.addHook('preHandler', (req, res, next) => {
   req.context = req.context || {};
