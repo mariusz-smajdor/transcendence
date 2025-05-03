@@ -1,13 +1,12 @@
 import { ComponentProps } from '../types/component';
 
-interface InputProps extends ComponentProps {
+type InputProps = ComponentProps & {
 	type: 'text' | 'email' | 'password';
 	name: string;
 	placeholder?: string;
 	id?: string;
-	disabled?: boolean;
 	required?: boolean;
-}
+};
 
 export function Input({
 	type = 'text',
@@ -23,10 +22,12 @@ export function Input({
 		'rounded',
 		'border',
 		'border-accent',
-		'py-1.5',
 		'px-3',
+		'py-2',
 		'w-full',
-		'text-sm',
+		'outline-primary',
+		'focus:outline-1',
+		'outline-offset-2',
 		...classes
 	);
 	input.name = name;

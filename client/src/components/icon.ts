@@ -3,22 +3,22 @@ import { type ComponentProps } from '../types/component';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl';
 
-interface IconProps extends ComponentProps {
+type IconProps = ComponentProps & {
 	icon: IconNode;
 	strokeWidth?: number;
 	size?: Size;
-}
+};
 
 function getSizeClasses(size: Size) {
 	switch (size) {
 		case 'sm':
 			return 'h-4 w-4';
-		case 'md':
-			return 'h-5 w-5';
 		case 'lg':
-			return 'h-6 w-6';
+			return 'h-7 w-7';
 		case 'xl':
-			return 'h-8 w-8';
+			return 'h-9 w-9';
+		default:
+			return 'h-5 w-5';
 	}
 }
 

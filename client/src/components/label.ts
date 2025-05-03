@@ -1,14 +1,14 @@
-import { ComponentProps } from '../types/component';
+import { type ComponentProps } from '../types/component';
 
-interface LabelProps extends ComponentProps {
+type LabelProps = ComponentProps & {
 	content: string;
 	id?: string;
-}
+};
 
-export function Label({ id, content }: LabelProps) {
+export function Label({ id, content, classes }: LabelProps) {
 	const label = document.createElement('label');
 	label.textContent = content;
-	label.classList.add('text-sm', 'mb-1');
+	label.classList.add('text-sm', ...classes!);
 	if (id) {
 		label.setAttribute('for', id);
 	}

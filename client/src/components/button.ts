@@ -1,19 +1,12 @@
-import type { ButtonProps, ButtonSize, ButtonVariant } from '../types/button';
-import { Img } from './img';
-import { Link } from './link';
+import { type ComponentProps } from '../types/component';
 
-function getSizeClasses(size: ButtonSize) {
-	switch (size) {
-		case 'icon':
-			return ['p-1'];
-		case 'sm':
-			return ['px-3', 'py-1', 'text-sm'];
-		case 'md':
-			return ['px-3', 'py-1.5', 'text-sm'];
-		case 'lg':
-			return ['px-4.5', 'py-1.5'];
-	}
-}
+type ButtonVariant = 'primary' | 'outline' | 'ghost' | 'tab';
+
+type ButtonProps = ComponentProps & {
+	variant?: ButtonVariant;
+	type?: 'button' | 'submit';
+	content?: string;
+};
 
 function getVariantClasses(variant: ButtonVariant) {
 	switch (variant) {
@@ -23,67 +16,53 @@ function getVariantClasses(variant: ButtonVariant) {
 				'text-white',
 				'border',
 				'border-primary',
-				'hover:bg-primary/80',
-				'hover:border-primary/80',
+				'hover:bg-primary/50',
+				'hover:border-primary/50',
+				'px-3',
+				'py-2',
 			];
-		case 'ghost':
+		case 'outline':
 			return [
 				'bg-transparent',
 				'border',
-				'border-transparent',
-				'hover:bg-accent',
-				'hover:border-accent',
+				'border-secondary',
+				'hover:bg-secondary',
+				'text-secondary',
+				'hover:text-white',
+				'px-3',
+				'py-2',
 			];
-		case 'outline':
-			return ['bg-transparent', 'border', 'border-accent', 'hover:bg-accent'];
+		case 'ghost':
+			return [
+				'p-1',
+				'bg-transparent',
+				'border',
+				'border-transparent',
+				'hover:bg-primary/50',
+			];
+		case 'tab':
+			return ['bg-accent', 'text-muted', 'px-2', 'py-1', 'hover:text-white'];
 	}
 }
 
-export function GoogleButton() {
-	const button = Button({
-		type: 'button',
-		content: 'Authorize with Google',
-		variant: 'outline',
-		classes: ['w-full', 'gap-3', 'flex', 'flex-row-reverse', 'justify-center'],
-	});
-	const googleLogo = Img({
-		src: 'google-logo.svg',
-		alt: 'Google logo',
-		width: 18,
-		height: 18,
-	});
-	button.appendChild(googleLogo);
-
-	return button;
-}
-
 export function Button({
-	asLink = false,
 	type = 'button',
 	variant = 'primary',
-	size = 'md',
 	content,
-	href,
 	classes = [],
 }: ButtonProps) {
 	const button = document.createElement('button');
 	button.type = type;
 
-	const buttonClasses = [
+	button.classList.add(
 		'cursor-pointer',
 		'rounded',
 		'transition-colors',
-		'duration-200',
-		...getSizeClasses(size),
+		'duration-300',
+		'text-sm',
 		...getVariantClasses(variant),
-		...classes,
-	];
-
-	if (asLink && href) {
-		return Link({ content, href, classes: buttonClasses });
-	}
-
-	button.classList.add(...buttonClasses);
+		...classes
+	);
 
 	if (content) {
 		button.textContent = content;
