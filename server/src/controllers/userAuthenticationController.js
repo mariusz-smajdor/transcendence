@@ -2,10 +2,7 @@ import User from '../models/userModel.js';
 import { sendResponse } from '../utils/response.js';
 
 export const registrationHandler = async (req, res) => {
-  const { username, password, confirmPassword, email, avatar } = req.body;
-
-  if (password !== confirmPassword)
-    return sendResponse(res, 400, 'Passwords do not match');
+  const { username, password, email, avatar } = req.body;
 
   const user = new User(username, password, email, avatar);
 
