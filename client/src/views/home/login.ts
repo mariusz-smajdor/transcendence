@@ -1,9 +1,7 @@
 import { Button } from '../../components/button';
 import { Heading } from '../../components/heading';
-import { Img } from '../../components/img';
 import { Input } from '../../components/input';
 import { Label } from '../../components/label';
-import { Separator } from '../../components/separator';
 import { Tab } from '../../components/tabs';
 import { Wrapper } from '../../components/wrapper';
 
@@ -19,10 +17,10 @@ export default function Login() {
 	});
 	const form = Wrapper({
 		element: 'form',
-		classes: ['flex', 'flex-col', 'gap-4', 'h-full', 'lg:gap-6'],
+		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
 	});
 	const emailLabel = Label({
-		content: 'Enter your email:',
+		content: 'Email address:',
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const emailInput = Input({
@@ -33,7 +31,7 @@ export default function Login() {
 		required: true,
 	});
 	const passwordLabel = Label({
-		content: 'Enter your password:',
+		content: 'Password:',
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const passwordInput = Input({
@@ -43,34 +41,14 @@ export default function Login() {
 		placeholder: '********',
 		required: true,
 	});
-	const googleButton = Button({
-		content: 'Authenticate with Google',
-		variant: 'outline',
-		classes: [
-			'flex',
-			'flex-row-reverse',
-			'gap-2',
-			'items-center',
-			'justify-center',
-		],
-	});
-	const googleLogo = Img({
-		src: 'google-logo.svg',
-		alt: 'Google logo',
-		width: 18,
-		height: 18,
-	});
-	googleButton.appendChild(googleLogo);
 
 	emailLabel.appendChild(emailInput);
 	passwordLabel.appendChild(passwordInput);
 	form.appendChild(emailLabel);
 	form.appendChild(passwordLabel);
-	form.appendChild(Button({ content: 'Login', type: 'submit' }));
+	form.appendChild(Button({ content: 'Sign in', type: 'submit' }));
 	tab.appendChild(heading);
 	tab.appendChild(form);
-	tab.appendChild(Separator());
-	tab.appendChild(googleButton);
 
 	return tab;
 }

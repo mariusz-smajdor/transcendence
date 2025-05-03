@@ -1,10 +1,13 @@
 import { KeyRound } from 'lucide';
-import Login from './login';
 import { Card } from '../../components/card';
+import { Tabs, Trigger } from '../../components/tabs';
 import { Heading } from '../../components/heading';
 import { Icon } from '../../components/icon';
-import { Tabs, Trigger } from '../../components/tabs';
-import { Wrapper } from '../../components/wrapper';
+import { Button } from '../../components/button';
+import { Img } from '../../components/img';
+import { Separator } from '../../components/separator';
+import Login from './login';
+import Register from './register';
 
 export default function AuthSection() {
 	const section = Card({
@@ -16,6 +19,24 @@ export default function AuthSection() {
 		content: 'Authenticate',
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
+	const googleButton = Button({
+		content: 'Authenticate with Google',
+		variant: 'outline',
+		classes: [
+			'flex',
+			'flex-row-reverse',
+			'gap-2',
+			'items-center',
+			'justify-center',
+		],
+	});
+	const googleLogo = Img({
+		src: 'google-logo.svg',
+		alt: 'Google logo',
+		width: 18,
+		height: 18,
+	});
+	googleButton.appendChild(googleLogo);
 
 	heading.prepend(
 		Icon({
@@ -28,14 +49,16 @@ export default function AuthSection() {
 
 	section.appendChild(
 		Tabs({
-			defaultValue: 'login',
+			defaultValue: 'register',
 			triggers: [
 				Trigger({ content: 'Login', value: 'login' }),
 				Trigger({ content: 'Register', value: 'register' }),
 			],
-			tabs: [Login(), Wrapper({})],
-			classes: ['h-full'],
+			tabs: [Login(), Register()],
 		})
 	);
+
+	section.appendChild(Separator());
+	section.appendChild(googleButton);
 	return section;
 }
