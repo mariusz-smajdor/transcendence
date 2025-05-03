@@ -1,11 +1,11 @@
 import { ComponentProps } from '../types/component';
 
-interface ImgProps extends ComponentProps {
+type ImgProps = ComponentProps & {
 	src: string;
 	alt: string;
 	width?: number;
 	height?: number;
-}
+};
 
 export function Img({ src, alt, width, height, classes = [] }: ImgProps) {
 	const img = document.createElement('img');

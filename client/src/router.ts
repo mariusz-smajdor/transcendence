@@ -1,8 +1,5 @@
+import Header from './layout/header';
 import Home from './views/home';
-import Register from './views/register';
-import Login from './views/login';
-import NotFound from './views/notfound';
-import Header from './layout/header/Header';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -11,8 +8,6 @@ export class Router {
 	constructor() {
 		this.routes = {
 			'/': Home,
-			'/login': Login,
-			'/register': Register,
 		};
 
 		window.addEventListener('popstate', this.loadRoute.bind(this));
@@ -28,18 +23,18 @@ export class Router {
 	}
 
 	navigateTo(url: string) {
-		console.log(url);
-		alert('Navigating to ' + url);
 		history.pushState(null, '', url);
 		this.loadRoute();
 	}
 
 	private loadRoute() {
 		const path = location.pathname;
-		const view = this.routes[path] || NotFound;
-		if (view !== NotFound) {
-			this.rootElement!.appendChild(Header());
+
+		const view = this.routes[path];
+		if (this.rootElement) {
+			this.rootElement.innerHTML = '';
+			this.rootElement.appendChild(Header());
+			this.rootElement.appendChild(view());
 		}
-		this.rootElement!.appendChild(view());
 	}
 }
