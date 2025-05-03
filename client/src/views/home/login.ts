@@ -17,6 +17,7 @@ export default function Login() {
 	});
 	const form = Wrapper({
 		element: 'form',
+		method: 'POST',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
 	});
 	const emailLabel = Label({
