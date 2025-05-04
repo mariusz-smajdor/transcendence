@@ -1,5 +1,6 @@
 import Header from './layout/header';
 import Home from './views/home';
+import Game from './views/game';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -8,6 +9,7 @@ export class Router {
 	constructor() {
 		this.routes = {
 			'/': Home,
+			'/game' : Game,
 		};
 
 		window.addEventListener('popstate', this.loadRoute.bind(this));
