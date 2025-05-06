@@ -121,10 +121,10 @@ export default function Game() {
         } 
 
         else if (data.type === 'gameState') {
-          leftPaddleY = data.data.leftPaddleY;
-          rightPaddleY = data.data.rightPaddleY;
-          ballX = data.data.ballX;
-          ballY = data.data.ballY;
+          leftPaddleY = data.data.paddles.left;
+          rightPaddleY = data.data.paddles.right;
+          ballX = data.data.ball.x;
+          ballY = data.data.ball.y;
           drawScene();
         }
 
