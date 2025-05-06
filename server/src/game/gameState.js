@@ -42,3 +42,17 @@ export function updateGameState() {
       ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
     }
 }
+
+export function getGameStateProportional() {
+    return {
+        ball: {
+            x: gameState.ball.x / canvasWidth,
+            y: gameState.ball.y / canvasHeight,
+        },
+        paddles: {
+            left: gameState.paddles.left / canvasHeight,
+            right: gameState.paddles.right / canvasHeight,
+        },
+        score: { ...gameState.score },
+    };
+}

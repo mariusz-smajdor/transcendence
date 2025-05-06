@@ -1,5 +1,5 @@
 import { playersManager } from "../game/players.js";
-import { gameState, updateGameState } from "../game/gameState.js";
+import { gameState, updateGameState , getGameStateProportional} from "../game/gameState.js";
 import { broadcastGameState } from "../game/broadcast.js";
 
 const clients = new Set();
@@ -19,7 +19,7 @@ async function gameRoutes(fastify) {
 
     connection.send(JSON.stringify({
       type: 'gameState',
-      data: gameState
+      data: getGameStateProportional()
     }));
 
     connection.on('message', message => {
@@ -29,18 +29,18 @@ async function gameRoutes(fastify) {
       if (playersManager.getRole(connection) === 'left') {
         if (msg === 'UP') {
           gameState.paddles.left = Math.max(0, gameState.paddles.left - 20);
-          broadcastGameState(clients, gameState);
+          broadcastGameState(clients, getGameStateProportional());
         } else if (msg === 'DOWN') {
           gameState.paddles.left = Math.min(340, gameState.paddles.left + 20);
-          broadcastGameState(clients, gameState);
+          broadcastGameState(clients, getGameStateProportional());
         }
       } else if (playersManager.getRole(connection) === 'right') {
         if (msg === 'UP') {
           gameState.paddles.right = Math.max(0, gameState.paddles.right - 20);
-          broadcastGameState(clients, gameState);
+          broadcastGameState(clients, getGameStateProportional());
         } else if (msg === 'DOWN') {
           gameState.paddles.right = Math.min(340, gameState.paddles.right + 20);
-          broadcastGameState(clients, gameState);
+          broadcastGameState(clients, getGameStateProportional());
         }
       }
     });
@@ -60,7 +60,7 @@ async function gameRoutes(fastify) {
 
 setInterval(() => {
   updateGameState();
-  broadcastGameState(clients, gameState);
+  broadcastGameState(clients, getGameStateProportional());
 }, 20);
 
 export default gameRoutes;
