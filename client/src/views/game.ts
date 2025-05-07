@@ -38,8 +38,9 @@ export default function Game() {
 	const roleText = Text({ content: 'Role: waiting...' });
 
 	const canvas = document.createElement('canvas');
-	canvas.style.border = '10px solid black';
+	canvas.classList.add('canvas-glow');
 	game.appendChild(canvas);
+
 
 	const ctx = canvas.getContext('2d');
 	if (!ctx) {
@@ -53,8 +54,11 @@ export default function Game() {
 
 	let leftPaddleY = 0.425;		// 170/400
 	let rightPaddleY = 0.425;
-	let ballX = 0.5;				// 300/600
+	let ballX = 0.5;				
 	let ballY = 0.5;
+
+	let scoreLeft = 0;
+	let scoreRight = 0;
 
 	let playerRole = 'spectator';
 
@@ -62,30 +66,62 @@ export default function Game() {
 		const w = canvas.width;
 		const h = canvas.height;
 
-		ctx.fillStyle = 'white';
-		ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+		//background 
+	    const gradient = ctx.createLinearGradient(0, 0, w, h);
+		gradient.addColorStop(0, "#E879F9");
+		gradient.addColorStop(1, "#312e81");
+		ctx.fillStyle = gradient;
+    	ctx.fillRect(0, 0, w, h);
+		
+		//paddles
 		ctx.fillStyle = 'black';
 		ctx.fillRect(10 / 600 * w, leftPaddleY * h, paddleWidth * w, paddleHeight * h);
 		ctx.fillRect(580 / 600 * w, rightPaddleY * h, paddleWidth * w, paddleHeight * h);
 
+		//ball
 		ctx.beginPath();
 		ctx.arc(ballX * w, ballY * h, ballRadius * h, 0, Math.PI * 2);
 		ctx.fill();
 
-		ctx.font = '14px Arial';
-		ctx.fillText('Gracz 1', 0.02 * w, 0.05 * h);
-		ctx.fillText('Gracz 2', 0.9 * w, 0.05 * h);
+		//player names
+	    ctx.font = 'bold 16px Poppins, sans-serif, Arial';
+		ctx.fillStyle = '#312e81'; // granatowy
+		ctx.textAlign = 'start';
+		ctx.fillText('Left', 0.02 * w, 0.05 * h);
+		
+		ctx.textAlign = 'end';
+		ctx.fillStyle = '#E879F9'; // różowy
+		ctx.fillText('Right', 0.98 * w, 0.05 * h);
+		ctx.textAlign = 'start'; // reset
 
-
+		//score
+		ctx.save();
+		ctx.font = `bold ${Math.floor(h * 0.12)}px Poppins, sans-serif, Arial`;
+		ctx.fillStyle = '#fff';
+		ctx.textAlign = 'center';
+		ctx.shadowColor = '#E879F9';
+		ctx.shadowBlur = 16;
+		ctx.fillText(`${scoreLeft} : ${scoreRight}`, w / 2, 0.15 * h);
+		ctx.shadowBlur = 0;
+		ctx.restore();
+		
+		//highlite player's paddle 
 		if (playerRole === 'left') {
-			ctx.strokeStyle = 'red';
-			ctx.lineWidth = 2;
-			ctx.strokeRect(10 / 600 * w - 2, leftPaddleY * h - 2, paddleWidth * w + 4, paddleHeight * h + 4);
+			ctx.save();
+			ctx.strokeStyle = '#312e81';
+			ctx.lineWidth = 4;
+			ctx.shadowColor = '#312e81';
+			ctx.shadowBlur = 12;
+			ctx.strokeRect(10 / 600 * w - 4, leftPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
+			ctx.restore();
 		} else if (playerRole === 'right') {
-			ctx.strokeStyle = 'red';
-			ctx.lineWidth = 2;
-			ctx.strokeRect(580 / 600 * w - 2, rightPaddleY * h - 2, paddleWidth * w + 4, paddleHeight * h + 4);
+			ctx.save();
+			ctx.strokeStyle = '#E879F9';
+			ctx.lineWidth = 4;
+			ctx.shadowColor = '#E879F9';
+			ctx.shadowBlur = 12;
+			ctx.strokeRect(580 / 600 * w - 4, rightPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
+			ctx.restore();
 		}
 	}
 
@@ -157,6 +193,8 @@ export default function Game() {
 				rightPaddleY = data.data.paddles.right;
 				ballX = data.data.ball.x;
 				ballY = data.data.ball.y;
+				scoreLeft = data.data.score.left;
+				scoreRight = data.data.score.right;
 				drawScene();
 			}
 
