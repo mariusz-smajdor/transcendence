@@ -1,6 +1,7 @@
 import { registerGameWebSocket } from "../game/gameWs.js";
-import { gameState, gameLoop } from "../game/gameState.js";
 import { playersManager } from "../game/players.js";
+import { gameState, updateGameState , getGameStateProportional} from "../game/gameState.js";
+import { broadcastGameState } from "../game/broadcast.js";
 
 const clients = new Set();
 

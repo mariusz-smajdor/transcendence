@@ -45,6 +45,20 @@ export function updateGameState() {
   }
 }
 
+export function getGameStateProportional() {
+    return {
+        ball: {
+            x: gameState.ball.x / canvasWidth,
+            y: gameState.ball.y / canvasHeight,
+        },
+        paddles: {
+            left: gameState.paddles.left / canvasHeight,
+            right: gameState.paddles.right / canvasHeight,
+        },
+        score: { ...gameState.score },
+    };
+}
+
 function initGame() {
   gameState = {
     ball: { x: 300, y: 200 },
