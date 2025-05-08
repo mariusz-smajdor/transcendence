@@ -201,6 +201,11 @@ export default function Game() {
 			else if (data.type === 'error') {
 				console.error(data.message);
 			}
+
+      else if (data.type === 'message') {
+        text.textContent = data.message;
+      }
+      
 		} catch (e) {
 			console.error('Error parsing JSON:', e);
 			text.textContent = event.data;

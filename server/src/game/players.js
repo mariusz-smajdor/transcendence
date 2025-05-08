@@ -9,14 +9,14 @@ export class PlayersManager {
         if (!this.leftPlayer) {
             this.leftPlayer = connection;
             role = 'left';
-            console.log('Gracz lewy dołączył');
+            console.log('Left player joined');
         } else if (!this.rightPlayer) {
             this.rightPlayer = connection;
             role = 'right';
-            console.log('Gracz prawy dołączył');
+            console.log('Right player joined');
         } else {
             this.spectators.add(connection);
-            console.log('Dołączył obserwator');
+            console.log('Spectator joined');
         }
         this.roles.set(connection, role);
     }
@@ -29,10 +29,10 @@ export class PlayersManager {
         const role = this.roles.get(connection);
         if (role == 'left') {
             this.leftPlayer = null;
-            console.log('Gracz lewy opuścił grę');
-        } else if (role == 'left') {
+            console.log('Left player left the game');
+        } else if (role == 'right') {
             this.rightPlayer = null;
-            console.log('Gracz prawy opuścił grę');
+            console.log('Right player left the game');
         } else {
             this.spectators.delete(connection);
         }
