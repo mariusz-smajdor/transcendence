@@ -75,7 +75,8 @@ export function gameLoop(clients) {
   initGame();
   intervalId = setInterval(() => {
     updateGameState();
-    broadcastGameState(clients, gameState);
+    let gameStatePropotional = getGameStateProportional();
+    broadcastGameState(clients, gameStatePropotional);
   }, 20);
 }
 
