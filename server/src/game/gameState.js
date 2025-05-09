@@ -1,10 +1,10 @@
 import { broadcastGameState } from "../game/broadcast.js";
 
-export let gameState = {
-  ball: { x: 300, y: 200 },
-  paddles: { left: 150, right: 150 },
-  score: { left: 0, right: 0 },
-};
+// export let gameState = {
+//   ball: { x: 300, y: 200 },
+//   paddles: { left: 150, right: 150 },
+//   score: { left: 0, right: 0 },
+// };
 
 let ballSpeedX = 3;
 let ballSpeedY = 2;
@@ -13,7 +13,7 @@ const canvasHeight = 400;
 const ballRadius = 10;
 const paddleHeight = 60;
 
-export function updateGameState() {
+export function updateGameState(gameState) {
   gameState.ball.x += ballSpeedX;
   gameState.ball.y += ballSpeedY;
 
@@ -45,7 +45,7 @@ export function updateGameState() {
   }
 }
 
-export function getGameStateProportional() {
+export function getGameStateProportional(gameState) {
     return {
         ball: {
             x: gameState.ball.x / canvasWidth,
@@ -59,8 +59,8 @@ export function getGameStateProportional() {
     };
 }
 
-function initGame() {
-  gameState = {
+export function initGame() {
+  let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
     score: { left: 0, right: 0 },
@@ -68,19 +68,18 @@ function initGame() {
   return gameState;
 }
 
-let intervalId = null;
-
-export function gameLoop(clients) {
+export function gameLoop(game) {
   console.log('game started');
-  initGame();
-  intervalId = setInterval(() => {
-    updateGameState();
-    let gameStatePropotional = getGameStateProportional();
-    broadcastGameState(clients, gameStatePropotional);
+  // game.gameState = initGame();
+  game.intervalId = setInterval(() => {
+    updateGameState(game.gameState);
+    let gameStatePropotional = getGameStateProportional(game.gameState);
+    broadcastGameState(game.clients, gameStatePropotional);
   }, 20);
 }
 
-export function stopGameLoop() {
+export function stopGameLoop(game) {
+  let intervalId = game.intervalId;
   if (intervalId != null) {
     clearInterval(intervalId);
     intervalId = null;

@@ -39,4 +39,4 @@ export class PlayersManager {
     }
 }
 
-export const playersManager = new PlayersManager();
+// export const playersManager = new PlayersManager();
