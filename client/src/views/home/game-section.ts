@@ -103,6 +103,12 @@ function OnlineCard() {
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
 
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		window.location.href = `/game?gameId=${data.gameId}`;
+    });
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);

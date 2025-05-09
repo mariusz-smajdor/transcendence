@@ -148,7 +148,8 @@ export default function Game() {
 
 
 	//websocket 
-	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game`);
+	const gameId = new URLSearchParams(window.location.search).get('gameId');
+	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
 
 	document.addEventListener('keydown', (e: KeyboardEvent) => {
 		if (playerRole === 'left') {
