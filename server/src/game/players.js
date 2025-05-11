@@ -29,12 +29,15 @@ export class PlayersManager {
         const role = this.roles.get(connection);
         if (role == 'left') {
             this.leftPlayer = null;
+            this.roles.delete(connection)
             console.log('Left player left the game');
         } else if (role == 'right') {
             this.rightPlayer = null;
+            this.roles.delete(connection)
             console.log('Right player left the game');
         } else {
             this.spectators.delete(connection);
+            this.roles.delete(connection)
         }
     }
 }
