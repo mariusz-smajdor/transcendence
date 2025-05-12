@@ -152,6 +152,7 @@ export default function Game() {
 	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
 
 	document.addEventListener('keydown', (e: KeyboardEvent) => {
+		//Movement
 		if (playerRole === 'left') {
 			if (e.key === 'w' || e.key === 'W') {
 				ws.send('UP');
@@ -167,6 +168,10 @@ export default function Game() {
 			if (e.key === 'ArrowDown') {
 				ws.send('DOWN');
 			}
+		}
+		//Readiiness
+		if (e.key === 'r' || e.key === 'R') {
+			ws.send('READY');
 		}
 	});
 

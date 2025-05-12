@@ -28,7 +28,9 @@ async function gameRoutes(fastify) {
       clients: new Set(),
       playersManager: new PlayersManager(),
       intervalId: null,
-      isRunning: false
+      isRunning: false,
+	  readyR: false,
+	  readyL: false
     });
     console.log(`created gameId: ${gameId}`)
     res.send({ gameId });
