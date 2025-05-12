@@ -49,7 +49,7 @@ export default function AuthSection() {
 
 	section.appendChild(
 		Tabs({
-			defaultValue: 'register',
+			defaultValue: 'login',
 			triggers: [
 				Trigger({ content: 'Login', value: 'login' }),
 				Trigger({ content: 'Register', value: 'register' }),
