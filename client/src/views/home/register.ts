@@ -66,8 +66,11 @@ function registerUser(
 		} catch (error) {
 			if (error instanceof Error) {
 				submitMessage.textContent = error.message;
-				form.appendChild(submitMessage);
+			} else {
+				submitMessage.textContent =
+					'An unknown error occurred. PLease try again.';
 			}
+			form.appendChild(submitMessage);
 		}
 	});
 }
