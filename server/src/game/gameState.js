@@ -1,4 +1,4 @@
-import { broadcastGameState } from "../game/broadcast.js";
+import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
 
 const canvasWidth = 600;
 const canvasHeight = 400;
@@ -43,12 +43,16 @@ export function updateGameState(gameState, ballSpeed) {
       gameState.score.right += 1;
     if (gameState.ball.x > canvasWidth)
       gameState.score.left += 1;
-
+	if (gameState.score.left >= 11 || gameState.score.right >= 11) {
+		gameState.gameOver = true;
+		return;
+	  }
     gameState.ball.x = canvasWidth / 2;
     gameState.ball.y = canvasHeight / 2;
     ballSpeed.ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
     ballSpeed.ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
   }
+
 }
 
 export function getGameStateProportional(gameState) {
@@ -70,6 +74,7 @@ export function initGame() {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
     score: { left: 0, right: 0 },
+	gameOver: false
   };
   return gameState;
 }
@@ -82,6 +87,15 @@ export function gameLoop(game) {
   };
   game.intervalId = setInterval(() => {
     updateGameState(game.gameState, ballSpeed);
+	if (game.gameState.gameOver) {
+		clearInterval(game.intervalId);
+		game.isRunning = false;
+		let winner = game.gameState.score.left >= 11 ? 'Left' : 'Right';
+		let gameStatePropotional = getGameStateProportional(game.gameState);
+		broadcastGameState(game.clients, gameStatePropotional);
+		broadcastMessage(game.clients, `The winner is player ${winner}`);
+		return;
+	}
     let gameStatePropotional = getGameStateProportional(game.gameState);
     broadcastGameState(game.clients, gameStatePropotional);
   }, 20);
