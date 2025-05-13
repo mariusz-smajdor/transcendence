@@ -5,9 +5,17 @@ type ImgProps = ComponentProps & {
 	alt: string;
 	width?: number;
 	height?: number;
+	loading?: 'eager' | 'lazy';
 };
 
-export function Img({ src, alt, width, height, classes = [] }: ImgProps) {
+export function Img({
+	src,
+	alt,
+	width,
+	height,
+	loading,
+	classes = [],
+}: ImgProps) {
 	const img = document.createElement('img');
 	img.src = src;
 	img.alt = alt;
@@ -18,6 +26,9 @@ export function Img({ src, alt, width, height, classes = [] }: ImgProps) {
 	}
 	if (height) {
 		img.height = height;
+	}
+	if (loading) {
+		img.loading = loading;
 	}
 
 	return img;
