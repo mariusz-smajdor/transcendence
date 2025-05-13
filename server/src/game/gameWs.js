@@ -1,4 +1,4 @@
-import { gameLoop, stopGameLoop } from "../game/gameState.js";
+import { initGame, gameLoop, stopGameLoop, getGameStateProportional } from "../game/gameState.js";
 import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
 
 export function registerGameWebSocket(game, connection, games, gameId) {
@@ -68,6 +68,15 @@ export function registerGameWebSocket(game, connection, games, gameId) {
                 game.gameState.paddles.right = Math.min(340, game.gameState.paddles.right + 20);
             }
         }
+
+		if (msg === 'RESET'){
+			game.gameState = initGame();
+			game.isRunning = false;
+			game.readyL = false;
+			game.readyR = false;
+			broadcastMessage(game.clients, `${role} wants a rematch. Waiting for readiiness...`);
+			broadcastGameState(game.clients, getGameStateProportional(game.gameState));
+		}
     });
 
     connection.on('close', () => {
