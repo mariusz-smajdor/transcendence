@@ -20,7 +20,7 @@ export function registerGameWebSocket(game, connection, games, gameId) {
 	if (game.isRunning === true){
 		broadcastMessage(game.clients, 'Game is on!');
 	} else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
-		broadcastMessage(game.clients, 'Waiting for a second player to connect');
+		broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
 		console.log("Waiting for a second player");
 	} else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
 		broadcastMessage(game.clients, 'Waiting for readiiness')

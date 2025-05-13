@@ -1,7 +1,8 @@
-import { Container } from '../components/container';
-import { Text } from '../components/text';
+import { Container } from '../../components/container';
+import { Text } from '../../components/text';
 
-export default function Game() {
+export default function Game({ gameId }: { gameId: string } ) {
+	
 	const game = Container({
 		element: 'main',
 		classes: ['flex',
@@ -16,7 +17,10 @@ export default function Game() {
 			'min-h-[300px]',
 		],
 	});
-
+	
+	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
+	(game as any).ws = ws;
+	
 	// function getCookie(name: string): string | null {
 	//   const value = `; ${document.cookie}`;
 	//   const parts = value.split(`; ${name}=`);
@@ -145,11 +149,6 @@ export default function Game() {
 		resizeCanvas();
 	});
 	window.addEventListener('resize', resizeCanvas);
-
-
-	//websocket 
-	const gameId = new URLSearchParams(window.location.search).get('gameId');
-	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
 
 	document.addEventListener('keydown', (e: KeyboardEvent) => {
 		//Movement
