@@ -58,22 +58,14 @@ export function registerGameWebSocket(game, connection, games, gameId) {
         if (role === 'left') {
             if (msg === 'UP') {
                 game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
-                broadcastGameState(game.clients, game.gameState);
             } else if (msg === 'DOWN') {
                 game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
-                broadcastGameState(game.clients, game.gameState);
-            } else if (msg === 'READY' && game.isRunning !== true){
-				if (game.readyR === true){
-					
-				}
-			}
+            } 
         } else if (role === 'right') {
             if (msg === 'UP') {
                 game.gameState.paddles.right = Math.max(0, game.gameState.paddles.right - 20);
-                broadcastGameState(game.clients, game.gameState);
             } else if (msg === 'DOWN') {
                 game.gameState.paddles.right = Math.min(340, game.gameState.paddles.right + 20);
-                broadcastGameState(game.clients, game.gameState);
             }
         }
     });
