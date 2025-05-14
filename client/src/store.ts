@@ -6,13 +6,11 @@ type User = {
 };
 
 type State = {
-	token: string | null;
 	user: User | null;
 };
 
 class Store {
 	private state: State = {
-		token: null,
 		user: null,
 	};
 
