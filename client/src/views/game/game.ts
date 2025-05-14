@@ -1,8 +1,12 @@
 import { Container } from '../../components/container';
 import { Text } from '../../components/text';
 
-export default function Game({ gameId }: { gameId: string } ) {
-	
+export default function Game({ gameId, type }: { gameId: string, type: string }) {
+	if (!gameId || !type) {
+		console.error('Error: gameId or type missing');
+		return;
+	}
+
 	const game = Container({
 		element: 'main',
 		classes: ['flex',
@@ -17,10 +21,16 @@ export default function Game({ gameId }: { gameId: string } ) {
 			'min-h-[300px]',
 		],
 	});
-	
-	const ws: WebSocket = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
-	(game as any).ws = ws;
-	
+
+	let ws: WebSocket;
+	if (type === 'network') {
+		ws = new WebSocket(`ws://localhost:3000/game?gameId=${gameId}`);
+		(game as any).ws = ws;
+	} else if (type === 'local') {
+		ws = new WebSocket(`ws://localhost:3000/localgame?gameId=${gameId}`);
+		(game as any).ws = ws;
+	}
+
 	// function getCookie(name: string): string | null {
 	//   const value = `; ${document.cookie}`;
 	//   const parts = value.split(`; ${name}=`);
@@ -58,7 +68,7 @@ export default function Game({ gameId }: { gameId: string } ) {
 
 	let leftPaddleY = 0.425;		// 170/400
 	let rightPaddleY = 0.425;
-	let ballX = 0.5;				
+	let ballX = 0.5;
 	let ballY = 0.5;
 
 	let scoreLeft = 0;
@@ -71,12 +81,12 @@ export default function Game({ gameId }: { gameId: string } ) {
 		const h = canvas.height;
 
 		//background 
-	    const gradient = ctx.createLinearGradient(0, 0, w, h);
+		const gradient = ctx.createLinearGradient(0, 0, w, h);
 		gradient.addColorStop(0, "#E879F9");
 		gradient.addColorStop(1, "#312e81");
 		ctx.fillStyle = gradient;
-    	ctx.fillRect(0, 0, w, h);
-		
+		ctx.fillRect(0, 0, w, h);
+
 		//paddles
 		ctx.fillStyle = 'black';
 		ctx.fillRect(10 / 600 * w, leftPaddleY * h, paddleWidth * w, paddleHeight * h);
@@ -88,11 +98,11 @@ export default function Game({ gameId }: { gameId: string } ) {
 		ctx.fill();
 
 		//player names
-	    ctx.font = 'bold 16px Poppins, sans-serif, Arial';
+		ctx.font = 'bold 16px Poppins, sans-serif, Arial';
 		ctx.fillStyle = '#312e81'; // granatowy
 		ctx.textAlign = 'start';
 		ctx.fillText('Left', 0.02 * w, 0.05 * h);
-		
+
 		ctx.textAlign = 'end';
 		ctx.fillStyle = '#E879F9'; // różowy
 		ctx.fillText('Right', 0.98 * w, 0.05 * h);
@@ -108,7 +118,7 @@ export default function Game({ gameId }: { gameId: string } ) {
 		ctx.fillText(`${scoreLeft} : ${scoreRight}`, w / 2, 0.15 * h);
 		ctx.shadowBlur = 0;
 		ctx.restore();
-		
+
 		//highlite player's paddle 
 		if (playerRole === 'left') {
 			ctx.save();
@@ -207,10 +217,10 @@ export default function Game({ gameId }: { gameId: string } ) {
 				console.error(data.message);
 			}
 
-      else if (data.type === 'message') {
-        text.textContent = data.message;
-      }
-      
+			else if (data.type === 'message') {
+				text.textContent = data.message;
+			}
+
 		} catch (e) {
 			console.error('Error parsing JSON:', e);
 			text.textContent = event.data;

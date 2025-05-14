@@ -1,7 +1,7 @@
 import { gameLoop, stopGameLoop } from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
 
-export function manageGameWebSocket(game, connection, games, gameId) {
+export function manageLocalGameWebSocket(game, connection, games, gameId) {
     
     game.clients.add(connection);
     game.playersManager.assignRole(connection);
@@ -72,30 +72,15 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 
     connection.on('close', () => {
         console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
-        game.playersManager.removeRole(connection);
         game.clients.delete(connection);
-        if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
-            stopGameLoop(game);
-            game.isRunning = false;
-            broadcastMessage(game.clients, 'Game stopped. Waiting for a second player to connect');
-        }
-        if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
-            games.delete(gameId);
-        }
+        games.delete(gameId);
     });
 
     connection.on('error', (err) => {
         console.error('WebSocket error:', err);
-        game.playersManager.removeRole(connection);
         game.clients.delete(connection);
-        if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
-            stopGameLoop(game);
-            game.isRunning = false;
-            broadcastMessage(game.clients, 'Game stopped. Waiting for a second player to connect');
-        }
-        if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
-            games.delete(gameId);
-        }
+        games.delete(gameId);
+        broadcastMessage(game.clients, 'Connection error. Please reload game.');
     });
 }
 

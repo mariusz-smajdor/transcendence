@@ -2,7 +2,7 @@ import { Button } from '../../components/button';
 import { Text } from '../../components/text';
 import Game from './game';
 
-export function showGameOverlay(gameId: string) {
+export function showGameOverlay(gameId: string, type: string) {
     const overlay = document.createElement('div');
     overlay.classList.add(
         'fixed', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center', 'z-50'
@@ -25,10 +25,8 @@ export function showGameOverlay(gameId: string) {
         overlay.remove();
         window.history.pushState(null, '', '/');
     };
-    overlay.appendChild(CloseBtn);
 
-    const gameComponent = Game({ gameId });
-    overlay.appendChild(gameComponent);
+    const gameComponent = Game({ gameId, type });
 
     const shareText = Text({
         content: 'share with a friend: ',
@@ -60,8 +58,11 @@ export function showGameOverlay(gameId: string) {
         'hover:text-blue-200',
     );
 
-    shareText.appendChild(link);
-    overlay.appendChild(shareText);
-
     document.body.appendChild(overlay);
+    overlay.appendChild(gameComponent);
+    overlay.appendChild(CloseBtn);
+    if (type === 'network') {
+        overlay.appendChild(shareText);
+        shareText.appendChild(link);
+    }
 }

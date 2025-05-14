@@ -13,7 +13,7 @@ export class Router {
 			'/game': () => {
 				const gameId = getGameIdFromUrl();
 				const home = Home();
-				if (gameId) showGameOverlay(gameId);
+				if (gameId) showGameOverlay(gameId, 'network');
 
 				return home;
 			},
