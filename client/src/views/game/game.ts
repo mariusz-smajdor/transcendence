@@ -1,5 +1,6 @@
 import { Container } from '../../components/container';
 import { Text } from '../../components/text';
+import { Button } from '../../components/button';
 
 export default function Game({ gameId, type }: { gameId: string, type: string }) {
 	if (!gameId || !type) {
@@ -32,41 +33,50 @@ export default function Game({ gameId, type }: { gameId: string, type: string })
 	}
 
 	// function getCookie(name: string): string | null {
-	//   const value = `; ${document.cookie}`;
-	//   const parts = value.split(`; ${name}=`);
-	//   if (parts.length === 2) return parts.pop()!.split(';').shift() || null;
-	//   return null;
+		//   const value = `; ${document.cookie}`;
+		//   const parts = value.split(`; ${name}=`);
+		//   if (parts.length === 2) return parts.pop()!.split(';').shift() || null;
+		//   return null;
 	// }
-
+	
 	// const token = getCookie('access_token');
 	// if (!token) {
-	//   const info = text({ content: 'Musisz być zalogowany, by grać'})
-	//   game.appendChild(info);
+		//   const info = text({ content: 'Musisz być zalogowany, by grać'})
+		//   game.appendChild(info);
 	//   setTimeout(() => {
-	//     window.location.href = '/';
-	//   }, 2000);
-	//   return game;
+		//     window.location.href = '/';
+		//   }, 2000);
+		//   return game;
 	// }
 
-	const text = Text({ content: 'Connecting to server...' });
+	const text = Text({ content: 'Connecting to server...'});
 	const roleText = Text({ content: 'Role: waiting...' });
 
 	const canvas = document.createElement('canvas');
 	canvas.classList.add('canvas-glow');
 	game.appendChild(canvas);
-
-
+	
+	const restartBtn = Button({
+		content: 'Rematch',
+		classes: ['mt-4', 'px-4', 'py-2', 'rounded', 'bg-primary', 'text-white', 'font-bold', 'shadow'],
+	});
+	restartBtn.style.display = 'none';
+	restartBtn.onclick = () => {
+		ws.send('RESET');
+	};
+	game.appendChild(restartBtn);
+	
 	const ctx = canvas.getContext('2d');
 	if (!ctx) {
 		console.error('Nie udało się pobrać kontekstu 2D z canvas');
 		return game;
 	}
+	
+	const paddleWidth = 0.016;
+	const paddleHeight = 0.15;
+	const ballRadius = 0.025;
 
-	const paddleWidth = 0.016;	// 10/600
-	const paddleHeight = 0.15;	// 60/400
-	const ballRadius = 0.025;	// 10/400 
-
-	let leftPaddleY = 0.425;		// 170/400
+	let leftPaddleY = 0.425;
 	let rightPaddleY = 0.425;
 	let ballX = 0.5;
 	let ballY = 0.5;
@@ -75,10 +85,15 @@ export default function Game({ gameId, type }: { gameId: string, type: string })
 	let scoreRight = 0;
 
 	let playerRole = 'spectator';
+	let gameOver = false;
 
 	function drawScene(): void {
 		const w = canvas.width;
 		const h = canvas.height;
+
+		if (ctx === null){
+			return;
+		}
 
 		//background 
 		const gradient = ctx.createLinearGradient(0, 0, w, h);
@@ -137,6 +152,23 @@ export default function Game({ gameId, type }: { gameId: string, type: string })
 			ctx.strokeRect(580 / 600 * w - 4, rightPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
 			ctx.restore();
 		}
+		if (gameOver) {
+			ctx.save();
+			ctx.font = `bold ${Math.floor(h * 0.13)}px Poppins, sans-serif, Arial`;
+			ctx.fillStyle = '#fff';
+			ctx.textAlign = 'center';
+			ctx.shadowColor = '#E879F9';
+			ctx.shadowBlur = 20;
+			ctx.fillText(
+			  `${scoreLeft === 11 ? "LEFT" : "RIGHT"} WINNER`,
+			  w / 2,
+			  h / 2
+			);
+			ctx.restore();
+            restartBtn.style.display = '';
+        } else {
+            restartBtn.style.display = 'none';
+        }
 	}
 
 	function resizeCanvas() {
@@ -210,7 +242,9 @@ export default function Game({ gameId, type }: { gameId: string, type: string })
 				ballY = data.data.ball.y;
 				scoreLeft = data.data.score.left;
 				scoreRight = data.data.score.right;
+				gameOver = data.data.gameOver;
 				drawScene();
+				
 			}
 
 			else if (data.type === 'error') {
