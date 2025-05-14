@@ -253,7 +253,7 @@ function TournamentTab() {
 	return tab;
 }
 
-export default function GameSection() {
+export default function GameSection(user: any) {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],

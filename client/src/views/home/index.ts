@@ -3,17 +3,13 @@ import AuthSection from './auth-section';
 import HistorySection from './history-section';
 import { Container } from '../../components/container';
 import { Card } from '../../components/card';
+import { store } from '../../store';
 
-// TEMPORARY HARDCODED USER, LATER WE WILL GET HIM FROM THE COOKIES
-const user = {
+// TEMPORARY HARDCODED USER, LATER WE WILL GET HIM FROM BACKEND
+const USER = {
 	name: 'John Doe',
 	avatar: 'https://i.pravatar.cc/300',
 };
-// const user = false;
-
-// SELECT * FROM history WHERE user1_id = user_id OR user2_id = user_id ORDER BY date DESC LIMIT 10;
-// nie wiem czy to jest valid syntax ale normalnie dodamy coś takiego
-
 ////////////////////////////////////////////////////////////////////
 
 function FriendsSection() {
@@ -32,7 +28,7 @@ function FriendsSection() {
 	return section;
 }
 
-export default function Home() {
+function Home() {
 	const container = Container({
 		classes: [
 			'grid',
@@ -45,8 +41,12 @@ export default function Home() {
 		],
 	});
 
+	const user = store.getState().user;
+
 	container.appendChild(GameSection(user));
 	container.appendChild(user ? FriendsSection() : AuthSection());
-	user && container.appendChild(HistorySection(user));
+	user && container.appendChild(HistorySection(USER));
 	return container;
 }
+
+export default Home;

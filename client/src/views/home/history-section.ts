@@ -120,6 +120,8 @@ const history = [
 		type: 'CPU',
 	},
 ];
+// SELECT * FROM history WHERE user1_id = user_id OR user2_id = user_id ORDER BY date DESC LIMIT 10;
+// nie wiem czy to jest valid syntax ale normalnie dodamy coś takiego
 /////////////////
 
 export default function HistorySection(user: any) {
