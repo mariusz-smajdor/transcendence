@@ -9,7 +9,7 @@ async function userAuthenticationRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await userAuthController.loginHandler(req, res);
   });
-  fastify.post('/me', async (req, res) => {
+  fastify.get('/me', async (req, res) => {
     req.context.config = { db: fastify.db };
     return await userAuthController.meHandler(req, res);
   });
