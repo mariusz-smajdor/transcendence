@@ -1,15 +1,38 @@
 import { Container } from '../../components/container';
 import { Text } from '../../components/text';
+import { Button } from '../../components/button';
 
-type GameUI = {
+export type GameState = {
+    leftPaddleY: number;
+    rightPaddleY: number;
+    ballX: number;
+    ballY: number;
+    scoreLeft: number;
+    scoreRight: number;
+    playerRole: 'left' | 'right' | 'spectator';
+    gameOver: boolean;
+};
+
+export type UIElements = {
     game: HTMLElement;
-    canvas: HTMLCanvasElement;
     text: HTMLElement;
     roleText: HTMLElement;
-    // ctx: CanvasRenderingContext2D | null;
+    restartBtn: HTMLElement;
+};
+
+export type UIActions = {
+    drawScene: () => void;
+    resizeCanvas: () => void;
+};
+
+export type GameUI = {
+    ui: UIElements,
+    gameState: GameState,
+    actions: UIActions,
 };
 
 export function createGameUI(): GameUI {
+    
     const game = Container({
         element: 'main',
         classes: ['flex',
@@ -25,115 +48,155 @@ export function createGameUI(): GameUI {
         ],
     });
 
+    const gameState: GameState = {
+        leftPaddleY: 0.425,
+        rightPaddleY: 0.425,
+        ballX: 0.5,
+        ballY: 0.5,
+        scoreLeft: 0,
+        scoreRight: 0,
+        playerRole: 'spectator',
+        gameOver: false,
+    };
+
+    const paddleWidth = 0.016;
+    const paddleHeight = 0.15;
+    const ballRadius = 0.025;
+
     const text = Text({ content: 'Connecting to server...' });
     const roleText = Text({ content: 'Role: waiting...' });
 
     const canvas = document.createElement('canvas');
     canvas.classList.add('canvas-glow');
-    game.appendChild(canvas);
-
 
     const ctx = canvas.getContext('2d');
     if (!ctx) {
-        console.error('Nie udało się pobrać kontekstu 2D z canvas');
-        return game;
+        console.error('Could not get 2D context from canvas');
     }
 
+    const restartBtn = Button({
+        content: 'Rematch',
+        classes: ['mt-4', 'px-4', 'py-2', 'rounded', 'bg-primary', 'text-white', 'font-bold', 'shadow'],
+    });
+    restartBtn.style.display = 'none';
+
+    game.appendChild(canvas);
     game.appendChild(text);
     game.appendChild(roleText);
+    game.appendChild(restartBtn);
 
-    return { game, canvas, text, roleText };
-}
+    function drawScene(): void {
+        const w = canvas.width;
+        const h = canvas.height;
 
-const paddleWidth = 0.016;	// 10/600
-const paddleHeight = 0.15;	// 60/400
-const ballRadius = 0.025;	// 10/400 
+        if (ctx === null){
+			return;
+		}
 
-let leftPaddleY = 0.425;		// 170/400
-let rightPaddleY = 0.425;
-let ballX = 0.5;
-let ballY = 0.5;
+        //background 
+        const gradient = ctx!.createLinearGradient(0, 0, w, h);
+        gradient.addColorStop(0, "#E879F9");
+        gradient.addColorStop(1, "#312e81");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, w, h);
 
-let scoreLeft = 0;
-let scoreRight = 0;
+        //paddles
+        ctx.fillStyle = 'black';
+        ctx.fillRect(10 / 600 * w, gameState.leftPaddleY * h, paddleWidth * w, paddleHeight * h);
+        ctx.fillRect(580 / 600 * w, gameState.rightPaddleY * h, paddleWidth * w, paddleHeight * h);
 
-let playerRole = 'spectator';
+        //ball
+        ctx.beginPath();
+        ctx.arc(gameState.ballX * w, gameState.ballY * h, ballRadius * h, 0, Math.PI * 2);
+        ctx.fill();
 
-export function drawScene(): void {
-    const w = canvas.width;
-    const h = canvas.height;
+        //player names
+        ctx.font = 'bold 16px Poppins, sans-serif, Arial';
+        ctx.fillStyle = '#312e81'; // granatowy
+        ctx.textAlign = 'start';
+        ctx.fillText('Left', 0.02 * w, 0.05 * h);
 
-    //background 
-    const gradient = ctx.createLinearGradient(0, 0, w, h);
-    gradient.addColorStop(0, "#E879F9");
-    gradient.addColorStop(1, "#312e81");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, w, h);
+        ctx.textAlign = 'end';
+        ctx.fillStyle = '#E879F9'; // różowy
+        ctx.fillText('Right', 0.98 * w, 0.05 * h);
+        ctx.textAlign = 'start'; // reset
 
-    //paddles
-    ctx.fillStyle = 'black';
-    ctx.fillRect(10 / 600 * w, leftPaddleY * h, paddleWidth * w, paddleHeight * h);
-    ctx.fillRect(580 / 600 * w, rightPaddleY * h, paddleWidth * w, paddleHeight * h);
-
-    //ball
-    ctx.beginPath();
-    ctx.arc(ballX * w, ballY * h, ballRadius * h, 0, Math.PI * 2);
-    ctx.fill();
-
-    //player names
-    ctx.font = 'bold 16px Poppins, sans-serif, Arial';
-    ctx.fillStyle = '#312e81'; // granatowy
-    ctx.textAlign = 'start';
-    ctx.fillText('Left', 0.02 * w, 0.05 * h);
-
-    ctx.textAlign = 'end';
-    ctx.fillStyle = '#E879F9'; // różowy
-    ctx.fillText('Right', 0.98 * w, 0.05 * h);
-    ctx.textAlign = 'start'; // reset
-
-    //score
-    ctx.save();
-    ctx.font = `bold ${Math.floor(h * 0.12)}px Poppins, sans-serif, Arial`;
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.shadowColor = '#E879F9';
-    ctx.shadowBlur = 16;
-    ctx.fillText(`${scoreLeft} : ${scoreRight}`, w / 2, 0.15 * h);
-    ctx.shadowBlur = 0;
-    ctx.restore();
-
-    //highlite player's paddle 
-    if (playerRole === 'left') {
+        //score
         ctx.save();
-        ctx.strokeStyle = '#312e81';
-        ctx.lineWidth = 4;
-        ctx.shadowColor = '#312e81';
-        ctx.shadowBlur = 12;
-        ctx.strokeRect(10 / 600 * w - 4, leftPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
-        ctx.restore();
-    } else if (playerRole === 'right') {
-        ctx.save();
-        ctx.strokeStyle = '#E879F9';
-        ctx.lineWidth = 4;
+        ctx.font = `bold ${Math.floor(h * 0.12)}px Poppins, sans-serif, Arial`;
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
         ctx.shadowColor = '#E879F9';
-        ctx.shadowBlur = 12;
-        ctx.strokeRect(580 / 600 * w - 4, rightPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
+        ctx.shadowBlur = 16;
+        ctx.fillText(`${gameState.scoreLeft} : ${gameState.scoreRight}`, w / 2, 0.15 * h);
+        ctx.shadowBlur = 0;
         ctx.restore();
-    }
-}
 
-export function resizeCanvas() {
-    const rect = game.getBoundingClientRect();
-    const aspectRatio = 3 / 2;
-    let width = rect.width;
-    let height = rect.height;
-    if (width / height > aspectRatio) {
-        width = height * aspectRatio;
-    } else {
-        height = width / aspectRatio;
-    }
-    canvas.width = Math.floor(width);
-    canvas.height = Math.floor(height);
+        //highlite player's paddle 
+        if (gameState.playerRole === 'left') {
+            ctx.save();
+            ctx.strokeStyle = '#312e81';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#312e81';
+            ctx.shadowBlur = 12;
+            ctx.strokeRect(10 / 600 * w - 4, gameState.leftPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
+            ctx.restore();
+        } else if (gameState.playerRole === 'right') {
+            ctx.save();
+            ctx.strokeStyle = '#E879F9';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#E879F9';
+            ctx.shadowBlur = 12;
+            ctx.strokeRect(580 / 600 * w - 4, gameState.rightPaddleY * h - 4, paddleWidth * w + 8, paddleHeight * h + 8);
+            ctx.restore();
+        }
 
-    drawScene();
+        if (gameState.gameOver) {
+			ctx.save();
+			ctx.font = `bold ${Math.floor(h * 0.13)}px Poppins, sans-serif, Arial`;
+			ctx.fillStyle = '#fff';
+			ctx.textAlign = 'center';
+			ctx.shadowColor = '#E879F9';
+			ctx.shadowBlur = 20;
+			ctx.fillText(
+			  `${gameState.scoreLeft === 11 ? "LEFT" : "RIGHT"} WINNER`,
+			  w / 2,
+			  h / 2
+			);
+			ctx.restore();
+            restartBtn.style.display = '';
+        } else {
+            restartBtn.style.display = 'none';
+        }
+    }
+
+    function resizeCanvas() {
+        const rect = game.getBoundingClientRect();
+        const aspectRatio = 3 / 2;
+        let width = rect.width;
+        let height = rect.height;
+        if (width / height > aspectRatio) {
+            width = height * aspectRatio;
+        } else {
+            height = width / aspectRatio;
+        }
+        canvas.width = Math.floor(width);
+        canvas.height = Math.floor(height);
+
+        drawScene();
+    }
+
+    const ui: UIElements = {
+        game,
+        text,
+        roleText,
+        restartBtn,
+    };
+
+    const actions: UIActions = {
+        drawScene,
+        resizeCanvas,
+    };
+
+    return { ui, gameState, actions };
 }
