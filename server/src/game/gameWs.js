@@ -23,7 +23,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 		broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
 		console.log("Waiting for a second player");
 	} else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
-		broadcastMessage(game.clients, 'Waiting for readiiness')
+		broadcastMessage(game.clients, 'Waiting for readiness. Press \'R\'.')
 	}
 
     // if (game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null) {
@@ -74,7 +74,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 			game.isRunning = false;
 			game.readyL = false;
 			game.readyR = false;
-			broadcastMessage(game.clients, `${role} wants a rematch. Waiting for readiiness...`);
+			broadcastMessage(game.clients, `${role} wants a rematch. Waiting for readiness...`);
 			broadcastGameState(game.clients, getGameStateProportional(game.gameState));
 		}
     });

@@ -59,7 +59,11 @@ export function showGameOverlay(gameId: string, type: string) {
     );
 
     document.body.appendChild(overlay);
-    overlay.appendChild(gameComponent);
+    if (gameComponent) {
+        overlay.appendChild(gameComponent);
+    } else {
+        console.error('Failed to create game component.');
+    }
     overlay.appendChild(CloseBtn);
     if (type === 'network') {
         overlay.appendChild(shareText);
