@@ -1,37 +1,9 @@
 import { Container } from '../../components/container';
 import { Text } from '../../components/text';
 import { Button } from '../../components/button';
+import { GameState, UIElements, UIActions, GameUI, GameType } from '../../types/game';
 
-export type GameState = {
-    leftPaddleY: number;
-    rightPaddleY: number;
-    ballX: number;
-    ballY: number;
-    scoreLeft: number;
-    scoreRight: number;
-    playerRole: 'left' | 'right' | 'spectator';
-    gameOver: boolean;
-};
-
-export type UIElements = {
-    game: HTMLElement;
-    text: HTMLElement;
-    roleText: HTMLElement;
-    restartBtn: HTMLElement;
-};
-
-export type UIActions = {
-    drawScene: () => void;
-    resizeCanvas: () => void;
-};
-
-export type GameUI = {
-    ui: UIElements,
-    gameState: GameState,
-    actions: UIActions,
-};
-
-export function createGameUI(): GameUI {
+export function createGameUI(gameType: GameType): GameUI {
     
     const game = Container({
         element: 'main',
@@ -81,15 +53,17 @@ export function createGameUI(): GameUI {
     restartBtn.style.display = 'none';
 
     game.appendChild(canvas);
-    game.appendChild(text);
-    game.appendChild(roleText);
     game.appendChild(restartBtn);
+    game.appendChild(text);
+    if (gameType === 'network') {
+        game.appendChild(roleText);
+    }
 
     function drawScene(): void {
         const w = canvas.width;
         const h = canvas.height;
 
-        if (ctx === null){
+        if (ctx === null) {
 			return;
 		}
 

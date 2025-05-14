@@ -1,8 +1,9 @@
 import { Button } from '../../components/button';
 import { Text } from '../../components/text';
 import Game from './game';
+import { GameType } from '../../types/game';
 
-export function showGameOverlay(gameId: string, type: string) {
+export function showGameOverlay(gameId: string, gameType: GameType) {
     const overlay = document.createElement('div');
     overlay.classList.add(
         'fixed', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center', 'z-50'
@@ -26,7 +27,7 @@ export function showGameOverlay(gameId: string, type: string) {
         window.history.pushState(null, '', '/');
     };
 
-    const gameComponent = Game({ gameId, type });
+    const gameComponent = Game(gameId, gameType);
 
     const shareText = Text({
         content: 'share with a friend: ',
@@ -65,7 +66,7 @@ export function showGameOverlay(gameId: string, type: string) {
         console.error('Failed to create game component.');
     }
     overlay.appendChild(CloseBtn);
-    if (type === 'network') {
+    if (gameType === 'network') {
         overlay.appendChild(shareText);
         shareText.appendChild(link);
     }
