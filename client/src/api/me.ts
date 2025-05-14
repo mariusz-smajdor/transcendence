@@ -7,25 +7,18 @@ export async function fetchMe() {
 			credentials: 'include',
 		});
 
-		if (!res.ok) {
-			throw new Error(`HTTP error! Status: ${res.status}`);
-		}
-
 		const data = await res.json();
+		if (!res.ok || !data.success) return;
 
-		if (data.success) {
-			store.setState({
-				user: {
-					username: data.username,
-					email: data.email,
-					id: data.id,
-					avatar: data.avatar,
-				},
-			});
-		} else {
-			throw new Error(data.message || 'Unknown error');
-		}
-	} catch (err) {
-		console.error('Failed to fetch user:', err);
+		store.setState({
+			user: {
+				id: data.id,
+				username: data.username,
+				email: data.email,
+				avatar: data.avatar,
+			},
+		});
+	} catch (error) {
+		console.log(error);
 	}
 }
