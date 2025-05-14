@@ -15,8 +15,8 @@ export const registrationHandler = async (req, res) => {
 
 export const loginHandler = async (req, res) => {
   const { username, password, totpToken } = req.body;
-  const userData = new User(username, password);
 
+  const userData = new User(username, password);
   const { message, user, code } = await userData.login(
     req.context.config.db,
     totpToken,
@@ -75,21 +75,32 @@ export const logoutHandler = async (req, res) => {
 
 export const meHandler = async (req, res) => {
   const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
 
-  if (!authHeader) return sendResponse(res, 400, 'No Authorization header');
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
 
-  const token = authHeader.split(' ')[1]; // "Bearer <token>"
-  const decoded = req.server.jwt.decode(token);
-  if (!decoded) return sendResponse(res, 400, 'Invalid token');
+  if (!token) return sendResponse(res, 400, 'No token provided');
+
+  let decoded;
+  try {
+    decoded = req.server.jwt.verify(token);
+  } catch (err) {
+    return sendResponse(res, 400, 'Invalid token');
+  }
+
   const userId = decoded.userId;
   const db = req.context.config.db;
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   if (!user) return sendResponse(res, 404, 'User not found');
+
   const payload = {
     id: user.id,
     username: user.username,
     email: user.email,
     avatar: user.avatar,
   };
-  return sendResponse(res, 200, 'User data retrieved successfuly!', payload);
+
+  return sendResponse(res, 200, 'User data retrieved successfully!', payload);
 };
