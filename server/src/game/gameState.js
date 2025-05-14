@@ -66,6 +66,7 @@ export function getGameStateProportional(gameState) {
       right: gameState.paddles.right / canvasHeight,
     },
     score: { ...gameState.score },
+	gameOver: gameState.gameOver,
   };
 }
 
@@ -73,7 +74,7 @@ export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
-    score: { left: 0, right: 0 },
+    score: { left: 10, right: 10 },
 	gameOver: false
   };
   return gameState;
@@ -88,7 +89,7 @@ export function gameLoop(game) {
   game.intervalId = setInterval(() => {
     updateGameState(game.gameState, ballSpeed);
 	if (game.gameState.gameOver) {
-		clearInterval(game.intervalId);
+		stopGameLoop(game);
 		game.isRunning = false;
 		let winner = game.gameState.score.left >= 11 ? 'Left' : 'Right';
 		let gameStatePropotional = getGameStateProportional(game.gameState);
