@@ -41,17 +41,19 @@ export const loginHandler = async (req, res) => {
 
 export const logoutHandler = async (req, res) => {
   const db = req.context.config.db;
-  const authHeader = req.headers.authorization;
 
-  if (!authHeader) return sendResponse(res, 400, 'No Authorization header');
+  const token = req.cookies?.access_token;
 
-  const token = authHeader.split(' ')[1]; // "Bearer <token>"
+  if (!token) {
+    return sendResponse(res, 400, 'No token provided in cookies');
+  }
 
   try {
     const decoded = req.server.jwt.decode(token);
 
-    if (!decoded || !decoded.exp)
+    if (!decoded || !decoded.exp) {
       return sendResponse(res, 400, 'Invalid token');
+    }
 
     const expiresAt = decoded.exp * 1000;
 
@@ -61,8 +63,8 @@ export const logoutHandler = async (req, res) => {
     stmt.run(token, expiresAt);
 
     res.clearCookie('access_token', {
-      httpOnly: false,
-      secure: false,
+      httpOnly: false, // Change to true in production
+      secure: false, // Change to true if using HTTPS
       sameSite: 'Strict',
     });
 
