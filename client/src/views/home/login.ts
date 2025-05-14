@@ -7,7 +7,7 @@ import { Wrapper } from '../../components/wrapper';
 
 function loginUser(
 	form: HTMLFormElement,
-	emailInput: HTMLInputElement,
+	usernameInput: HTMLInputElement,
 	passwordInput: HTMLInputElement
 ) {
 	form.addEventListener('submit', async (event) => {
@@ -21,7 +21,7 @@ function loginUser(
 		submitMessage.classList.add('text-red-400', 'text-xs');
 
 		const loginData = {
-			email: emailInput.value,
+			username: usernameInput.value,
 			password: passwordInput.value,
 		};
 
@@ -34,9 +34,9 @@ function loginUser(
 				body: JSON.stringify(loginData),
 				credentials: 'include',
 			});
-			console.log(loginData, res);
+
 			const data = await res.json();
-			console.log(data);
+
 			if (!data.success) {
 				submitMessage.textContent = data.message;
 				form.appendChild(submitMessage);
@@ -45,9 +45,10 @@ function loginUser(
 				submitMessage.classList.remove('text-red-400');
 				submitMessage.classList.add('text-green-400');
 				form.appendChild(submitMessage);
-				emailInput.value = '';
+				usernameInput.value = '';
 				passwordInput.value = '';
-				console.log('Login successful!');
+
+				window.location.reload();
 			}
 		} catch (error) {
 			if (error instanceof Error) {
@@ -76,15 +77,15 @@ export default function Login() {
 		method: 'POST',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
 	}) as HTMLFormElement;
-	const emailLabel = Label({
-		content: 'Email address:',
+	const usernameLabel = Label({
+		content: 'Username:',
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
-	const emailInput = Input({
-		type: 'email',
-		name: 'email',
-		id: 'email',
-		placeholder: 'example@email.com',
+	const usernameInput = Input({
+		type: 'text',
+		name: 'username',
+		id: 'username',
+		placeholder: 'your username',
 		required: true,
 	});
 	const passwordLabel = Label({
@@ -99,11 +100,11 @@ export default function Login() {
 		required: true,
 	});
 
-	loginUser(form, emailInput, passwordInput);
+	loginUser(form, usernameInput, passwordInput);
 
-	emailLabel.appendChild(emailInput);
+	usernameLabel.appendChild(usernameInput);
 	passwordLabel.appendChild(passwordInput);
-	form.appendChild(emailLabel);
+	form.appendChild(usernameLabel);
 	form.appendChild(passwordLabel);
 	form.appendChild(Button({ content: 'Sign in', type: 'submit' }));
 	tab.appendChild(heading);
