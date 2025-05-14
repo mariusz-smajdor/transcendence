@@ -51,6 +51,12 @@ function FriendCard() {
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
 
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'local');
+    });
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);
@@ -107,7 +113,7 @@ function OnlineCard() {
 	card.addEventListener('click', async () => {
 		const response = await fetch('http://localhost:3000/game/create');
 		const data = await response.json();
-		showGameOverlay(data.gameId);
+		showGameOverlay(data.gameId, 'network');
 		// window.location.href = `/game?gameId=${data.gameId}`;
     });
 
