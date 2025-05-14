@@ -4,27 +4,27 @@ import { broadcastMessage } from "../game/broadcast.js";
 export function manageLocalGameWebSocket(game, connection, games, gameId) {
     
     game.clients.add(connection);
-    game.playersManager.assignRole(connection);
+    // game.playersManager.assignRole(connection);
 
-    connection.send(JSON.stringify({
-        type: 'role',
-        role: game.playersManager.getRole(connection)
-    }));
-    console.log(`Role assigned: ${game.playersManager.getRole(connection)}`);
+    // connection.send(JSON.stringify({
+    //     type: 'role',
+    //     role: 'local'
+    // }));
+    // console.log(`Role assigned: ${game.playersManager.getRole(connection)}`);
 
     connection.send(JSON.stringify({
         type: 'gameState',
         data: game.gameState
     }));
 
-	if (game.isRunning === true){
-		broadcastMessage(game.clients, 'Game is on!');
-	} else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
-		broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
-		console.log("Waiting for a second player");
-	} else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
-		broadcastMessage(game.clients, 'Waiting for readiiness')
-	}
+	// if (game.isRunning === true){
+	// 	broadcastMessage(game.clients, 'Game is on!');
+	// } else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
+	// 	broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
+	// 	console.log("Waiting for a second player");
+	// } else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
+	// 	broadcastMessage(game.clients, 'Waiting for readiiness')
+	// }
 
     // if (game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null) {
     //     if (game.isRunning === false) {
@@ -38,40 +38,26 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
 		const role = game.playersManager.getRole(connection);
         console.log(`Message received from ${role}:`, msg);
 
-		//Readiines
+		//Readiness
 		if (msg === 'READY' && !game.isRunning) {
-            if (role === 'left') {
-                game.readyL = true;
-                broadcastMessage(game.clients, 'Left player is ready!');
-            }
-            if (role === 'right') {
-                game.readyR = true;
-                broadcastMessage(game.clients, 'Right player is ready!');
-            }
-            if (game.readyL && game.readyR) {
-                broadcastMessage(game.clients, 'Both players are ready! Starting in 3...');
+                broadcastMessage(game.clients, 'Game starting in 3...');
                 countdownAndStart(game);
-            }
-            return;
         }
-		//Movment
-        if (role === 'left') {
-            if (msg === 'UP') {
+
+		//Movement
+            if (msg === 'LEFT_UP') {
                 game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
-            } else if (msg === 'DOWN') {
+            } else if (msg === 'LEFT_DOWN') {
                 game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
-            } 
-        } else if (role === 'right') {
-            if (msg === 'UP') {
+            } else if (msg === 'RIGHT_UP') {
                 game.gameState.paddles.right = Math.max(0, game.gameState.paddles.right - 20);
-            } else if (msg === 'DOWN') {
+            } else if (msg === 'RIGHT_DOWN') {
                 game.gameState.paddles.right = Math.min(340, game.gameState.paddles.right + 20);
             }
-        }
     });
 
     connection.on('close', () => {
-        console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
+        // console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
         game.clients.delete(connection);
         games.delete(gameId);
     });

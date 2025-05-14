@@ -1,16 +1,16 @@
-import { UIElements, GameState, UIActions } from './game-ui.ts';
+import { UIElements, GameState, UIActions, GameType } from '../../types/game';
 
 type WebSocketDeps = {
     gameId: string,
-    type: string,
+    gameType: GameType,
     ui: UIElements,
     gameState: GameState;
     actions: UIActions;
 }
 
-export function setupWebSocket({ gameId, type, ui, gameState, actions }: WebSocketDeps): WebSocket {
+export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
     const ws: WebSocket = new WebSocket(
-        type === 'network'
+        gameType === 'network'
             ? `ws://localhost:3000/game?gameId=${gameId}`
             : `ws://localhost:3000/localgame?gameId=${gameId}`
     );
@@ -60,7 +60,10 @@ export function setupWebSocket({ gameId, type, ui, gameState, actions }: WebSock
 	};
 
 	ws.onopen = () => {
-		ui.text.textContent = 'Connected to server. Waiting for role assignment...';
+        if (gameType === 'network')
+		    ui.text.textContent = 'Connected to server. Waiting for role assignment...';
+        else
+        ui.text.textContent = 'Game ready. Press \'R\' to start.';
 	};
 
 	ws.onclose = () => {
