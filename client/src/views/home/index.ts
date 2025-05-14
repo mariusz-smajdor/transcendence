@@ -1,8 +1,8 @@
 import GameSection from './game-section';
 import AuthSection from './auth-section';
 import HistorySection from './history-section';
+import FriendsSection from './friends-section';
 import { Container } from '../../components/container';
-import { Card } from '../../components/card';
 import { store } from '../../store';
 
 // TEMPORARY HARDCODED USER, LATER WE WILL GET HIM FROM BACKEND
@@ -11,22 +11,6 @@ const USER = {
 	avatar: 'https://i.pravatar.cc/300',
 };
 ////////////////////////////////////////////////////////////////////
-
-function FriendsSection() {
-	const section = Card({
-		element: 'section',
-		classes: [
-			'flex',
-			'flex-col',
-			'gap-4',
-			'lg:gap-6',
-			'lg:col-span-2',
-			'lg:row-span-2',
-		],
-	});
-
-	return section;
-}
 
 function Home() {
 	const container = Container({
