@@ -8,6 +8,8 @@ import { Input } from '../../components/input';
 import { Img } from '../../components/img';
 import { Text } from '../../components/text';
 import { Button } from '../../components/button';
+import { sendFriendRequest } from '../../api/friendRequest';
+import { store } from '../../store';
 
 ///// TEMPORARY HARDCODED FRIENDS, LATER WE WILL GET HIM FROM BACKEND
 
@@ -42,7 +44,33 @@ function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 		return;
 	}
 
-	// call api to add friend
+	sendFriendRequest(friendUsername);
+}
+
+function FriendRequestTab() {
+	const tab = Tab({
+		value: 'requests',
+		classes: ['flex', 'flex-col', 'gap-4'],
+	});
+	const wrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
+	const noRequests = Text({
+		content: 'No friend requests',
+		classes: ['text-sm', 'text-secondary'],
+	});
+
+	const currentUser = store.getState().user;
+	currentUser?.friendRequests?.forEach((f) => {
+		const tmp = Text({
+			content: f.senderUsername,
+			classes: ['text-sm', 'text-secondary'],
+		});
+		wrapper.appendChild(tmp);
+	});
+
+	wrapper.appendChild(noRequests);
+	tab.appendChild(wrapper);
+
+	return tab;
 }
 
 function AllFriendsTab() {
@@ -180,7 +208,7 @@ export default function FriendsSection() {
 				Trigger({ content: 'All Friends', value: 'all-friends' }),
 				Trigger({ content: 'Requests', value: 'requests' }),
 			],
-			tabs: [AllFriendsTab(), Wrapper({})],
+			tabs: [AllFriendsTab(), FriendRequestTab()],
 			classes: ['h-full'],
 		})
 	);

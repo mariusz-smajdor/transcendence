@@ -3,6 +3,11 @@ type User = {
 	username: string;
 	avatar: string;
 	email: string;
+	friendRequests?: {
+		senderId: number;
+		senderUsername: string;
+		senderAvatar: string;
+	}[];
 };
 
 type State = {
