@@ -124,3 +124,105 @@ export const meHandler = async (req, res) => {
     ...payload,
   });
 };
+
+export const sendFriendRequestHandler = async (req, res) => {
+  try {
+    const token = req.cookies?.access_token;
+    const decoded = req.server.jwt.decode(token);
+    const senderId = decoded?.userId;
+    if (!senderId) {
+      return sendResponse(res, 401, 'Unauthorized: Try to login again');
+    }
+
+    const { username: receiverUsername } = req.body;
+    if (!receiverUsername) {
+      return sendResponse(res, 400, 'Bad request: Friend username is empty');
+    }
+
+    const db = req.context.config.db;
+    const receiver = db
+      .prepare('SELECT id FROM users WHERE username = ?')
+      .get(receiverUsername);
+
+    if (!receiver) {
+      return sendResponse(res, 404, `User ${receiverUsername} doesn't exist`);
+    }
+    if (receiver.id === senderId) {
+      return sendResponse(res, 400, "You can't friend yourself");
+    }
+
+    const existingRequest = db
+      .prepare(
+        `SELECT id FROM friendRequests WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
+      )
+      .get(senderId, receiver.id, receiver.id, senderId);
+    if (existingRequest) {
+      return sendResponse(res, 409, 'Friend request already exists');
+    }
+
+    try {
+      db.prepare(
+        `
+        INSERT INTO friendRequests (sender_id, receiver_id)
+        VALUES (?, ?)
+      `,
+      ).run(senderId, receiver.id);
+    } catch (err) {
+      return sendResponse(res, 500, `Insert failed: ${err.message}`);
+    }
+
+    return sendResponse(res, 200, 'Friend request sent');
+  } catch (error) {
+    return sendResponse(res, 500, 'Internal server error');
+  }
+};
+
+export const getFriendRequestsHandler = async (req, res) => {
+  try {
+    const token = req.cookies?.access_token;
+    if (!token) {
+      return res.send({ success: false, message: 'No token provided' });
+    }
+
+    let decoded;
+    try {
+      decoded = req.server.jwt.verify(token);
+    } catch (err) {
+      return res.send({ success: false, message: 'Invalid token' });
+    }
+
+    const userId = decoded?.userId;
+    if (!userId) {
+      return res.send({ success: false, message: 'Unauthorized' });
+    }
+
+    const db = req.context.config.db;
+
+    let requests;
+    try {
+      requests = db
+        .prepare(
+          `
+            SELECT 
+              fr.id AS requestId,
+              u.id AS senderId,
+              u.username AS senderUsername,
+              u.avatar AS senderAvatar
+            FROM friendRequests fr
+            JOIN users u ON u.id = fr.sender_id
+            WHERE fr.receiver_id = ?
+          `,
+        )
+        .all(userId);
+    } catch (dbError) {
+      return res.send({ success: false, message: 'Database error' });
+    }
+
+    return res.send({
+      success: true,
+      requests,
+    });
+  } catch (error) {
+    return res.send({ success: false, message: 'Internal server error' });
+  }
+};
