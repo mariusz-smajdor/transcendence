@@ -1,21 +1,27 @@
 import { UIElements, GameState, UIActions, GameType } from '../../types/game';
 
 type WebSocketDeps = {
-    gameId: string,
-    gameType: GameType,
-    ui: UIElements,
-    gameState: GameState;
-    actions: UIActions;
+	gameId: string;
+	gameType: GameType;
+	ui: UIElements;
+	gameState: GameState;
+	actions: UIActions;
+}
+
+type GameMessage = {
+	type: 'message';
+	message: string;
+	player: string;
 }
 
 export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
-    const ws: WebSocket = new WebSocket(
-        gameType === 'network'
-            ? `ws://localhost:3000/game?gameId=${gameId}`
-            : `ws://localhost:3000/localgame?gameId=${gameId}`
-    );
+	const ws: WebSocket = new WebSocket(
+		gameType === 'network'
+			? `ws://localhost:3000/game?gameId=${gameId}`
+			: `ws://localhost:3000/localgame?gameId=${gameId}`
+	);
 
-    ws.onmessage = (event: MessageEvent) => {
+	ws.onmessage = (event: MessageEvent) => {
 		try {
 			const data = JSON.parse(event.data);
 
@@ -42,7 +48,6 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 				gameState.scoreRight = data.data.score.right;
 				gameState.gameOver = data.data.gameOver;
 				actions.drawScene();
-				
 			}
 
 			else if (data.type === 'error') {
@@ -50,7 +55,7 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 			}
 
 			else if (data.type === 'message') {
-				ui.text.textContent = data.message;
+				manageMessage(data, gameState, ui);
 			}
 
 		} catch (e) {
@@ -60,10 +65,10 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 	};
 
 	ws.onopen = () => {
-        if (gameType === 'network')
-		    ui.text.textContent = 'Connected to server. Waiting for role assignment...';
-        else
-        ui.text.textContent = 'Game ready. Press \'R\' to start.';
+		if (gameType === 'network')
+			ui.text.textContent = 'Connected to server. Waiting for role assignment...';
+		else
+			ui.text.textContent = 'Game ready. Press \'R\' to start.';
 	};
 
 	ws.onclose = () => {
@@ -71,9 +76,69 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 		ui.roleText.textContent = 'Role: disconnected';
 	};
 
-    ui.restartBtn.onclick = () => {
+	ui.restartBtn.onclick = () => {
 		ws.send('RESET');
 	};
 
-    return ws;
+	return ws;
+}
+
+function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) {
+	switch (data.message) {
+		case 'game_on':
+			ui.text.textContent = 'Game is on!';
+			break;
+		case 'waiting_for_second_player':
+			ui.text.textContent = 'Waiting for a second player to join.';
+			break;
+		case 'waiting_for_readiness':
+			if (gameState.playerRole === 'left' || gameState.playerRole === 'right') {
+				ui.text.textContent = 'Waiting for players to confirm they are ready. Press \'R\' if you are ready.';
+			} else {
+				ui.text.textContent = 'Waiting for players to confirm they are ready.';
+			}
+			break;
+		case 'left_player_ready':
+			if (gameState.playerRole === 'right') {
+				ui.text.textContent = 'Left player is ready. Press \'R\' if you are ready.';
+			}
+			break;
+		case 'right_player_ready':
+			if (gameState.playerRole === 'left') {
+				ui.text.textContent = 'Right player is ready. Press \'R\' if you are ready.';
+			}
+			break;
+		case 'count_to_start':
+			let count = 3;
+			const doCounting = () => {
+				if (count > 0) {
+					ui.text.textContent = `Prepare yourself! Game starts in ${count}`;
+					count--;
+					setTimeout(doCounting, 1000);
+				}
+			};
+			doCounting();
+			break;
+		case 'game_stop':
+			ui.text.textContent = 'Game stopped. Waiting for a second player to connect';
+			break;
+		case 'rematch':
+			if (gameState.playerRole === 'left' || gameState.playerRole === 'right')
+				ui.text.textContent = 'Rematch proposed! Press \'R\' if you are ready.';
+			else
+				ui.text.textContent = 'Rematch proposed! Waiting for players to confirm.';
+			break;
+		case 'winner_left':
+			ui.text.textContent = 'Left player won!';
+			break;
+		case 'winner_right':
+			ui.text.textContent = 'Right player won!';
+			break;
+		case 'error_please_reload':
+			ui.text.textContent = 'Error occured. Please reload game.';
+			break;
+		default:
+			ui.text.textContent = data.message;
+			console.warn('Displayed unknown message: ', data.message);
+	}
 }
