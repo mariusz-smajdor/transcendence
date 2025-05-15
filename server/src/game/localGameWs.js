@@ -4,34 +4,11 @@ import { broadcastMessage } from "../game/broadcast.js";
 export function manageLocalGameWebSocket(game, connection, games, gameId) {
     
     game.clients.add(connection);
-    // game.playersManager.assignRole(connection);
-
-    // connection.send(JSON.stringify({
-    //     type: 'role',
-    //     role: 'local'
-    // }));
-    // console.log(`Role assigned: ${game.playersManager.getRole(connection)}`);
 
     connection.send(JSON.stringify({
         type: 'gameState',
         data: game.gameState
     }));
-
-	// if (game.isRunning === true){
-	// 	broadcastMessage(game.clients, 'Game is on!');
-	// } else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
-	// 	broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
-	// 	console.log("Waiting for a second player");
-	// } else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
-	// 	broadcastMessage(game.clients, 'Waiting for readiiness')
-	// }
-
-    // if (game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null) {
-    //     if (game.isRunning === false) {
-    //         gameLoop(game);
-    //         game.isRunning = true;
-    //     }
-    //     broadcastMessage(game.clients, 'Game is on!');
 
     connection.on('message', message => {
         const msg = message.toString().trim();
@@ -40,7 +17,6 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
 
 		//Readiness
 		if (msg === 'READY' && !game.isRunning) {
-                broadcastMessage(game.clients, 'Game starting in 3...');
                 countdownAndStart(game);
         }
 
@@ -57,7 +33,6 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
     });
 
     connection.on('close', () => {
-        // console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
         game.clients.delete(connection);
         games.delete(gameId);
     });
@@ -66,20 +41,19 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
         console.error('WebSocket error:', err);
         game.clients.delete(connection);
         games.delete(gameId);
-        broadcastMessage(game.clients, 'Connection error. Please reload game.');
+        broadcastMessage(game.clients, 'error_please_reload');
     });
 }
 
 function countdownAndStart(game) {
     let count = 3;
-
+    broadcastMessage(game.clients, 'count_to_start');
     function next() {
         if (count > 0) {
-            broadcastMessage(game.clients, `Game starts in ${count}...`);
             count--;
             setTimeout(next, 1000);
         } else {
-            broadcastMessage(game.clients, 'Game started!');
+            broadcastMessage(game.clients, 'game_on');
             game.isRunning = true;
             game.readyL = false;
             game.readyR = false;

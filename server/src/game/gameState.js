@@ -91,10 +91,10 @@ export function gameLoop(game) {
 	if (game.gameState.gameOver) {
 		stopGameLoop(game);
 		game.isRunning = false;
-		let winner = game.gameState.score.left >= 11 ? 'Left' : 'Right';
+		let winner = game.gameState.score.left >= 11 ? 'left' : 'right';
 		let gameStatePropotional = getGameStateProportional(game.gameState);
 		broadcastGameState(game.clients, gameStatePropotional);
-		broadcastMessage(game.clients, `The winner is player ${winner}`);
+		broadcastMessage(game.clients, `winner_${winner}`);
 		return;
 	}
     let gameStatePropotional = getGameStateProportional(game.gameState);

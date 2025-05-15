@@ -18,43 +18,36 @@ export function manageGameWebSocket(game, connection, games, gameId) {
     }));
 
 	if (game.isRunning === true){
-		broadcastMessage(game.clients, 'Game is on!');
+		broadcastMessage(game.clients, 'game_on');
 	} else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
-		broadcastMessage(game.clients, 'Waiting for a second player to connect. ');
-		console.log("Waiting for a second player");
+        console.log("Waiting for a second player");
+        broadcastMessage(game.clients, 'waiting_for_second_player');
 	} else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
-		broadcastMessage(game.clients, 'Waiting for readiness. Press \'R\'.')
+		broadcastMessage(game.clients, 'waiting_for_readiness');
 	}
-
-    // if (game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null) {
-    //     if (game.isRunning === false) {
-    //         gameLoop(game);
-    //         game.isRunning = true;
-    //     }
-    //     broadcastMessage(game.clients, 'Game is on!');
 
     connection.on('message', message => {
         const msg = message.toString().trim();
 		const role = game.playersManager.getRole(connection);
         console.log(`Message received from ${role}:`, msg);
 
-		//Readiines
+		//Readiness
 		if (msg === 'READY' && !game.isRunning) {
             if (role === 'left') {
                 game.readyL = true;
-                broadcastMessage(game.clients, 'Left player is ready!');
+                broadcastMessage(game.clients, 'left_player_ready');
             }
             if (role === 'right') {
                 game.readyR = true;
-                broadcastMessage(game.clients, 'Right player is ready!');
+                broadcastMessage(game.clients, 'right_player_ready');
             }
             if (game.readyL && game.readyR) {
-                broadcastMessage(game.clients, 'Both players are ready! Starting in 3...');
                 countdownAndStart(game);
             }
             return;
         }
-		//Movment
+
+		//Movement
         if (role === 'left') {
             if (msg === 'UP') {
                 game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
@@ -74,7 +67,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 			game.isRunning = false;
 			game.readyL = false;
 			game.readyR = false;
-			broadcastMessage(game.clients, `${role} wants a rematch. Waiting for readiness...`);
+			broadcastMessage(game.clients, 'rematch');
 			broadcastGameState(game.clients, getGameStateProportional(game.gameState));
 		}
     });
@@ -86,7 +79,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
         if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
             stopGameLoop(game);
             game.isRunning = false;
-            broadcastMessage(game.clients, 'Game stopped. Waiting for a second player to connect');
+            broadcastMessage(game.clients, 'game_stop');
         }
         if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
             games.delete(gameId);
@@ -100,7 +93,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
         if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
             stopGameLoop(game);
             game.isRunning = false;
-            broadcastMessage(game.clients, 'Game stopped. Waiting for a second player to connect');
+            broadcastMessage(game.clients, 'game_stop');
         }
         if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
             games.delete(gameId);
@@ -109,21 +102,20 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 }
 
 function countdownAndStart(game) {
+    broadcastMessage(game.clients, `count_to_start`);
     let count = 3;
 
     function next() {
         if (count > 0) {
-            broadcastMessage(game.clients, `Game starts in ${count}...`);
             count--;
             setTimeout(next, 1000);
         } else {
-            broadcastMessage(game.clients, 'Game started!');
+            broadcastMessage(game.clients, 'game_on');
             game.isRunning = true;
             game.readyL = false;
             game.readyR = false;
             gameLoop(game);
         }
     }
-
     next();
 }

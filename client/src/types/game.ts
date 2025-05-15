@@ -22,9 +22,9 @@ export type UIActions = {
 };
 
 export type GameUI = {
-    ui: UIElements,
-    gameState: GameState,
-    actions: UIActions,
+    ui: UIElements;
+    gameState: GameState;
+    actions: UIActions;
 };
 
 export type GameType = 'network' | 'local';
