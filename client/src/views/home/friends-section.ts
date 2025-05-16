@@ -1,4 +1,4 @@
-import { MessageCircle, UserPlus, Users } from 'lucide';
+import { MessageCircle, UserPlus, Users, UserX } from 'lucide';
 import { Wrapper } from '../../components/wrapper';
 import { Card } from '../../components/card';
 import { Heading } from '../../components/heading';
@@ -8,7 +8,11 @@ import { Input } from '../../components/input';
 import { Img } from '../../components/img';
 import { Text } from '../../components/text';
 import { Button } from '../../components/button';
-import { sendFriendRequest } from '../../api/friendRequest';
+import {
+	acceptFriendRequest,
+	rejectFriendRequest,
+	sendFriendRequest,
+} from '../../api/friendRequest';
 import { store } from '../../store';
 
 ///// TEMPORARY HARDCODED FRIENDS, LATER WE WILL GET HIM FROM BACKEND
@@ -48,26 +52,85 @@ function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 }
 
 function FriendRequestTab() {
+	const currentUser = store.getState().user;
+
 	const tab = Tab({
 		value: 'requests',
 		classes: ['flex', 'flex-col', 'gap-4'],
 	});
 	const wrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
-	const noRequests = Text({
+	const noFriendsMessage = Text({
 		content: 'No friend requests',
-		classes: ['text-sm', 'text-secondary'],
+		classes: ['text-muted', 'text-center', 'py-4', 'lg:py-6'],
 	});
 
-	const currentUser = store.getState().user;
-	currentUser?.friendRequests?.forEach((f) => {
-		const tmp = Text({
-			content: f.senderUsername,
-			classes: ['text-sm', 'text-secondary'],
-		});
-		wrapper.appendChild(tmp);
-	});
+	currentUser?.friendRequests?.length === 0
+		? wrapper.appendChild(noFriendsMessage)
+		: currentUser?.friendRequests?.forEach((f) => {
+				const friends = Wrapper({
+					classes: [
+						'flex',
+						'p-2',
+						'items-center',
+						'justify-between',
+						'gap-2',
+						'rounded',
+						'hover:bg-background/25',
+					],
+				});
+				const friend = Wrapper({
+					classes: ['flex', 'items-center', 'gap-4'],
+				});
+				const avatar = Img({
+					src: f.senderAvatar || 'https://i.pravatar.cc/300',
+					alt: f.senderUsername,
+					width: 35,
+					height: 35,
+					loading: 'lazy',
+					classes: ['rounded-full', 'border', 'border-accent'],
+				});
+				const name = Text({
+					element: 'span',
+					content: f.senderUsername,
+					classes: ['text-sm'],
+				});
+				const buttons = Wrapper({ classes: ['flex', 'gap-4'] });
+				const addButton = Button({
+					type: 'button',
+					variant: 'ghost',
+					classes: ['text-green-400'],
+				});
+				const rejectButton = Button({
+					type: 'button',
+					variant: 'ghost',
+					classes: ['text-red-400'],
+				});
 
-	wrapper.appendChild(noRequests);
+				addButton.addEventListener('click', () => {
+					acceptFriendRequest(f.senderId);
+					wrapper.removeChild(friends);
+					if (wrapper.childElementCount === 0) {
+						wrapper.appendChild(noFriendsMessage);
+					}
+				});
+				rejectButton.addEventListener('click', () => {
+					rejectFriendRequest(f.senderId);
+					wrapper.removeChild(friends);
+					if (wrapper.childElementCount === 0) {
+						wrapper.appendChild(noFriendsMessage);
+					}
+				});
+
+				addButton.appendChild(Icon({ icon: UserPlus }));
+				rejectButton.appendChild(Icon({ icon: UserX }));
+				buttons.appendChild(addButton);
+				buttons.appendChild(rejectButton);
+				friend.appendChild(avatar);
+				friend.appendChild(name);
+				friends.appendChild(friend);
+				friends.appendChild(buttons);
+				wrapper.appendChild(friends);
+		  });
 	tab.appendChild(wrapper);
 
 	return tab;
@@ -87,14 +150,13 @@ function AllFriendsTab() {
 	});
 
 	function renderFriends() {
-		const value = searchInput.value.trim().toLowerCase();
+		wrapper.innerHTML = '';
 
+		const value = searchInput.value.trim().toLowerCase();
 		const filteredFriends = FRIENDS.filter((f) => {
 			if (!value) return true;
 			return f.name.toLowerCase().includes(value);
 		});
-
-		wrapper.innerHTML = '';
 
 		filteredFriends.forEach((f) => {
 			const friends = Wrapper({
@@ -139,7 +201,31 @@ function AllFriendsTab() {
 	}
 
 	searchInput.addEventListener('input', renderFriends);
+	renderFriends();
 
+	tab.appendChild(searchInput);
+	tab.appendChild(wrapper);
+
+	return tab;
+}
+
+export default function FriendsSection() {
+	const section = Card({
+		element: 'section',
+		classes: [
+			'flex',
+			'flex-col',
+			'gap-4',
+			'lg:gap-6',
+			'lg:col-span-2',
+			'lg:row-span-2',
+		],
+	});
+	const heading = Heading({
+		level: 2,
+		content: 'Friends',
+		classes: ['flex', 'items-center', 'gap-2'],
+	});
 	const form = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -162,37 +248,6 @@ function AllFriendsTab() {
 		classes: ['text-sm', 'bg-background'],
 	});
 
-	form.addEventListener('submit', (e) => addFriendHandler(e, friendUsername));
-
-	renderFriends();
-	addFriend.prepend(addIcon);
-	form.appendChild(addFriend);
-	form.appendChild(friendUsername);
-	tab.appendChild(searchInput);
-	tab.appendChild(wrapper);
-	tab.appendChild(form);
-
-	return tab;
-}
-
-export default function FriendsSection() {
-	const section = Card({
-		element: 'section',
-		classes: [
-			'flex',
-			'flex-col',
-			'gap-4',
-			'lg:gap-6',
-			'lg:col-span-2',
-			'lg:row-span-2',
-		],
-	});
-	const heading = Heading({
-		level: 2,
-		content: 'Friends',
-		classes: ['flex', 'items-center', 'gap-2'],
-	});
-
 	heading.prepend(
 		Icon({
 			icon: Users,
@@ -209,9 +264,13 @@ export default function FriendsSection() {
 				Trigger({ content: 'Requests', value: 'requests' }),
 			],
 			tabs: [AllFriendsTab(), FriendRequestTab()],
-			classes: ['h-full'],
 		})
 	);
+	addFriend.prepend(addIcon);
+	form.appendChild(addFriend);
+	form.appendChild(friendUsername);
+	form.addEventListener('submit', (e) => addFriendHandler(e, friendUsername));
+	section.appendChild(form);
 
 	return section;
 }
