@@ -47,3 +47,49 @@ export async function getFriendRequest() {
 		console.error('Error fetching friend requests:', error);
 	}
 }
+
+export async function acceptFriendRequest(requestId: number) {
+	try {
+		const res = await fetch('http://localhost:3000/friend-request/accept', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ requestId }),
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) {
+			console.error('Failed to accept request:', data.message);
+			return;
+		}
+
+		console.log('Friend request accepted');
+	} catch (error) {
+		console.error('Error accepting friend request:', error);
+	}
+}
+
+export async function rejectFriendRequest(requestId: number) {
+	try {
+		const res = await fetch('http://localhost:3000/friend-request/reject', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ requestId }),
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) {
+			console.error('Failed to reject request:', data.message);
+			return;
+		}
+
+		console.log('Friend request rejected');
+	} catch (error) {
+		console.error('Error rejecting friend request:', error);
+	}
+}

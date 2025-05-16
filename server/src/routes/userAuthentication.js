@@ -26,6 +26,14 @@ async function userAuthenticationRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await userAuthController.getFriendRequestsHandler(req, res);
   });
+  fastify.post('/friend-request/accept', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.acceptFriendRequestHandler(req, res);
+  });
+  fastify.post('/friend-request/reject', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.rejectFriendRequestHandler(req, res);
+  });
 }
 
 export default userAuthenticationRoutes;

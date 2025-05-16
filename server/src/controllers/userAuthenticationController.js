@@ -133,7 +133,6 @@ export const sendFriendRequestHandler = async (req, res) => {
     if (!senderId) {
       return sendResponse(res, 401, 'Unauthorized: Try to login again');
     }
-
     const { username: receiverUsername } = req.body;
     if (!receiverUsername) {
       return sendResponse(res, 400, 'Bad request: Friend username is empty');
@@ -153,9 +152,10 @@ export const sendFriendRequestHandler = async (req, res) => {
 
     const existingRequest = db
       .prepare(
-        `SELECT id FROM friendRequests WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
+        `SELECT id FROM friend_requests WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
       )
       .get(senderId, receiver.id, receiver.id, senderId);
+    console.log('Sender ID:', senderId, receiver.id);
     if (existingRequest) {
       return sendResponse(res, 409, 'Friend request already exists');
     }
@@ -163,7 +163,7 @@ export const sendFriendRequestHandler = async (req, res) => {
     try {
       db.prepare(
         `
-        INSERT INTO friendRequests (sender_id, receiver_id)
+        INSERT INTO friend_requests (sender_id, receiver_id)
         VALUES (?, ?)
       `,
       ).run(senderId, receiver.id);
@@ -208,7 +208,7 @@ export const getFriendRequestsHandler = async (req, res) => {
               u.id AS senderId,
               u.username AS senderUsername,
               u.avatar AS senderAvatar
-            FROM friendRequests fr
+            FROM friend_requests fr
             JOIN users u ON u.id = fr.sender_id
             WHERE fr.receiver_id = ?
           `,
@@ -224,5 +224,75 @@ export const getFriendRequestsHandler = async (req, res) => {
     });
   } catch (error) {
     return res.send({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const acceptFriendRequestHandler = async (req, res) => {
+  const token = req.cookies?.access_token;
+  const decoded = req.server.jwt.decode(token);
+  const receiverId = decoded?.userId;
+
+  if (!receiverId) {
+    return sendResponse(res, 401, 'Unauthorized');
+  }
+
+  const { requestId } = req.body;
+  if (!requestId) {
+    return sendResponse(res, 400, 'Missing requestId');
+  }
+
+  const db = req.context.config.db;
+
+  const request = db
+    .prepare('SELECT sender_id, receiver_id FROM friend_requests WHERE id = ?')
+    .get(requestId);
+
+  if (!request || request.receiver_id !== receiverId) {
+    return sendResponse(res, 404, 'Friend request not found or unauthorized');
+  }
+
+  try {
+    const insert = db.prepare(
+      `INSERT INTO friends (user_id_1, user_id_2) VALUES (?, ?)`,
+    );
+    insert.run(request.sender_id, request.receiver_id);
+
+    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(requestId);
+
+    return sendResponse(res, 200, 'Friend request accepted');
+  } catch (err) {
+    return sendResponse(res, 500, `Database error: ${err.message}`);
+  }
+};
+
+export const rejectFriendRequestHandler = async (req, res) => {
+  const token = req.cookies?.access_token;
+  const decoded = req.server.jwt.decode(token);
+  const receiverId = decoded?.userId;
+  if (!receiverId) {
+    return sendResponse(res, 401, 'Unauthorized');
+  }
+
+  const { requestId } = req.body;
+  console.log('Rejecting request ID:', requestId, 'for user ID:', receiverId);
+  if (!requestId) {
+    return sendResponse(res, 400, 'Missing requestId');
+  }
+
+  const db = req.context.config.db;
+
+  const request = db
+    .prepare('SELECT receiver_id FROM friend_requests WHERE id = ?')
+    .get(requestId);
+
+  if (!request || request.receiver_id !== receiverId) {
+    return sendResponse(res, 404, 'Friend request not found or unauthorized');
+  }
+
+  try {
+    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(requestId);
+    return sendResponse(res, 200, 'Friend request rejected');
+  } catch (err) {
+    return sendResponse(res, 500, `Database error: ${err.message}`);
   }
 };
