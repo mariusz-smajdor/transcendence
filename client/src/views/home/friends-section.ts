@@ -15,29 +15,6 @@ import {
 } from '../../api/friendRequest';
 import { store } from '../../store';
 
-///// TEMPORARY HARDCODED FRIENDS, LATER WE WILL GET HIM FROM BACKEND
-
-const FRIENDS = [
-	{
-		name: 'John Doe',
-		avatar: 'https://i.pravatar.cc/300',
-	},
-	{
-		name: 'Jane Doe',
-		avatar: 'https://i.pravatar.cc/301',
-	},
-	{
-		name: 'John Smith',
-		avatar: 'https://i.pravatar.cc/302',
-	},
-	{
-		name: 'Jane Smith',
-		avatar: 'https://i.pravatar.cc/303',
-	},
-];
-
-/////
-
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 	e.preventDefault();
 
@@ -153,9 +130,11 @@ function AllFriendsTab() {
 		wrapper.innerHTML = '';
 
 		const value = searchInput.value.trim().toLowerCase();
-		const filteredFriends = FRIENDS.filter((f) => {
+
+		const friendsList = store.getState().user?.friends ?? [];
+		const filteredFriends = friendsList.filter((f) => {
 			if (!value) return true;
-			return f.name.toLowerCase().includes(value);
+			return f.username.toLowerCase().includes(value);
 		});
 
 		filteredFriends.forEach((f) => {
@@ -174,8 +153,8 @@ function AllFriendsTab() {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: f.avatar,
-				alt: f.name,
+				src: f.avatar || `https://i.pravatar.cc/30${f.id}`,
+				alt: f.username,
 				width: 35,
 				height: 35,
 				loading: 'lazy',
@@ -183,7 +162,7 @@ function AllFriendsTab() {
 			});
 			const name = Text({
 				element: 'span',
-				content: f.name,
+				content: f.username,
 				classes: ['text-sm'],
 			});
 			const button = Button({ type: 'button', variant: 'ghost' });
