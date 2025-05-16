@@ -1,5 +1,26 @@
 import { store } from '../store';
 
+export async function getFriends() {
+	try {
+		const res = await fetch('http://localhost:3000/friends', {
+			method: 'GET',
+			credentials: 'include',
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) return;
+
+		store.setState({
+			user: {
+				...store.getState().user!,
+				friends: data.friends,
+			},
+		});
+	} catch (error) {
+		console.error('Failed to fetch friends:', error);
+	}
+}
+
 export async function sendFriendRequest(friendUsername: string) {
 	try {
 		const res = await fetch('http://localhost:3000/friend-request/send', {
@@ -16,7 +37,6 @@ export async function sendFriendRequest(friendUsername: string) {
 			throw new Error(data.message || 'Failed to send friend request');
 		}
 	} catch (error) {
-		// Handle error (e.g., show a notification to the user)
 		console.error('Error adding friend:', error);
 	}
 }
@@ -65,6 +85,19 @@ export async function acceptFriendRequest(requestId: number) {
 			return;
 		}
 
+		const currentUser = store.getState().user;
+		if (!currentUser) return;
+
+		store.setState({
+			user: {
+				...currentUser,
+				friendRequests: currentUser.friendRequests?.filter(
+					(req) => req.senderId !== data.friend.id
+				),
+				friends: [...(currentUser.friends || []), data.friend],
+			},
+		});
+
 		console.log('Friend request accepted');
 	} catch (error) {
 		console.error('Error accepting friend request:', error);
@@ -87,6 +120,18 @@ export async function rejectFriendRequest(requestId: number) {
 			console.error('Failed to reject request:', data.message);
 			return;
 		}
+
+		const currentUser = store.getState().user;
+		if (!currentUser) return;
+
+		store.setState({
+			user: {
+				...currentUser,
+				friendRequests: currentUser.friendRequests?.filter(
+					(req) => req.senderId !== data.senderId
+				),
+			},
+		});
 
 		console.log('Friend request rejected');
 	} catch (error) {

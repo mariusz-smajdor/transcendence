@@ -18,6 +18,10 @@ async function userAuthenticationRoutes(fastify) {
     return await userAuthController.logoutHandler(req, res);
   });
   // dajcie sobie to w inne miejsce jak chcecie
+  fastify.get('/friends', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.getFriendsHandler(req, res);
+  });
   fastify.post('/friend-request/send', async (req, res) => {
     req.context.config = { db: fastify.db };
     return await userAuthController.sendFriendRequestHandler(req, res);
