@@ -125,6 +125,49 @@ export const meHandler = async (req, res) => {
   });
 };
 
+export const getFriendsHandler = async (req, res) => {
+  const token = req.cookies?.access_token;
+  let decoded;
+
+  try {
+    decoded = req.server.jwt.verify(token);
+  } catch (err) {
+    return res.send({
+      success: false,
+      message: 'Invalid token',
+    });
+  }
+
+  const userId = decoded?.userId;
+  const db = req.context.config.db;
+
+  try {
+    const friends = db
+      .prepare(
+        `
+        SELECT u.id, u.username, u.avatar
+        FROM friends f
+        JOIN users u ON 
+          (u.id = f.user_id_1 AND f.user_id_2 = ?)
+          OR 
+          (u.id = f.user_id_2 AND f.user_id_1 = ?)
+        `,
+      )
+      .all(userId, userId);
+
+    return res.send({
+      success: true,
+      friends,
+    });
+  } catch (err) {
+    console.error('DB error:', err);
+    return res.send({
+      success: false,
+      message: 'Database error',
+    });
+  }
+};
+
 export const sendFriendRequestHandler = async (req, res) => {
   try {
     const token = req.cookies?.access_token;
@@ -133,12 +176,15 @@ export const sendFriendRequestHandler = async (req, res) => {
     if (!senderId) {
       return sendResponse(res, 401, 'Unauthorized: Try to login again');
     }
+
     const { username: receiverUsername } = req.body;
     if (!receiverUsername) {
       return sendResponse(res, 400, 'Bad request: Friend username is empty');
     }
 
     const db = req.context.config.db;
+
+    // Get receiver id by username
     const receiver = db
       .prepare('SELECT id FROM users WHERE username = ?')
       .get(receiverUsername);
@@ -150,22 +196,34 @@ export const sendFriendRequestHandler = async (req, res) => {
       return sendResponse(res, 400, "You can't friend yourself");
     }
 
-    const existingRequest = db
+    // Check if they are already friends (either direction)
+    const alreadyFriends = db
       .prepare(
-        `SELECT id FROM friend_requests WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
+        `SELECT 1 FROM friends WHERE 
+         (user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)`,
       )
       .get(senderId, receiver.id, receiver.id, senderId);
-    console.log('Sender ID:', senderId, receiver.id);
+
+    if (alreadyFriends) {
+      return sendResponse(res, 409, 'User is already your friend');
+    }
+
+    // Check if a friend request already exists (either direction)
+    const existingRequest = db
+      .prepare(
+        `SELECT id FROM friend_requests WHERE 
+         (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)`,
+      )
+      .get(senderId, receiver.id, receiver.id, senderId);
+
     if (existingRequest) {
       return sendResponse(res, 409, 'Friend request already exists');
     }
 
+    // Insert friend request
     try {
       db.prepare(
-        `
-        INSERT INTO friend_requests (sender_id, receiver_id)
-        VALUES (?, ?)
-      `,
+        `INSERT INTO friend_requests (sender_id, receiver_id) VALUES (?, ?)`,
       ).run(senderId, receiver.id);
     } catch (err) {
       return sendResponse(res, 500, `Insert failed: ${err.message}`);
@@ -236,18 +294,20 @@ export const acceptFriendRequestHandler = async (req, res) => {
     return sendResponse(res, 401, 'Unauthorized');
   }
 
-  const { requestId } = req.body;
-  if (!requestId) {
-    return sendResponse(res, 400, 'Missing requestId');
+  const { requestId: senderId } = req.body;
+  if (!senderId) {
+    return sendResponse(res, 400, 'Missing senderId');
   }
 
   const db = req.context.config.db;
 
   const request = db
-    .prepare('SELECT sender_id, receiver_id FROM friend_requests WHERE id = ?')
-    .get(requestId);
+    .prepare(
+      'SELECT id FROM friend_requests WHERE sender_id = ? AND receiver_id = ?',
+    )
+    .get(senderId, receiverId);
 
-  if (!request || request.receiver_id !== receiverId) {
+  if (!request) {
     return sendResponse(res, 404, 'Friend request not found or unauthorized');
   }
 
@@ -255,9 +315,9 @@ export const acceptFriendRequestHandler = async (req, res) => {
     const insert = db.prepare(
       `INSERT INTO friends (user_id_1, user_id_2) VALUES (?, ?)`,
     );
-    insert.run(request.sender_id, request.receiver_id);
+    insert.run(senderId, receiverId);
 
-    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(requestId);
+    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(request.id);
 
     return sendResponse(res, 200, 'Friend request accepted');
   } catch (err) {
@@ -269,28 +329,30 @@ export const rejectFriendRequestHandler = async (req, res) => {
   const token = req.cookies?.access_token;
   const decoded = req.server.jwt.decode(token);
   const receiverId = decoded?.userId;
+
   if (!receiverId) {
     return sendResponse(res, 401, 'Unauthorized');
   }
 
-  const { requestId } = req.body;
-  console.log('Rejecting request ID:', requestId, 'for user ID:', receiverId);
-  if (!requestId) {
-    return sendResponse(res, 400, 'Missing requestId');
+  const { requestId: senderId } = req.body;
+  if (!senderId) {
+    return sendResponse(res, 400, 'Missing senderId');
   }
 
   const db = req.context.config.db;
 
   const request = db
-    .prepare('SELECT receiver_id FROM friend_requests WHERE id = ?')
-    .get(requestId);
+    .prepare(
+      'SELECT id FROM friend_requests WHERE sender_id = ? AND receiver_id = ?',
+    )
+    .get(senderId, receiverId);
 
-  if (!request || request.receiver_id !== receiverId) {
+  if (!request) {
     return sendResponse(res, 404, 'Friend request not found or unauthorized');
   }
 
   try {
-    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(requestId);
+    db.prepare('DELETE FROM friend_requests WHERE id = ?').run(request.id);
     return sendResponse(res, 200, 'Friend request rejected');
   } catch (err) {
     return sendResponse(res, 500, `Database error: ${err.message}`);

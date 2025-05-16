@@ -8,6 +8,11 @@ type User = {
 		senderUsername: string;
 		senderAvatar: string;
 	}[];
+	friends?: {
+		id: number;
+		username: string;
+		avatar: string;
+	}[];
 };
 
 type State = {
