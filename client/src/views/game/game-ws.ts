@@ -15,7 +15,7 @@ type GameMessage = {
 }
 
 export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
-	const ws: WebSocket = new WebSocket(//ask
+	const ws: WebSocket = new WebSocket(
 		`${setWebsocketURL(gameType)}${gameId}`);
 
 	ws.onmessage = (event: MessageEvent) => {
