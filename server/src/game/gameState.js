@@ -1,4 +1,5 @@
 import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
+import { startAI } from "./aiPong.js";
 
 const canvasWidth = 600;
 const canvasHeight = 400;
@@ -80,14 +81,16 @@ export function initGame() {
   return gameState;
 }
 
-export function gameLoop(game) {
+export function gameLoop(game, ai = false) {
   console.log('game started');
   let ballSpeed = {
     ballSpeedX: 3,
     ballSpeedY: 2
   };
+  if (ai === true)
+  	startAI(game,ballSpeed);
   game.intervalId = setInterval(() => {
-    updateGameState(game.gameState, ballSpeed);
+	updateGameState(game.gameState, ballSpeed);
 	if (game.gameState.gameOver) {
 		stopGameLoop(game);
 		game.isRunning = false;

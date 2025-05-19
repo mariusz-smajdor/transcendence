@@ -15,11 +15,8 @@ type GameMessage = {
 }
 
 export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
-	const ws: WebSocket = new WebSocket(
-		gameType === 'network'
-			? `ws://localhost:3000/game?gameId=${gameId}`
-			: `ws://localhost:3000/localgame?gameId=${gameId}`
-	);
+	const ws: WebSocket = new WebSocket(//ask
+		`${setWebsocketURL(gameType)}${gameId}`);
 
 	ws.onmessage = (event: MessageEvent) => {
 		try {
@@ -140,5 +137,17 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 		default:
 			ui.text.textContent = data.message;
 			console.warn('Displayed unknown message: ', data.message);
+	}
+}
+
+function setWebsocketURL(gameType: GameType)
+{
+	switch(gameType){
+		case 'network':
+			return "ws://localhost:3000/game?gameId=";
+		case 'local':
+			return "ws://localhost:3000/localgame?gameId=";
+		case 'ai':
+			return "ws://localhost:3000/aigame?gameId=";
 	}
 }

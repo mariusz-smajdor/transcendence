@@ -35,3 +35,11 @@ export function setupKeyboardControlsForLocal(ws: WebSocket) {
         handleReadyKey(ws, e);
     });
 }
+
+export function setupKeyboardControlsForAI(ws: WebSocket) {
+    document.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') ws.send('UP');
+        else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') ws.send('DOWN');
+        handleReadyKey(ws, e);
+    });
+}
