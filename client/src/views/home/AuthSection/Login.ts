@@ -1,9 +1,9 @@
-import { Button } from '../../components/button';
-import { Heading } from '../../components/heading';
-import { Input } from '../../components/input';
-import { Label } from '../../components/label';
-import { Tab } from '../../components/tabs';
-import { Wrapper } from '../../components/wrapper';
+import { Button } from '../../../components/button';
+import { Heading } from '../../../components/heading';
+import { Input } from '../../../components/input';
+import { Label } from '../../../components/label';
+import { Tab } from '../../../components/tabs';
+import { Wrapper } from '../../../components/wrapper';
 
 function loginUser(
 	form: HTMLFormElement,
