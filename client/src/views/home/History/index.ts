@@ -1,7 +1,7 @@
-import { History } from 'lucide';
-import { Card } from '../../components/card.js';
-import { Heading } from '../../components/heading.js';
-import { Icon } from '../../components/icon.js';
+import { History as Clock } from 'lucide';
+import { Card } from '../../../components/card.js';
+import { Heading } from '../../../components/heading.js';
+import { Icon } from '../../../components/icon.js';
 import {
 	Table,
 	TableBody,
@@ -9,10 +9,10 @@ import {
 	TableHeader,
 	TableHeaderCell,
 	TableRow,
-} from '../../components/table.js';
-import { Img } from '../../components/img.js';
-import { Text } from '../../components/text.js';
-import { Wrapper } from '../../components/wrapper.js';
+} from '../../../components/table.js';
+import { Img } from '../../../components/img.js';
+import { Text } from '../../../components/text.js';
+import { Wrapper } from '../../../components/wrapper.js';
 
 ////////////////
 const user = {
@@ -124,7 +124,7 @@ const history = [
 // nie wiem czy to jest valid syntax ale normalnie dodamy coś takiego
 /////////////////
 
-export default function HistorySection(user: any) {
+export default function History(user: any) {
 	const section = Card({
 		element: 'section',
 		classes: [
@@ -144,7 +144,7 @@ export default function HistorySection(user: any) {
 	});
 	heading.prepend(
 		Icon({
-			icon: History,
+			icon: Clock,
 			size: 'lg',
 			classes: ['text-secondary', 'glow-secondary-animate'],
 		})

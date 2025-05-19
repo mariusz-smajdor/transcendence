@@ -1,19 +1,19 @@
 import { MessageCircle, UserPlus, Users, UserX } from 'lucide';
-import { Wrapper } from '../../components/wrapper';
-import { Card } from '../../components/card';
-import { Heading } from '../../components/heading';
-import { Icon } from '../../components/icon';
-import { Tabs, Tab, Trigger } from '../../components/tabs';
-import { Input } from '../../components/input';
-import { Img } from '../../components/img';
-import { Text } from '../../components/text';
-import { Button } from '../../components/button';
+import { Wrapper } from '../../../components/wrapper';
+import { Card } from '../../../components/card';
+import { Heading } from '../../../components/heading';
+import { Icon } from '../../../components/icon';
+import { Tabs, Tab, Trigger } from '../../../components/tabs';
+import { Input } from '../../../components/input';
+import { Img } from '../../../components/img';
+import { Text } from '../../../components/text';
+import { Button } from '../../../components/button';
 import {
 	acceptFriendRequest,
 	rejectFriendRequest,
 	sendFriendRequest,
-} from '../../api/friendRequest';
-import { store } from '../../store';
+} from '../../../api/friendRequest';
+import { store } from '../../../store';
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 	e.preventDefault();
@@ -188,7 +188,7 @@ function AllFriendsTab() {
 	return tab;
 }
 
-export default function FriendsSection() {
+export default function Friends() {
 	const section = Card({
 		element: 'section',
 		classes: [

@@ -1,7 +1,7 @@
-import GameSection from './game-section';
-import AuthSection from './auth-section';
-import HistorySection from './history-section';
-import FriendsSection from './friends-section';
+import Game from './Game';
+import Auth from './AuthSection';
+import History from './History';
+import Friends from './Friends';
 import { Container } from '../../components/container';
 import { store } from '../../store';
 
@@ -27,9 +27,9 @@ function Home() {
 
 	const user = store.getState().user;
 
-	container.appendChild(GameSection(user));
-	container.appendChild(user ? FriendsSection() : AuthSection());
-	user && container.appendChild(HistorySection(USER));
+	container.appendChild(Game(user));
+	container.appendChild(user ? Friends() : Auth());
+	user && container.appendChild(History(USER));
 	return container;
 }
 

@@ -1,10 +1,10 @@
 import { Gamepad2, Users, Bot, Trophy } from 'lucide';
-import { Tabs, Trigger, Tab } from '../../components/tabs';
-import { Wrapper } from '../../components/wrapper';
-import { Card } from '../../components/card';
-import { Heading } from '../../components/heading';
-import { Icon } from '../../components/icon';
-import { Text } from '../../components/text';
+import { Tabs, Trigger, Tab } from '../../../components/tabs';
+import { Wrapper } from '../../../components/wrapper';
+import { Card } from '../../../components/card';
+import { Heading } from '../../../components/heading';
+import { Icon } from '../../../components/icon';
+import { Text } from '../../../components/text';
 
 function FriendCard() {
 	const card = Card({
@@ -253,7 +253,7 @@ function TournamentTab() {
 	return tab;
 }
 
-export default function GameSection(user: any) {
+export default function Game(user: any) {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],

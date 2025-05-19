@@ -1,15 +1,15 @@
 import { KeyRound } from 'lucide';
-import { Card } from '../../components/card';
-import { Tabs, Trigger } from '../../components/tabs';
-import { Heading } from '../../components/heading';
-import { Icon } from '../../components/icon';
-import { Button } from '../../components/button';
-import { Img } from '../../components/img';
-import { Separator } from '../../components/separator';
-import Login from './login';
-import Register from './register';
+import { Card } from '../../../components/card';
+import { Tabs, Trigger } from '../../../components/tabs';
+import { Heading } from '../../../components/heading';
+import { Icon } from '../../../components/icon';
+import { Button } from '../../../components/button';
+import { Img } from '../../../components/img';
+import { Separator } from '../../../components/separator';
+import Login from './Login';
+import Register from './Register';
 
-export default function AuthSection() {
+export default function Auth() {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-2', 'lg:gap-6'],
