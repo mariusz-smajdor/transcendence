@@ -14,6 +14,7 @@ import {
 	sendFriendRequest,
 } from '../../../api/friendRequest';
 import { store } from '../../../store';
+import { MessageCard } from './MessageCard';
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 	e.preventDefault();
@@ -113,12 +114,14 @@ function FriendRequestTab() {
 	return tab;
 }
 
-function AllFriendsTab() {
+function AllFriendsTab(parent: HTMLElement) {
 	const tab = Tab({
 		value: 'all-friends',
 		classes: ['flex', 'flex-col', 'gap-4'],
 	});
-	const wrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
+	const wrapper = Wrapper({
+		classes: ['flex', 'flex-col', 'gap-1'],
+	});
 	const searchInput = Input({
 		type: 'text',
 		name: 'search friends',
@@ -136,6 +139,7 @@ function AllFriendsTab() {
 			if (!value) return true;
 			return f.username.toLowerCase().includes(value);
 		});
+		let messageCard: HTMLElement | null = null;
 
 		filteredFriends.forEach((f) => {
 			const friends = Wrapper({
@@ -170,6 +174,16 @@ function AllFriendsTab() {
 				icon: MessageCircle,
 			});
 
+			button.addEventListener('click', () => {
+				if (messageCard && parent.contains(messageCard)) {
+					parent.removeChild(messageCard);
+					messageCard = MessageCard(f);
+				} else {
+					messageCard = MessageCard(f);
+				}
+				parent.appendChild(messageCard);
+			});
+
 			button.appendChild(msgIcon);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
@@ -195,6 +209,7 @@ export default function Friends() {
 			'flex',
 			'flex-col',
 			'gap-4',
+			'relative',
 			'lg:gap-6',
 			'lg:col-span-2',
 			'lg:row-span-2',
@@ -242,7 +257,7 @@ export default function Friends() {
 				Trigger({ content: 'All Friends', value: 'all-friends' }),
 				Trigger({ content: 'Requests', value: 'requests' }),
 			],
-			tabs: [AllFriendsTab(), FriendRequestTab()],
+			tabs: [AllFriendsTab(section), FriendRequestTab()],
 		})
 	);
 	addFriend.prepend(addIcon);
