@@ -12,8 +12,7 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId) {
 	connection.on('message', message => {
 		const msg = message.toString().trim();
 		const role = game.playersManager.getRole(connection);
-		console.log(`Message received from ${role}:`, msg); // ask
-		console.log(`${connection.clients}`)
+		console.log(`Message received from ${role}:`, msg); 
 		//Readiness
 		if (msg === 'READY' && !game.isRunning) {
 			countdownAndStart(game);
