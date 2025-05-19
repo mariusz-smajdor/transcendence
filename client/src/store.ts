@@ -1,22 +1,7 @@
-type User = {
-	id: number;
-	username: string;
-	avatar: string;
-	email: string;
-	friendRequests?: {
-		senderId: number;
-		senderUsername: string;
-		senderAvatar: string;
-	}[];
-	friends?: {
-		id: number;
-		username: string;
-		avatar: string;
-	}[];
-};
+import { type UserData } from './types/user';
 
 type State = {
-	user: User | null;
+	user: UserData | null;
 };
 
 class Store {

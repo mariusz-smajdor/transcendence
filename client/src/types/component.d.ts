@@ -1,3 +1,3 @@
-export interface ComponentProps {
+export type ComponentProps = {
 	classes?: string[];
-}
+};
