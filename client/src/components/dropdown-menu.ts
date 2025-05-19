@@ -72,6 +72,7 @@ export function DropdownMenu({
 			'ease-out',
 			'transform',
 			'pointer-events-none',
+			'z-50',
 		],
 	});
 	wrapper.classList.add(...classes);
