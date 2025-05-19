@@ -168,6 +168,12 @@ function AiCard() {
 		classes: ['text-sm', 'text-muted'],
 	});
 
+	card.addEventListener('click', async () => {
+	const response = await fetch('http://localhost:3000/game/create');
+	const data = await response.json();
+	showGameOverlay(data.gameId, 'ai');
+    });
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);

@@ -1,5 +1,6 @@
 import { manageGameWebSocket } from "../game/gameWs.js";
 import { manageLocalGameWebSocket } from "../game/localGameWs.js";
+import { manageLocalGameWebSocketAI } from "../game/aiGameWs.js";
 import { initGame } from "../game/gameState.js";
 import { PlayersManager } from "../game/players.js";
 import { v4 as uuidv4 } from 'uuid';
@@ -49,6 +50,21 @@ async function gameRoutes(fastify) {
       return;
     }
     manageLocalGameWebSocket(game, connection, games, gameId);
+  });
+
+
+    fastify.get('/aigame', { websocket: true }, (connection, req) => {
+    const { gameId } = req.query;
+    const game = games.get(gameId);
+    console.log('New WebSocket connection - address:', req.socket.remoteAddress);
+
+    if (!game) {
+      connection.send(JSON.stringify({ error: 'Game not found' }));
+      connection.close();
+      console.log('Game not found');
+      return;
+    }
+    manageLocalGameWebSocketAI(game, connection, games, gameId);
   });
 
 

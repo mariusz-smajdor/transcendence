@@ -1,6 +1,6 @@
 import { createGameUI } from './game-ui';
 import { setupWebSocket } from './game-ws';
-import { setupKeyboardControls, setupKeyboardControlsForLocal } from './game-keys';
+import { setupKeyboardControls, setupKeyboardControlsForLocal, setupKeyboardControlsForAI } from './game-keys';
 import { GameType } from '../../types/game';
 
 export default function Game(gameId: string, gameType: GameType) {
@@ -12,10 +12,15 @@ export default function Game(gameId: string, gameType: GameType) {
 	const { ui, gameState, actions } = createGameUI(gameType);
 	actions.resizeCanvas();
 	const ws = setupWebSocket({ gameId, gameType, ui, gameState, actions });
-	if (gameType === 'network') {
-		setupKeyboardControls(ws, gameState);
-	} else {
-		setupKeyboardControlsForLocal(ws);
+	switch (gameType){ //ask
+		case 'network':
+			setupKeyboardControls(ws, gameState);
+			break;
+		case 'local':
+			setupKeyboardControlsForLocal(ws);
+			break;
+		case 'ai':
+			setupKeyboardControlsForAI(ws)
 	}
 
 	requestAnimationFrame(() => {
