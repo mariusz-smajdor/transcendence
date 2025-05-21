@@ -38,6 +38,11 @@ async function userAuthenticationRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await userAuthController.rejectFriendRequestHandler(req, res);
   });
+
+  fastify.get('/login/google/callback', async (req, res) => {
+    req.context.config = { db: fastify.db, fastify: fastify };
+    userAuthController.loginGoogle(req, res);
+  });
 }
 
 export default userAuthenticationRoutes;

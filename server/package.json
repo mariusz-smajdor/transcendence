@@ -5,6 +5,7 @@
     "@fastify/env": "^5.0.2",
     "@fastify/jwt": "^9.1.0",
     "@fastify/multipart": "^9.0.3",
+    "@fastify/oauth2": "^8.1.2",
     "@fastify/websocket": "^11.0.2",
     "better-sqlite3": "^11.9.1",
     "fastify": "^5.2.2",
