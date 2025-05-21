@@ -389,7 +389,7 @@ export const loginGoogle = async (req, res) => {
 
     let userResult;
     if (!existingUser) {
-      const user = new User(username, null, email);
+      const user = new User(username, null, email, userInfo.picture);
       userResult = await user.register(db);
     } else {
       const user = new User(existingUser.username, null, email);

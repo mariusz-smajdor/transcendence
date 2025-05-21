@@ -27,12 +27,20 @@ class User {
       }
 
       db.prepare(
-        `INSERT INTO users (username, password, email) VALUES (?, ?, ?)`,
-      ).run(this.username, hashedPassword || 'google', this.email);
+        `INSERT INTO users (username, password, email, avatar) VALUES (?, ?, ?, ?)`,
+      ).run(this.username, hashedPassword || 'google', this.email, this.avatar);
 
+      const createdUser = db
+        .prepare(`SELECT * FROM users WHERE username = ?`)
+        .get(this.username);
       return {
         success: true,
         message: 'User registered successfully',
+        user: {
+          id: createdUser.id,
+          username: createdUser.username,
+          email: createdUser.email,
+        },
         code: 200,
       };
     } catch (err) {
