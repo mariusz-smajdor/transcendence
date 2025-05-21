@@ -8,6 +8,7 @@ import { Img } from '../../../components/img';
 import { Separator } from '../../../components/separator';
 import Login from './Login';
 import Register from './Register';
+import {store} from "../../../store"
 
 export default function Auth() {
 	const section = Card({
@@ -37,6 +38,10 @@ export default function Auth() {
 		height: 18,
 	});
 	googleButton.appendChild(googleLogo);
+	googleButton.addEventListener("click", () => {
+		const api_url = store.getState().api_url;
+		window.location.href = `${api_url}/login/google`
+	})
 
 	heading.prepend(
 		Icon({

@@ -364,8 +364,14 @@ export const loginGoogle = async (req, res) => {
     const db = req.context.config.db;
     const fastify = req.context.config.fastify;
 
+    // 1. Exchange code for Google tokens
     const { token } =
-      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
+      await fastify.googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(
+        req,
+        res,
+      );
+
+    // 2. Fetch Google profile
     const userInfoResponse = await fetch(
       'https://www.googleapis.com/oauth2/v2/userinfo',
       {
@@ -374,38 +380,43 @@ export const loginGoogle = async (req, res) => {
     );
     const userInfo = await userInfoResponse.json();
 
-    // Extract user details
+    // 3. Upsert user in your DB
     const email = userInfo.email;
-    const username = email.split('@')[0]; // Use email prefix as username
-    const googleId = userInfo.id;
-
-    // Check if user exists by email
+    const username = email.split('@')[0];
     const existingUser = db
       .prepare('SELECT * FROM users WHERE email = ?')
       .get(email);
 
     let userResult;
     if (!existingUser) {
-      // Register new user (no password, as it's Google auth)
       const user = new User(username, null, email);
       userResult = await user.register(db);
-      if (!userResult.success) {
-        return res.code(userResult.code).send({ error: userResult.message });
-      }
     } else {
-      // Log in existing user (bypass password and 2FA for Google auth)
       const user = new User(existingUser.username, null, email);
       userResult = await user.login(db);
-      if (!userResult.success) {
-        return res.code(userResult.code).send({ error: userResult.message });
-      }
+    }
+    if (!userResult.success) {
+      return res.code(userResult.code).send({ error: userResult.message });
     }
 
-    // Return success response
-    return res.code(200).send({
-      message: 'Google authentication successful',
-      user: userResult.user,
-    });
+    // 4. Sign a JWT and set it as a cookie
+    const payload = {
+      userId: userResult.user.id,
+      username: userResult.user.username,
+      email: userResult.user.email,
+      avatar: userResult.user.avatar,
+    };
+    const jwtToken = req.jwt.sign(payload, { expiresIn: '1h' });
+
+    res
+      .setCookie('access_token', jwtToken, {
+        path: '/',
+        httpOnly: false, // flip to `true` in prod
+        secure: false, // flip to `true` if you're on HTTPS
+        maxAge: 3600, // 1 hour in seconds
+      })
+      // 5. Redirect back to your front-end
+      .redirect('http://localhost:8080');
   } catch (err) {
     console.error(err);
     return res.code(500).send({ error: 'Internal server error' });

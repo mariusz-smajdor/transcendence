@@ -41,7 +41,7 @@ async function userAuthenticationRoutes(fastify) {
 
   fastify.get('/login/google/callback', async (req, res) => {
     req.context.config = { db: fastify.db, fastify: fastify };
-    userAuthController.loginGoogle(req, res);
+    return await userAuthController.loginGoogle(req, res);
   });
 }
 
