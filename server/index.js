@@ -11,6 +11,7 @@ import {
   cleanExpiredTokens,
   isTokenBlacklisted,
 } from './src/services/userAuthenticationServices.js';
+import oauthPlugin from '@fastify/oauth2';
 
 const fastify = Fastify();
 
@@ -59,6 +60,25 @@ fastify.register(cors, {
 // Register websockets
 fastify.register(FastifyWebSocket, {
   options: { clientTracking: true },
+});
+
+fastify.register(oauthPlugin, {
+  name: 'googleOAuth2',
+  scope: ['profile', 'email'],
+  credentials: {
+    client: {
+      id: process.env.GOOGLE_CLIENT_ID,
+      secret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+    auth: oauthPlugin.GOOGLE_CONFIGURATION,
+  },
+  startRedirectPath: '/login/google',
+  callbackUri: `http://localhost:${
+    process.env.PORT || 3000
+  }/login/google/callback`,
+  callbackUriParams: {
+    access_type: 'offline',
+  },
 });
 
 fastify.addHook('preHandler', (req, res, next) => {
