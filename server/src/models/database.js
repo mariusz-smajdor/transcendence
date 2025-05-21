@@ -16,7 +16,7 @@ const dbConnector = async (fastify, options) => {
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       email TEXT UNIQUE NOT NULL,
-      totp_secret TEXT NOT NULL,
+      totp_secret TEXT,
       avatar TEXT
     );
 
