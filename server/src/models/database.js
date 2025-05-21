@@ -8,7 +8,6 @@ const dirname = path.dirname(filename);
 const DB_PATH = path.join(dirname, '..', '..', 'database.db');
 
 const dbConnector = async (fastify, options) => {
-  console.log(DB_PATH);
   const db = new Database(DB_PATH);
   db.exec('PRAGMA foreign_keys = ON');
   db.exec(`
