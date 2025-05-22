@@ -31,3 +31,9 @@
 	color: var(--color-secondary);
 	animation: glowPulseSecondary 3s infinite ease-in-out;
 }
+
+.canvas-glow {
+	animation: glowPulse 2.5s infinite ease-in-out;
+	border-radius: var(--radius);
+	border: 6px solid var(--color-secondary);
+}

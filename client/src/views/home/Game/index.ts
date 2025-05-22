@@ -5,6 +5,7 @@ import { Card } from '../../../components/card';
 import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
+import { showGameOverlay } from '../../game/game-overlay';
 
 function FriendCard() {
 	const card = Card({
@@ -49,6 +50,12 @@ function FriendCard() {
 		content: 'Challenge your friend on the same device',
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
+
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'local');
+    });
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -103,6 +110,13 @@ function OnlineCard() {
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
 
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'network');
+		// window.location.href = `/game?gameId=${data.gameId}`;
+    });
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);
@@ -153,6 +167,12 @@ function AiCard() {
 		content: 'Challenge AI on the same device',
 		classes: ['text-sm', 'text-muted'],
 	});
+
+	card.addEventListener('click', async () => {
+	const response = await fetch('http://localhost:3000/game/create');
+	const data = await response.json();
+	showGameOverlay(data.gameId, 'ai');
+    });
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
