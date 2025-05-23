@@ -13,6 +13,8 @@ import {
   isTokenBlacklisted,
 } from './src/services/userAuthenticationServices.js';
 import oauthPlugin from '@fastify/oauth2';
+import userRoutes from './src/routes/userRoutes.js';
+import UserServices from './src/services/userServices.js';
 
 const fastify = Fastify();
 
@@ -102,8 +104,15 @@ fastify.addHook('onRequest', async (req, res) => {
 // Register database
 fastify.register(dbConnector);
 
-fastify.register(userAuthenticationRoutes); // /register /login /logout
-fastify.register(gameRoutes); // /game
+// Inject services
+fastify.register(async (fastify) => {
+  const userServices = new UserServices(fastify.db);
+
+  fastify.decorate('userServices', userServices);
+  fastify.register(userRoutes);
+});
+
+fastify.register(userAuthenticationRoutes);
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({
