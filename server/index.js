@@ -113,6 +113,7 @@ fastify.register(async (fastify) => {
 });
 
 fastify.register(userAuthenticationRoutes);
+fastify.register(gameRoutes);
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({
