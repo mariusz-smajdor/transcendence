@@ -31,6 +31,7 @@ export const loginHandler = async (req, res) => {
     avatar: user.avatar,
   };
   const token = req.jwt.sign(payload, { expiresIn: '1h' });
+  console.log('Generated JWT token:', token);
   res.setCookie('access_token', token, {
     path: '/',
     httpOnly: false,
