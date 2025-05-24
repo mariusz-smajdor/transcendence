@@ -7,6 +7,7 @@ export function Toaster(message: string) {
 	const card = Card({
 		classes: [
 			'flex',
+			'justify-between',
 			'gap-2',
 			'absolute',
 			'bottom-4',
@@ -25,9 +26,7 @@ export function Toaster(message: string) {
 		],
 	});
 	const content = Text({
-		content:
-			message +
-			'asddddddasdsafsdfgsofudygvouasdngoulyrbsouyvnsouhibvoujhasneuhyvbousyrbtuykgosruyohivnpiusdrhbouyisniuopyvborduyhvbisrupoyhvouyrshtvo8ysrhv',
+		content: message,
 		classes: ['break-all'],
 	});
 	const closeIcon = Icon({
