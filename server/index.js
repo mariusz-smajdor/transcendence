@@ -15,6 +15,7 @@ import {
 import oauthPlugin from '@fastify/oauth2';
 import userRoutes from './src/routes/userRoutes.js';
 import UserServices from './src/services/userServices.js';
+import privateChatRoutes from './src/routes/privateChatRoutes.js';
 
 const fastify = Fastify();
 
@@ -72,6 +73,7 @@ fastify.after((err) => {
   });
 });
 
+fastify.register(FastifyWebSocket, { clientTracking: true });
 fastify.register(multipart);
 fastify.register(cors, {
   origin: 'http://localhost:8080',
@@ -80,9 +82,6 @@ fastify.register(cors, {
   credentials: true,
 });
 // Register websockets
-fastify.register(FastifyWebSocket, {
-  options: { clientTracking: true },
-});
 
 fastify.addHook('preHandler', (req, res, next) => {
   req.context = req.context || {};
@@ -114,16 +113,11 @@ fastify.register(async (fastify) => {
 
 fastify.register(userAuthenticationRoutes);
 fastify.register(gameRoutes);
-
-fastify.get('/', async (req, res) => {
-  return res.status(200).send({
-    success: true,
-    message: 'Welcome to the server',
-  });
-});
+fastify.register(privateChatRoutes);
 
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
   if (err) {
+    console.log('TEST', err);
     fastify.log.error(err);
     process.exit(1);
   } else {
