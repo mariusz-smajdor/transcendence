@@ -12,6 +12,7 @@ import {
 	DropdownTitle,
 } from '../components/dropdown-menu';
 import { store } from '../store';
+import Profile from '../views/profile';
 
 function Menu() {
 	const user = store.getState().user;
@@ -88,6 +89,10 @@ function Menu() {
 			} catch (error) {
 				console.error('Error during logout:', error);
 			}
+		});
+
+		dropdownProfile.addEventListener('click', () => {
+			document.body.appendChild(Profile());
 		});
 
 		dropdownProfile.appendChild(profileIcon);

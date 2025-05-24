@@ -1,7 +1,7 @@
 import { ComponentProps } from '../types/component';
 
 type InputProps = ComponentProps & {
-	type: 'text' | 'email' | 'password';
+	type: 'text' | 'email' | 'password' | 'file';
 	name: string;
 	placeholder?: string;
 	id?: string;
