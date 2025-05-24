@@ -1,9 +1,7 @@
 import { connectToWebsocket } from '../controllers/privateChatController.js';
 
 async function privateChatRoutes(fastify) {
-  fastify.get('/message/:id', { websocket: true }, (connection, req) => {
-    // console.log('Connection', connection);
-    // console.log('Websocket', connection.websocket);
+  fastify.get('/message', { websocket: true }, (connection, req) => {
     const db = fastify.db;
     connectToWebsocket(connection, req, db);
   });

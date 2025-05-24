@@ -96,21 +96,26 @@ export function MessageCard(friend: User | null) {
 		card.remove();
 	});
 
-	const socket = new WebSocket(`ws://localhost:3000/message/${friend?.id}`);
+	const socket = new WebSocket('ws://localhost:3000/message');
 
 	socket.addEventListener('message', (event) => {
-		console.log('Message from server:', event.data);
+		const data = JSON.parse(event.data);
+		console.log('Message from server:', data);
 	});
 
-	messageForm.addEventListener('submit', async (e) => {
+	messageForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 
 		if (socket.readyState === WebSocket.OPEN) {
 			const message = input.value.trim();
-			if (message) {
-				input.value = '';
-			}
-			socket.send(JSON.stringify({ type: 'chat_message', content: message }));
+			if (!message) return;
+
+			socket.send(
+				JSON.stringify({
+					toUserId: friend.id, // friend's ID here
+					message,
+				})
+			);
 			input.value = ''; // Clear input after sending
 		} else {
 			console.log('WebSocket is not open yet.');
