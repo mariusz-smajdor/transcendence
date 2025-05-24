@@ -1,6 +1,8 @@
+// privateChatService.js
 const connectedUsers = new Map();
 
 export const handlePrivateChatConnection = (userId, socket) => {
+  console.log(`User ${userId} connected to private chat`);
   if (!connectedUsers.has(userId)) {
     connectedUsers.set(userId, new Set());
   }
@@ -9,19 +11,24 @@ export const handlePrivateChatConnection = (userId, socket) => {
 };
 
 export const sendMessageToUser = (senderId, receiverId, message, db) => {
+  const timestamp = Date.now();
+
   db.prepare(
     `INSERT INTO messages (sender, receiver, message) VALUES (?, ?, ?)`,
   ).run(senderId, receiverId, message);
 
+  console.log(`Sending message from ${senderId} to ${receiverId}: ${message}`);
   if (connectedUsers.has(receiverId)) {
     for (const socket of connectedUsers.get(receiverId)) {
-      socket.send(
-        JSON.stringify({
-          senderId,
-          message,
-          timestamp,
-        }),
-      );
+      if (socket.readyState === socket.OPEN) {
+        socket.send(
+          JSON.stringify({
+            senderId,
+            message,
+            timestamp,
+          }),
+        );
+      }
     }
   }
 };
