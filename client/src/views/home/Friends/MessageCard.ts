@@ -6,9 +6,10 @@ import { Img } from '../../../components/img';
 import { Icon } from '../../../components/icon';
 import { Input } from '../../../components/input';
 import { Button } from '../../../components/button';
+import { Toaster } from '../../../components/toaster';
 import { type User } from '../../../types/user';
 
-export function MessageCard(user: User | null) {
+export function MessageCard(friend: User | null) {
 	const card = Card({
 		classes: [
 			'flex',
@@ -38,17 +39,17 @@ export function MessageCard(user: User | null) {
 			'border-accent',
 		],
 	});
-	const friend = Wrapper({
+	const friendEl = Wrapper({
 		classes: ['flex', 'items-center', 'gap-4'],
 	});
 	const img = Img({
-		src: user.profilePicture || 'https://i.pravatar.cc/300',
+		src: friend.profilePicture || 'https://i.pravatar.cc/300',
 		alt: 'friend',
 		classes: ['w-8', 'h-8', 'rounded-full'],
 		loading: 'lazy',
 	});
 	const name = Text({
-		content: user.username,
+		content: friend.username,
 		classes: ['text-sm', 'font-semibold'],
 	});
 	const closeTrigger = Icon({
@@ -64,11 +65,6 @@ export function MessageCard(user: User | null) {
 	const chat = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-2', 'h-72', 'overflow-y-auto'],
 	});
-	// Simulating a long message
-	const x = document.createElement('p');
-	x.textContent = 'This is a message card. '.repeat(20);
-	chat.appendChild(x);
-	//
 	const messageForm = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -100,9 +96,30 @@ export function MessageCard(user: User | null) {
 		card.remove();
 	});
 
-	friend.appendChild(img);
-	friend.appendChild(name);
-	menu.appendChild(friend);
+	const socket = new WebSocket(`ws://localhost:3000/message/${friend?.id}`);
+
+	socket.addEventListener('message', (event) => {
+		console.log('Message from server:', event.data);
+	});
+
+	messageForm.addEventListener('submit', async (e) => {
+		e.preventDefault();
+
+		if (socket.readyState === WebSocket.OPEN) {
+			const message = input.value.trim();
+			if (message) {
+				input.value = '';
+			}
+			socket.send(JSON.stringify({ type: 'chat_message', content: message }));
+			input.value = ''; // Clear input after sending
+		} else {
+			console.log('WebSocket is not open yet.');
+		}
+	});
+
+	friendEl.appendChild(img);
+	friendEl.appendChild(name);
+	menu.appendChild(friendEl);
 	menu.appendChild(closeTrigger);
 	messageForm.appendChild(input);
 	messageForm.appendChild(sendButton);
