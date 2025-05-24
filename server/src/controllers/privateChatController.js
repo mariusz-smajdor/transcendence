@@ -6,8 +6,7 @@ import {
 export const connectToWebsocket = (connection, req, db) => {
   const socket = connection;
 
-  const token =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjIsInVzZXJuYW1lIjoiVHdvalN0YXJ5VG9Lb2JyYSIsImVtYWlsIjoidHdvanN0YXJ5a29icmFAZ3J1YmFzLmNvbSIsImlhdCI6MTc0ODEwMzQ3MiwiZXhwIjoxNzQ4MTA3MDcyfQ.-T6HPEEgOTAStxyP7NQCNcwhxBYfTOWCveSLa8KUzXc';
+  const token = req.cookies?.access_token;
   const decoded = req.server.jwt.decode(token);
   const senderId = decoded?.userId;
   if (!senderId) {
@@ -41,10 +40,4 @@ export const connectToWebsocket = (connection, req, db) => {
   socket.on('error', (err) => {
     console.log('WebSocket error:', err);
   });
-
-  socket.send(
-    JSON.stringify({
-      message: 'Siema mordzia, jesteś połączony z czatem prywatnym!',
-    }),
-  );
 };
