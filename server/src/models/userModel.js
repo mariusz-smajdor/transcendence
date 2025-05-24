@@ -1,4 +1,5 @@
 import Password from '../services/passwordService.js';
+import { validateUserCredentials } from '../services/userAuthenticationServices.js';
 
 class User {
   constructor(username, password, email, avatar = null) {
@@ -10,13 +11,13 @@ class User {
 
   async register(db) {
     if (this.password) {
-      const isValid = authService.validateUserCredentials(
+      const isValid = validateUserCredentials(
         this.username,
         this.password,
         this.email,
       );
-      if (!isValid.success) {
-        return { success: false, message: isValid.message, code: 400 };
+      if (isValid) {
+        return { success: false, message: isValid, code: 400 };
       }
     }
 
