@@ -3,7 +3,7 @@ import { Card } from './card';
 import { Icon } from './icon';
 import { Text } from './text';
 
-export default function Toaster(message: string) {
+export function Toaster(message: string) {
 	const card = Card({
 		classes: [
 			'flex',
