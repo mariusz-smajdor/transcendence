@@ -1,4 +1,5 @@
 import { store } from '../store';
+import { connectSocket } from '../socket';
 
 export async function fetchMe() {
 	try {
@@ -18,6 +19,8 @@ export async function fetchMe() {
 				avatar: data.avatar,
 			},
 		});
+
+		connectSocket();
 	} catch (error) {
 		console.log(error);
 	}
