@@ -170,6 +170,7 @@ function AllFriendsTab(parent: HTMLElement) {
 				classes: ['text-sm'],
 			});
 			const button = Button({ type: 'button', variant: 'ghost' });
+			button.dataset.chatterId = f.id.toString();
 			const msgIcon = Icon({
 				icon: MessageCircle,
 			});
@@ -181,6 +182,7 @@ function AllFriendsTab(parent: HTMLElement) {
 				} else {
 					messageCard = MessageCard(f);
 				}
+				msgIcon.classList.remove('glow-secondary-animate');
 				parent.appendChild(messageCard);
 			});
 

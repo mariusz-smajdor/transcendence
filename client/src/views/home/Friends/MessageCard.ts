@@ -6,10 +6,18 @@ import { Img } from '../../../components/img';
 import { Icon } from '../../../components/icon';
 import { Input } from '../../../components/input';
 import { Button } from '../../../components/button';
-import { Toaster } from '../../../components/toaster';
+import { sendMessage } from '../../../socket';
 import { type User } from '../../../types/user';
+import { store } from '../../../store';
+import { renderMessages } from './renderMessages';
+
+export const chat = Wrapper({
+	classes: ['flex', 'flex-col', 'gap-2', 'h-72', 'overflow-y-auto'],
+});
 
 export function MessageCard(friend: User | null) {
+	const { messages, user } = store.getState();
+
 	const card = Card({
 		classes: [
 			'flex',
@@ -27,6 +35,7 @@ export function MessageCard(friend: User | null) {
 			'z-50',
 		],
 	});
+	card.dataset.chatter = friend?.id.toString();
 	card.classList.remove('lg:p-6');
 	const menu = Wrapper({
 		classes: [
@@ -62,9 +71,7 @@ export function MessageCard(friend: User | null) {
 			'cursor-pointer',
 		],
 	});
-	const chat = Wrapper({
-		classes: ['flex', 'flex-col', 'gap-2', 'h-72', 'overflow-y-auto'],
-	});
+	renderMessages(chat, friend.id);
 	const messageForm = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -96,30 +103,26 @@ export function MessageCard(friend: User | null) {
 		card.remove();
 	});
 
-	const socket = new WebSocket('ws://localhost:3000/message');
-
-	socket.addEventListener('message', (event) => {
-		const data = JSON.parse(event.data);
-		console.log('Message from server:', data);
-	});
-
 	messageForm.addEventListener('submit', (e) => {
 		e.preventDefault();
 
-		if (socket.readyState === WebSocket.OPEN) {
-			const message = input.value.trim();
-			if (!message) return;
+		const message = input.value.trim();
+		if (!message || !friend) return;
 
-			socket.send(
-				JSON.stringify({
-					toUserId: friend.id, // friend's ID here
-					message,
-				})
-			);
-			input.value = ''; // Clear input after sending
-		} else {
-			console.log('WebSocket is not open yet.');
-		}
+		sendMessage({
+			toUserId: friend.id,
+			message: message,
+		});
+		const newMessage = {
+			sender: user?.id as number,
+			receiver: friend.id,
+			message: message,
+			read: false,
+		};
+		messages.push(newMessage);
+		renderMessages(chat, friend.id);
+
+		input.value = '';
 	});
 
 	friendEl.appendChild(img);
