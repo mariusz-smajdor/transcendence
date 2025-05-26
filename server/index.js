@@ -16,6 +16,8 @@ import oauthPlugin from '@fastify/oauth2';
 import userRoutes from './src/routes/userRoutes.js';
 import UserServices from './src/services/userServices.js';
 import privateChatRoutes from './src/routes/privateChatRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
+import MessageServices from './src/services/messageServices.js';
 
 const fastify = Fastify();
 
@@ -106,9 +108,12 @@ fastify.register(dbConnector);
 // Inject services
 fastify.register(async (fastify) => {
   const userServices = new UserServices(fastify.db);
+  const messageServices = new MessageServices(fastify.db);
 
   fastify.decorate('userServices', userServices);
+  fastify.decorate('messageServices', messageServices);
   fastify.register(userRoutes);
+  fastify.register(messageRoutes);
 });
 
 fastify.register(userAuthenticationRoutes);
