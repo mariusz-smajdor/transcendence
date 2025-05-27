@@ -1,7 +1,7 @@
 import { initGame, gameLoop, stopGameLoop, getGameStateProportional } from "../game/gameState.js";
 import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
 
-export function manageGameWebSocket(game, connection, games, gameId) {
+export function manageGameWebSocket(game, connection, games, gameId, fastify) {
     
     game.clients.add(connection);
     game.playersManager.assignRole(connection);
@@ -27,10 +27,39 @@ export function manageGameWebSocket(game, connection, games, gameId) {
 	}
 
     connection.on('message', message => {
-        const msg = message.toString().trim();
+		//parsing json message
+		let authMsg;
+		try {
+			authMsg = JSON.parse(message);
+		} catch (err) {
+			console.log("Wrong format of the message - not json");
+			//connection.close();
+			//return;
+		}
+		console.log(authMsg);
+
+    	// checking user's token or previous authentication 
+		if (!game.playersManager.authenticated.has(connection)) {
+			if (authMsg.type === 'auth' && authMsg.token) {
+				try {
+					let payload = fastify.jwt.verify(authMsg.token);
+					console.log(payload);
+					game.playersManager.authenticated.set(connection, authMsg.token);
+					game.playersManager.setStats(connection,payload);
+				} catch (err) {
+					console.log(err)
+					connection.close();
+				}
+			} else {
+				console.log("not authenticated");
+				connection.close();
+			}
+			return;
+			}     
+		const msg = message.toString().trim();
 		const role = game.playersManager.getRole(connection);
         console.log(`Message received from ${role}:`, msg);
-
+		
 		//Readiness
 		if (msg === 'READY' && !game.isRunning) {
             if (role === 'left') {
@@ -42,7 +71,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
                 broadcastMessage(game.clients, 'right_player_ready');
             }
             if (game.readyL && game.readyR) {
-                countdownAndStart(game);
+                countdownAndStart(game, fastify.db);
             }
             return;
         }
@@ -101,7 +130,7 @@ export function manageGameWebSocket(game, connection, games, gameId) {
     });
 }
 
-function countdownAndStart(game) {
+function countdownAndStart(game, db) {
     broadcastMessage(game.clients, `count_to_start`);
     let count = 3;
 
@@ -114,7 +143,7 @@ function countdownAndStart(game) {
             game.isRunning = true;
             game.readyL = false;
             game.readyR = false;
-            gameLoop(game);
+            gameLoop(game, db);
         }
     }
     next();
