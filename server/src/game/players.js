@@ -3,6 +3,9 @@ export class PlayersManager {
     rightPlayer = null;
     spectators = new Set();
     roles = new Map();
+	//users = new Map(); // {connection {token }}
+	authenticated = new Map();
+	stats = new Map();
     
     assignRole(connection) {
         let role = 'spectator';
@@ -37,9 +40,18 @@ export class PlayersManager {
             console.log('Right player left the game');
         } else {
             this.spectators.delete(connection);
-            this.roles.delete(connection)
+            this.roles.delete(connection);
         }
     }
+	setStats(connection, payload){
+		const role = this.roles.get(connection);
+		this.stats.set(role,{id: payload.userId, username: payload.username, score: 0});
+	}
+	updateScore(scores){
+		console.log(scores);
+		this.stats.get("left").score = scores.left;
+		this.stats.get("right").score = scores.right;
+	}
 }
 
 // export const playersManager = new PlayersManager();

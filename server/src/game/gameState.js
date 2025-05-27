@@ -1,6 +1,6 @@
 import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
 import { startAI } from "./aiPong.js";
-
+import { saveMatchResult } from "../models/gameHistory.js";
 const canvasWidth = 600;
 const canvasHeight = 400;
 const ballRadius = 10;
@@ -81,7 +81,7 @@ export function initGame() {
   return gameState;
 }
 
-export function gameLoop(game, ai = false) {
+export function gameLoop(game, db,ai = false) {
   console.log('game started');
   let ballSpeed = {
     ballSpeedX: 3,
@@ -92,10 +92,14 @@ export function gameLoop(game, ai = false) {
   game.intervalId = setInterval(() => {
 	updateGameState(game.gameState, ballSpeed);
 	if (game.gameState.gameOver) {
-		stopGameLoop(game);
+		stopGameLoop(game);//potencialy add stop ai
 		game.isRunning = false;
-		let winner = game.gameState.score.left >= 11 ? 'left' : 'right';
-		let gameStatePropotional = getGameStateProportional(game.gameState);
+		const winner = game.gameState.score.left >= 11 ? 'left' : 'right';
+		if(game.gameType !== ""){
+			game.playersManager.updateScore(game.gameState.score);
+			saveMatchResult(db,game.playersManager.stats, winner, game.gameType)
+		}
+		const gameStatePropotional = getGameStateProportional(game.gameState);
 		broadcastGameState(game.clients, gameStatePropotional);
 		broadcastMessage(game.clients, `winner_${winner}`);
 		return;

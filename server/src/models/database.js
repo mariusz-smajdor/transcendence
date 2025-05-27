@@ -46,13 +46,12 @@ const dbConnector = async (fastify, options) => {
 	  id INTEGER PRIMARY KEY AUTOINCREMENT,
 	  user_id_1 INTEGER NOT NULL,
 	  user_id_2 INTEGER NOT NULL,
-	  winner_id INTEGER NOT NULL,
 	  score_player_1 INTEGER NOT NULL,
 	  score_player_2 INTEGER NOT NULL,
 	  match_date TEXT NOT NULL,
+	  game_type TEXT NOT NULL,
 	  FOREIGN KEY (user_id_1) REFERENCES users (id),
-	  FOREIGN KEY (user_id_2) REFERENCES users (id),
-	  FOREIGN KEY (winner_id) REFERENCES users (id)
+	  FOREIGN KEY (user_id_2) REFERENCES users (id)
 	  );
   `);
 

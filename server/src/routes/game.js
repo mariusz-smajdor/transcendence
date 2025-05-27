@@ -20,7 +20,8 @@ async function gameRoutes(fastify) {
       console.log('Game not found');
       return;
     }
-    manageGameWebSocket(game, connection, games, gameId);
+	game.gameType = "Duel";
+    manageGameWebSocket(game, connection, games, gameId, fastify);
   });
 
   fastify.get('/game/create', async (req, res) => {
@@ -32,7 +33,8 @@ async function gameRoutes(fastify) {
       intervalId: null,
       isRunning: false,
       readyR: false,
-      readyL: false
+      readyL: false,
+	  gameType: ""
     });
     console.log(`created gameId: ${gameId}`)
     res.send({ gameId });
@@ -64,6 +66,7 @@ async function gameRoutes(fastify) {
       console.log('Game not found');
       return;
     }
+	game.gameType = "CPU";
     manageLocalGameWebSocketAI(game, connection, games, gameId);
   });
 

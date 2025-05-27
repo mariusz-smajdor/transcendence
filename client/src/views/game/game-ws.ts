@@ -1,5 +1,5 @@
 import { UIElements, GameState, UIActions, GameType } from '../../types/game';
-
+import { getCookie } from './game-cookies';
 type WebSocketDeps = {
 	gameId: string;
 	gameType: GameType;
@@ -62,6 +62,8 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 	};
 
 	ws.onopen = () => {
+		const token = getCookie('access_token');
+		ws.send(JSON.stringify({ type:'auth', token: token}));
 		if (gameType === 'network')
 			ui.text.textContent = 'Connected to server. Waiting for role assignment...';
 		else
