@@ -1,6 +1,7 @@
 
 export function startAI(game, ballSpeed) {
 	let aiMove = 0;
+	console.log("works")
 	setInterval(() => {
 		if (!game.isRunning) return;
 		

@@ -67,7 +67,7 @@ async function gameRoutes(fastify) {
       return;
     }
 	game.gameType = "CPU";
-    manageLocalGameWebSocketAI(game, connection, games, gameId);
+    manageLocalGameWebSocketAI(game, connection, games, gameId, fastify);
   });
 
 

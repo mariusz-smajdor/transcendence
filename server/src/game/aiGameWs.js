@@ -1,6 +1,6 @@
 import { gameLoop, stopGameLoop } from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
-export function manageLocalGameWebSocketAI(game, connection, games, gameId) {
+export function manageLocalGameWebSocketAI(game, connection, games, gameId, fastify) {
 	
 	game.clients.add(connection);
 
@@ -10,19 +10,25 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId) {
 	}));
 
 	connection.on('message', message => {
-		const msg = message.toString().trim();
+		const msg = JSON.parse(message);
 		const role = game.playersManager.getRole(connection);
 		console.log(`Message received from ${role}:`, msg); 
 		//Readiness
-		if (msg === 'READY' && !game.isRunning) {
-			countdownAndStart(game);
+		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
+			countdownAndStart(game, fastify.db);
 		}
 
 		//Movement
-		if (msg === 'UP') {
-			game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
-		} else if (msg === 'DOWN') {
-			game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
+		if (msg.type === 'move'){
+			if (msg.direction === 'UP') {
+				game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
+			} else if (msg.direction === 'DOWN') {
+				game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
+			}
+		}
+
+		if (msg.type === 'status' && msg.status === 'RESET'){
+			//rematch logic
 		}
 	});
 
@@ -39,7 +45,7 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId) {
 	});
 }
 
-function countdownAndStart(game) {
+function countdownAndStart(game, db) {
 	let count = 3;
 	broadcastMessage(game.clients, 'count_to_start');
 	function next() {
@@ -51,7 +57,7 @@ function countdownAndStart(game) {
 			game.isRunning = true;
 			game.readyL = false;
 			game.readyR = false;
-			gameLoop(game,true);
+			gameLoop(game, db,true);
 		}
 	}
 

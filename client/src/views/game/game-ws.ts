@@ -76,7 +76,7 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 	};
 
 	ui.restartBtn.onclick = () => {
-		ws.send('RESET');
+		ws.send(JSON.stringify({type: 'status', status: 'RESET'}));
 	};
 
 	return ws;
