@@ -28,23 +28,23 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 
     connection.on('message', message => {
 		//parsing json message
-		let authMsg;
+		let msg;
 		try {
-			authMsg = JSON.parse(message);
+			msg = JSON.parse(message);
 		} catch (err) {
-			console.log("Wrong format of the message - not json");
+			console.log("Wrong format of the message - JSON EXPECTED");
 			//connection.close();
 			//return;
 		}
-		console.log(authMsg);
+		console.log(msg);
 
     	// checking user's token or previous authentication 
 		if (!game.playersManager.authenticated.has(connection)) {
-			if (authMsg.type === 'auth' && authMsg.token) {
+			if (msg.type === 'auth' && msg.token) {
 				try {
-					let payload = fastify.jwt.verify(authMsg.token);
+					let payload = fastify.jwt.verify(msg.token);
 					console.log(payload);
-					game.playersManager.authenticated.set(connection, authMsg.token);
+					game.playersManager.authenticated.set(connection, msg.token);
 					game.playersManager.setStats(connection,payload);
 				} catch (err) {
 					console.log(err)
@@ -56,12 +56,12 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 			}
 			return;
 			}     
-		const msg = message.toString().trim();
 		const role = game.playersManager.getRole(connection);
         console.log(`Message received from ${role}:`, msg);
 		
 		//Readiness
-		if (msg === 'READY' && !game.isRunning) {
+
+		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
             if (role === 'left') {
                 game.readyL = true;
                 broadcastMessage(game.clients, 'left_player_ready');
@@ -77,28 +77,25 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
         }
 
 		//Movement
-        if (role === 'left') {
-            if (msg === 'UP') {
-                game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
-            } else if (msg === 'DOWN') {
-                game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
-            } 
-        } else if (role === 'right') {
-            if (msg === 'UP') {
-                game.gameState.paddles.right = Math.max(0, game.gameState.paddles.right - 20);
-            } else if (msg === 'DOWN') {
-                game.gameState.paddles.right = Math.min(340, game.gameState.paddles.right + 20);
-            }
-        }
-
-		if (msg === 'RESET'){
-			game.gameState = initGame();
-			game.isRunning = false;
-			game.readyL = false;
-			game.readyR = false;
-			broadcastMessage(game.clients, 'rematch');
-			broadcastGameState(game.clients, getGameStateProportional(game.gameState));
+		if (msg.type === 'move'){
+			if (role === 'left') {
+				if (msg.direction === 'UP') {
+					game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
+				} else if (msg.direction === 'DOWN') {
+					game.gameState.paddles.left = Math.min(340, game.gameState.paddles.left + 20);
+				} 
+			} else if (role === 'right') {
+				if (msg.direction === 'UP') {
+					game.gameState.paddles.right = Math.max(0, game.gameState.paddles.right - 20);
+				} else if (msg.direction === 'DOWN') {
+					game.gameState.paddles.right = Math.min(340, game.gameState.paddles.right + 20);
+				}
+			}
 		}
+		if (msg.type === 'status' && msg.status === 'RESET'){
+			//logic for rematch
+		}
+
     });
 
     connection.on('close', () => {
