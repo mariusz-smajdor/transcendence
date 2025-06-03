@@ -38,7 +38,7 @@ function registerUser(
 				},
 				body: JSON.stringify(registerData),
 			});
-
+			console.log(registerData);
 			const data = await res.json();
 			if (!data.success) {
 				submitMessage.textContent = data.message;

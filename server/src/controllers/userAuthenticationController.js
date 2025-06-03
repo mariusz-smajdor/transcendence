@@ -9,7 +9,7 @@ export const registrationHandler = async (req, res) => {
   const { message, code, qrCode, secret } = await user.register(
     req.context.config.db,
   );
-
+  console.log('Registration response:', { message, code, qrCode, secret });
   return sendResponse(res, code, message, { qrCode, secret });
 };
 

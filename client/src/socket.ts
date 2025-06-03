@@ -32,7 +32,6 @@ const connectSocket = (onMessage?: MessageHandler) => {
 			const currentChat = document.querySelector(
 				'[data-chatter]'
 			) as HTMLDivElement | null;
-			console.log(currentChat?.dataset.chatter);
 			if (currentChat?.dataset.chatter === data.senderId.toString()) {
 				renderMessages(chat, data.senderId);
 			} else {
