@@ -9,7 +9,7 @@ export function Toaster(message: string) {
 			'flex',
 			'justify-between',
 			'gap-2',
-			'absolute',
+			'fixed',
 			'bottom-4',
 			'right-4',
 			'lg:bottom-6',

@@ -1,3 +1,4 @@
+import { Toaster } from '../components/toaster';
 import { store } from '../store';
 
 export async function getFriends() {
@@ -36,8 +37,12 @@ export async function sendFriendRequest(friendUsername: string) {
 			const data = await res.json();
 			throw new Error(data.message || 'Failed to send friend request');
 		}
-	} catch (error) {
-		console.error('Error adding friend:', error);
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			Toaster(error.message);
+		} else {
+			Toaster('Failed to send friend request.');
+		}
 	}
 }
 
@@ -98,9 +103,13 @@ export async function acceptFriendRequest(requestId: number) {
 			},
 		});
 
-		console.log('Friend request accepted');
+		Toaster('Friend request accepted');
 	} catch (error) {
-		console.error('Error accepting friend request:', error);
+		if (error instanceof Error) {
+			Toaster(error.message);
+		} else {
+			Toaster('Failed to add a friend.');
+		}
 	}
 }
 
@@ -133,7 +142,7 @@ export async function rejectFriendRequest(requestId: number) {
 			},
 		});
 
-		console.log('Friend request rejected');
+		Toaster('Friend request rejected');
 	} catch (error) {
 		console.error('Error rejecting friend request:', error);
 	}
