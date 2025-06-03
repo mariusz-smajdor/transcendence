@@ -205,6 +205,8 @@ function AllFriendsTab(parent: HTMLElement) {
 }
 
 export default function Friends() {
+	const { user } = store.getState();
+
 	const section = Card({
 		element: 'section',
 		classes: [
@@ -243,6 +245,30 @@ export default function Friends() {
 		placeholder: 'Add friend by username...',
 		classes: ['text-sm', 'bg-background'],
 	});
+	const requestsTrigger = Trigger({
+		content: 'Requests',
+		value: 'requests',
+	});
+	if (user?.friendRequests?.length) {
+		requestsTrigger.classList.add(
+			'flex',
+			'items-center',
+			'justify-center',
+			'gap-2'
+		);
+		const requestsCount = Wrapper({
+			classes: [
+				'bg-secondary',
+				'rounded-full',
+				'px-2.5',
+				'text-white',
+				'text-bold',
+				'text-xs',
+			],
+		});
+		requestsCount.textContent = user.friendRequests.length.toString();
+		requestsTrigger.appendChild(requestsCount);
+	}
 
 	heading.prepend(
 		Icon({
@@ -257,7 +283,7 @@ export default function Friends() {
 			defaultValue: 'all-friends',
 			triggers: [
 				Trigger({ content: 'All Friends', value: 'all-friends' }),
-				Trigger({ content: 'Requests', value: 'requests' }),
+				requestsTrigger,
 			],
 			tabs: [AllFriendsTab(section), FriendRequestTab()],
 		})
