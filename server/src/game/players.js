@@ -3,7 +3,6 @@ export class PlayersManager {
     rightPlayer = null;
     spectators = new Set();
     roles = new Map();
-	//users = new Map(); // {connection {token }}
 	authenticated = new Map();
 	stats = new Map();
     
@@ -45,12 +44,20 @@ export class PlayersManager {
     }
 	setStats(connection, payload){
 		const role = this.roles.get(connection);
+		console.log("Player stats set");
+		console.log(payload.userId, payload.username);
 		this.stats.set(role,{id: payload.userId, username: payload.username, score: 0});
 	}
 	updateScore(scores){
 		console.log(scores);
 		this.stats.get("left").score = scores.left;
 		this.stats.get("right").score = scores.right;
+	}
+	checkActiveRoles(payload){
+		const left = this.stats.get('left')?.id;
+		const right = this.stats.get('right')?.id;
+		if (payload.userId === left || payload.userId === right)
+			throw new Error("This user is already in the game");
 	}
 }
 

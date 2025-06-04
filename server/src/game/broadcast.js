@@ -19,7 +19,20 @@ export function broadcastMessage(clients, message) {
                 message: message
             }));
         } catch (err) {
-            console.error('Error when sending:, err');
+            console.error('Error when sending:', err);
+        }
+    }
+}
+
+export function broadcastStatus(clients, type, object){
+	for (const client of clients) {
+        try {
+            client.send(JSON.stringify({
+                type: type,
+                object: object
+            }));
+        } catch (err) {
+            console.error('Error when sending:', err);
         }
     }
 }

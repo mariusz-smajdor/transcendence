@@ -20,6 +20,12 @@ export function saveMatchResult(db, stats, winner, gameType)
 		gameType
 	);
 }
+
+export function saveClosedMatch(db, looser, stats, gameType){
+	game.playerManager.stats.get(looser).result = -1;
+	const winner = looser === "left" ? "right" : "left";
+	saveMatchResult(db,stats,winner,gameType);
+}
 //return timestamp in right format
 function getDate(){
 	const timestamp = new Date(Date.now());
