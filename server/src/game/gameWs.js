@@ -1,5 +1,7 @@
 import { initGame, gameLoop, stopGameLoop, getGameStateProportional } from "../game/gameState.js";
-import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
+import { broadcastGameState, broadcastMessage, broadcastStatus } from "../game/broadcast.js";
+import { authenticateToken } from "./authentication.js";
+import { saveClosedMatch } from "../models/gameHistory.js";
 
 export function manageGameWebSocket(game, connection, games, gameId, fastify) {
     
@@ -38,27 +40,12 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 		}
 		console.log(msg);
 
-    	// checking user's token or previous authentication 
-		if (!game.playersManager.authenticated.has(connection)) {
-			if (msg.type === 'auth' && msg.token) {
-				try {
-					let payload = fastify.jwt.verify(msg.token);
-					console.log(payload);
-					game.playersManager.authenticated.set(connection, msg.token);
-					game.playersManager.setStats(connection,payload);
-				} catch (err) {
-					console.log(err)
-					connection.close();
-				}
-			} else {
-				console.log("not authenticated");
-				connection.close();
-			}
-			return;
-			}     
 		const role = game.playersManager.getRole(connection);
+    	// checking user's token or previous authentication
+		if (role !== 'spectator')
+			authenticateToken(game,connection,fastify,msg);
+
         console.log(`Message received from ${role}:`, msg);
-		
 		//Readiness
 
 		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
@@ -99,6 +86,11 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
     });
 
     connection.on('close', () => {
+		const role = game.playersManager.getRole(connection);
+		if(game.isRunning === 1 && role !== 'spectator' && 
+			game.playersManager.stats.get('left') !== undefined &&
+			game.playersManager.stats.get('left') !== undefined)
+			saveClosedMatch(fastify.db, role, game.playersManager.stats, game.gameType);
         console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
         game.playersManager.removeRole(connection);
         game.clients.delete(connection);

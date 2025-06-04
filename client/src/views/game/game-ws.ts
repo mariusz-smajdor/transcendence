@@ -1,5 +1,6 @@
 import { UIElements, GameState, UIActions, GameType } from '../../types/game';
 import { getCookie } from './game-cookies';
+
 type WebSocketDeps = {
 	gameId: string;
 	gameType: GameType;
@@ -53,6 +54,12 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 
 			else if (data.type === 'message') {
 				manageMessage(data, gameState, ui);
+			}
+
+			else if (data.type === 'nickname'){
+				gameState.rightPlayerName = data.object.right;
+				gameState.leftPlayerName = data.object.left;
+				actions.drawScene();
 			}
 
 		} catch (e) {

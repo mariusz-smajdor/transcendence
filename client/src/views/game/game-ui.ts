@@ -29,6 +29,8 @@ export function createGameUI(gameType: GameType): GameUI {
         scoreRight: 0,
         playerRole: 'spectator',
         gameOver: false,
+		leftPlayerName: 'Left',
+		rightPlayerName: 'Right',
     };
 
     const paddleWidth = 0.016;
@@ -88,11 +90,11 @@ export function createGameUI(gameType: GameType): GameUI {
         ctx.font = 'bold 16px Poppins, sans-serif, Arial';
         ctx.fillStyle = '#312e81'; // granatowy
         ctx.textAlign = 'start';
-        ctx.fillText('Left', 0.02 * w, 0.05 * h);
+        ctx.fillText(`${gameState.leftPlayerName}`, 0.02 * w, 0.05 * h);
 
         ctx.textAlign = 'end';
         ctx.fillStyle = '#E879F9'; // różowy
-        ctx.fillText('Right', 0.98 * w, 0.05 * h);
+        ctx.fillText(`${gameState.rightPlayerName}`, 0.98 * w, 0.05 * h);
         ctx.textAlign = 'start'; // reset
 
         //score

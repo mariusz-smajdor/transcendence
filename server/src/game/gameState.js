@@ -101,7 +101,7 @@ export function gameLoop(game, db,ai = false) {
 		}
 		const gameStatePropotional = getGameStateProportional(game.gameState);
 		broadcastGameState(game.clients, gameStatePropotional);
-		broadcastMessage(game.clients, `winner_${winner}`);
+		broadcastMessage(game.clients, `The winner is: ${game.playersManager.stats.get(winner).username}`);
 		return;
 	}
     let gameStatePropotional = getGameStateProportional(game.gameState);
