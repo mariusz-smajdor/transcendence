@@ -75,19 +75,19 @@ export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
-    score: { left: 0, right: 0 },
+    score: { left: 0, right: 10 },
 	gameOver: false
   };
   return gameState;
 }
 
-export function gameLoop(game, db,ai = false) {
+export function gameLoop(game, db) {
   console.log('game started');
   let ballSpeed = {
     ballSpeedX: 3,
     ballSpeedY: 2
   };
-  if (ai === true)
+  if (game.gameType === "CPU")
   	startAI(game,ballSpeed);
   game.intervalId = setInterval(() => {
 	updateGameState(game.gameState, ballSpeed);
@@ -95,13 +95,13 @@ export function gameLoop(game, db,ai = false) {
 		stopGameLoop(game);//potencialy add stop ai
 		game.isRunning = false;
 		const winner = game.gameState.score.left >= 11 ? 'left' : 'right';
-		if(game.gameType !== ""){
-			game.playersManager.updateScore(game.gameState.score);
+		if(game.needAuthentication === 2){
+			game.playersManager.updateScore(game.gameState.score, game.gameType);
 			saveMatchResult(db,game.playersManager.stats, winner, game.gameType)
 		}
 		const gameStatePropotional = getGameStateProportional(game.gameState);
 		broadcastGameState(game.clients, gameStatePropotional);
-		broadcastMessage(game.clients, `The winner is: ${game.playersManager.stats.get(winner).username}`);
+		broadcastMessage(game.clients, `The winner is: ${game.playersManager.stats.get(winner)?.username ?? winner}`);
 		return;
 	}
     let gameStatePropotional = getGameStateProportional(game.gameState);
