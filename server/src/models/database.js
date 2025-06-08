@@ -44,8 +44,8 @@ const dbConnector = async (fastify, options) => {
 
 	CREATE TABLE IF NOT EXISTS match_history (
 	  id INTEGER PRIMARY KEY AUTOINCREMENT,
-	  user_id_1 INTEGER NOT NULL,
-	  user_id_2 INTEGER NOT NULL,
+	  user_id_1 INTEGER,
+	  user_id_2 INTEGER,
 	  score_player_1 INTEGER NOT NULL,
 	  score_player_2 INTEGER NOT NULL,
 	  match_date TEXT NOT NULL,

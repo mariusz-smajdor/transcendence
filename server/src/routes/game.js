@@ -21,6 +21,7 @@ async function gameRoutes(fastify) {
       return;
     }
 	game.gameType = "Duel";
+	game.needAuthentication = 1;
     manageGameWebSocket(game, connection, games, gameId, fastify);
   });
 
@@ -34,7 +35,8 @@ async function gameRoutes(fastify) {
       isRunning: false,
       readyR: false,
       readyL: false,
-	  gameType: ""
+	  gameType: "",
+	  needAuthentication: 0 //0 - no, 1 - optional 2 - required 
     });
     console.log(`created gameId: ${gameId}`)
     res.send({ gameId });
@@ -67,6 +69,7 @@ async function gameRoutes(fastify) {
       return;
     }
 	game.gameType = "CPU";
+	game.needAuthentication = 1;
     manageLocalGameWebSocketAI(game, connection, games, gameId, fastify);
   });
 
