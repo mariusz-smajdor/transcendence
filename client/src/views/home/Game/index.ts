@@ -6,6 +6,7 @@ import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
+import { showLobbyOverlay } from '../../game/Pairing/lobby-overlay';
 
 function FriendCard() {
 	const card = Card({
@@ -111,10 +112,7 @@ function OnlineCard() {
 	});
 
 	card.addEventListener('click', async () => {
-		const response = await fetch('http://localhost:3000/game/create');
-		const data = await response.json();
-		showGameOverlay(data.gameId, 'network');
-		// window.location.href = `/game?gameId=${data.gameId}`;
+		showLobbyOverlay();
     });
 
 	iconWrapper.appendChild(icon);

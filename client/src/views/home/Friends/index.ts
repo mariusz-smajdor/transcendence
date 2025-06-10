@@ -13,8 +13,10 @@ import {
 	rejectFriendRequest,
 	sendFriendRequest,
 } from '../../../api/friendRequest';
+import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
+import { showGameOverlay } from '../../game/game-overlay';
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 	e.preventDefault();
@@ -45,70 +47,70 @@ function FriendRequestTab() {
 	currentUser?.friendRequests?.length === 0
 		? wrapper.appendChild(noFriendsMessage)
 		: currentUser?.friendRequests?.forEach((f) => {
-				const friends = Wrapper({
-					classes: [
-						'flex',
-						'p-2',
-						'items-center',
-						'justify-between',
-						'gap-2',
-						'rounded',
-						'hover:bg-background/25',
-					],
-				});
-				const friend = Wrapper({
-					classes: ['flex', 'items-center', 'gap-4'],
-				});
-				const avatar = Img({
-					src: f.senderAvatar || 'https://i.pravatar.cc/300',
-					alt: f.senderUsername,
-					width: 35,
-					height: 35,
-					loading: 'lazy',
-					classes: ['rounded-full', 'border', 'border-accent'],
-				});
-				const name = Text({
-					element: 'span',
-					content: f.senderUsername,
-					classes: ['text-sm'],
-				});
-				const buttons = Wrapper({ classes: ['flex', 'gap-4'] });
-				const addButton = Button({
-					type: 'button',
-					variant: 'ghost',
-					classes: ['text-green-400'],
-				});
-				const rejectButton = Button({
-					type: 'button',
-					variant: 'ghost',
-					classes: ['text-red-400'],
-				});
+			const friends = Wrapper({
+				classes: [
+					'flex',
+					'p-2',
+					'items-center',
+					'justify-between',
+					'gap-2',
+					'rounded',
+					'hover:bg-background/25',
+				],
+			});
+			const friend = Wrapper({
+				classes: ['flex', 'items-center', 'gap-4'],
+			});
+			const avatar = Img({
+				src: f.senderAvatar || 'https://i.pravatar.cc/300',
+				alt: f.senderUsername,
+				width: 35,
+				height: 35,
+				loading: 'lazy',
+				classes: ['rounded-full', 'border', 'border-accent'],
+			});
+			const name = Text({
+				element: 'span',
+				content: f.senderUsername,
+				classes: ['text-sm'],
+			});
+			const buttons = Wrapper({ classes: ['flex', 'gap-4'] });
+			const addButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-green-400'],
+			});
+			const rejectButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-red-400'],
+			});
 
-				addButton.addEventListener('click', () => {
-					acceptFriendRequest(f.senderId);
-					wrapper.removeChild(friends);
-					if (wrapper.childElementCount === 0) {
-						wrapper.appendChild(noFriendsMessage);
-					}
-				});
-				rejectButton.addEventListener('click', () => {
-					rejectFriendRequest(f.senderId);
-					wrapper.removeChild(friends);
-					if (wrapper.childElementCount === 0) {
-						wrapper.appendChild(noFriendsMessage);
-					}
-				});
+			addButton.addEventListener('click', () => {
+				acceptFriendRequest(f.senderId);
+				wrapper.removeChild(friends);
+				if (wrapper.childElementCount === 0) {
+					wrapper.appendChild(noFriendsMessage);
+				}
+			});
+			rejectButton.addEventListener('click', () => {
+				rejectFriendRequest(f.senderId);
+				wrapper.removeChild(friends);
+				if (wrapper.childElementCount === 0) {
+					wrapper.appendChild(noFriendsMessage);
+				}
+			});
 
-				addButton.appendChild(Icon({ icon: UserPlus }));
-				rejectButton.appendChild(Icon({ icon: UserX }));
-				buttons.appendChild(addButton);
-				buttons.appendChild(rejectButton);
-				friend.appendChild(avatar);
-				friend.appendChild(name);
-				friends.appendChild(friend);
-				friends.appendChild(buttons);
-				wrapper.appendChild(friends);
-		  });
+			addButton.appendChild(Icon({ icon: UserPlus }));
+			rejectButton.appendChild(Icon({ icon: UserX }));
+			buttons.appendChild(addButton);
+			buttons.appendChild(rejectButton);
+			friend.appendChild(avatar);
+			friend.appendChild(name);
+			friends.appendChild(friend);
+			friends.appendChild(buttons);
+			wrapper.appendChild(friends);
+		});
 	tab.appendChild(wrapper);
 
 	return tab;
@@ -174,6 +176,22 @@ function AllFriendsTab(parent: HTMLElement) {
 				icon: MessageCircle,
 			});
 
+			const invitationToGame = Button({
+				type: 'button',
+				content: 'Invited to game',
+				classes: ['flex', 'gap-2', 'items-center', 'ml-auto', 'text-sm'],
+			});
+
+			invitationToGame.onclick = () => {
+				sendInvitation({ type: 'accept', message: 'Invitation accepted', toUserId: f.id });
+				friends.removeChild(invitationToGame);
+			}
+
+			onInvitation((data) => {
+				if (data.type === 'invite' && !friends.contains(invitationToGame))
+					friends.appendChild(invitationToGame);
+			});
+
 			button.addEventListener('click', () => {
 				if (messageCard && parent.contains(messageCard)) {
 					parent.removeChild(messageCard);
@@ -192,6 +210,14 @@ function AllFriendsTab(parent: HTMLElement) {
 			wrapper.appendChild(friends);
 		});
 	}
+
+	onInvitation((data) => {
+		if (data.type === 'game_start_with_id' && data.gameId) {
+			showGameOverlay(data.gameId, 'network');
+			const newUrl = `/game?gameId=${data.gameId}`;
+            history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
+		}
+	});
 
 	searchInput.addEventListener('input', renderFriends);
 	renderFriends();
