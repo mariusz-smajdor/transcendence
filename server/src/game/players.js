@@ -1,10 +1,10 @@
 export class PlayersManager {
     leftPlayer = null;
     rightPlayer = null;
-    spectators = new Set();
-    roles = new Map();
-	authenticated = new Map();
-	stats = new Map();
+    spectators = new Set(); 	// connection...
+    roles = new Map(); 			// connection: role
+	authenticated = new Map(); 	// connection: token
+	stats = new Map(); 			// role: {id , username, score}
     
     assignRole(connection) {
         let role = 'spectator';
@@ -44,8 +44,7 @@ export class PlayersManager {
     }
 	setStats(connection, payload){
 		const role = this.roles.get(connection);
-		console.log("Player stats set");
-		console.log(payload.userId, payload.username);
+		console.log("Player's stats set");
 		this.stats.set(role,{id: payload.userId, username: payload.username, score: 0});
 	}
 	updateScore(scores){
