@@ -4,7 +4,18 @@ import Game from './game';
 import { GameType } from '../../types/game';
 
 export function showGameOverlay(gameId: string, gameType: GameType) {
+
+    const gameComponentResult = Game(gameId, gameType);
+    if (!gameComponentResult?.game || !gameComponentResult?.ws) {
+        console.error("Failed to initialize game");
+        return;
+    }
+
+    const gameWebSocket = gameComponentResult?.ws;
+    const gameElementForDOM = gameComponentResult?.game;
+
     const overlay = document.createElement('div');
+
     overlay.classList.add(
         'fixed', 'inset-0', 'bg-black/70', 'flex', 'items-center', 'justify-center', 'z-50'
     );
@@ -17,17 +28,15 @@ export function showGameOverlay(gameId: string, gameType: GameType) {
             'absolute', 'top-4', 'right-6', 'text-white', 'bg-transparent', 'border-none', 'cursor-pointer'
         ],
     });
+
     CloseBtn.style.fontSize = '2rem';
     CloseBtn.onclick = () => {
-        const ws = (gameComponent as any).ws;
-        if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.close();
+        if (gameWebSocket && gameWebSocket.readyState === WebSocket.OPEN) {
+            gameWebSocket.close();
         }
         overlay.remove();
         window.history.pushState(null, '', '/');
     };
-
-    const gameComponent = Game(gameId, gameType);
 
     const shareText = Text({
         content: 'share with a friend: ',
@@ -60,8 +69,8 @@ export function showGameOverlay(gameId: string, gameType: GameType) {
     );
 
     document.body.appendChild(overlay);
-    if (gameComponent) {
-        overlay.appendChild(gameComponent);
+    if (gameElementForDOM) {
+        overlay.appendChild(gameElementForDOM);
     } else {
         console.error('Failed to create game component.');
     }

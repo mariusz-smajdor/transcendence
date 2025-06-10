@@ -26,5 +26,8 @@ export default function Game(gameId: string, gameType: GameType) {
 	});
 	window.addEventListener('resize', actions.resizeCanvas);
 
-	return ui.game;
+	return {
+		game: ui.game,
+		ws: ws
+	};
 }
