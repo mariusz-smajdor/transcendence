@@ -1,16 +1,26 @@
 import { gameLoop, stopGameLoop } from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
+import { authenticateToken } from "./authentication.js";
 export function manageLocalGameWebSocketAI(game, connection, games, gameId, fastify) {
 	
 	game.clients.add(connection);
+    game.playersManager.assignRole(connection);
 
 	connection.send(JSON.stringify({
 		type: 'gameState',
 		data: game.gameState
 	}));
 
+	game.playersManager.stats.set("left",{id: null, username: "Left", score: 0});
+	game.playersManager.stats.set("right",{id: null, username: game.gameType, score: 0});
+	
 	connection.on('message', message => {
 		const msg = JSON.parse(message);
+		console.log(msg);
+		//authentication (no other players expected)
+		if (game.needAuthentication !== 0)
+			authenticateToken(game,connection,fastify,msg);
+
 		const role = game.playersManager.getRole(connection);
 		console.log(`Message received from ${role}:`, msg); 
 		//Readiness

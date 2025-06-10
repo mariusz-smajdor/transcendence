@@ -38,11 +38,10 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 			//connection.close();
 			//return;
 		}
-		console.log(msg);
 
 		const role = game.playersManager.getRole(connection);
     	// checking user's token or previous authentication
-		if (role !== 'spectator')
+		if (role !== 'spectator' && game.needAuthentication !== 0)
 			authenticateToken(game,connection,fastify,msg);
 
         console.log(`Message received from ${role}:`, msg);
@@ -89,7 +88,7 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 		const role = game.playersManager.getRole(connection);
 		if(game.isRunning === 1 && role !== 'spectator' && 
 			game.playersManager.stats.get('left') !== undefined &&
-			game.playersManager.stats.get('left') !== undefined)
+			game.playersManager.stats.get('right') !== undefined)
 			saveClosedMatch(fastify.db, role, game.playersManager.stats, game.gameType);
         console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
         game.playersManager.removeRole(connection);
