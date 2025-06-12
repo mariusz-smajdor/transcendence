@@ -7,6 +7,7 @@ import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
 import { showLobbyOverlay } from '../../game/Pairing/lobby-overlay';
+import { fetchMe } from '../../../api/me';
 
 function FriendCard() {
 	const card = Card({
@@ -56,7 +57,7 @@ function FriendCard() {
 		const response = await fetch('http://localhost:3000/game/create');
 		const data = await response.json();
 		showGameOverlay(data.gameId, 'local');
-    });
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -112,8 +113,17 @@ function OnlineCard() {
 	});
 
 	card.addEventListener('click', async () => {
-		showLobbyOverlay();
-    });
+		const isLoggedIn = await fetchMe();
+		if (isLoggedIn) {
+			showLobbyOverlay();
+		} else {
+			const response = await fetch('http://localhost:3000/game/create');
+			const respData = await response.json();
+			showGameOverlay(respData.gameId, 'network');
+			const newUrl = `/game?gameId=${respData.gameId}`;
+			history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+		}
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -167,10 +177,10 @@ function AiCard() {
 	});
 
 	card.addEventListener('click', async () => {
-	const response = await fetch('http://localhost:3000/game/create');
-	const data = await response.json();
-	showGameOverlay(data.gameId, 'ai');
-    });
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'ai');
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
