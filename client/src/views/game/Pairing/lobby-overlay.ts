@@ -1,8 +1,11 @@
+import { MessageSquarePlus } from 'lucide';
 import { getFriends } from '../../../api/friendRequest';
 import { store } from '../../../store';
 import { Button } from '../../../components/button';
 import { Text } from '../../../components/text';
 import { Img } from '../../../components/img';
+import { Wrapper } from '../../../components/wrapper';
+import { Icon } from '../../../components/icon';
 import { sendInvitation, onInvitation } from '../../../api/invitationSocket';
 import { showGameOverlay } from '../game-overlay';
 
@@ -20,18 +23,35 @@ export async function showLobbyOverlay() {
 
     const container = document.createElement('div');
     container.classList.add(
-        'bg-background', 'rounded', 'p-6', 'min-w-[30vw]', 'min-h-[30vh]', 'max-h-[70vh]', 'overflow-y-auto', 'relative'
+        'flex', 'flex-col', 'bg-background', 'rounded', 'p-6', 'min-w-[40vw]', 'min-h-[50vh]', 'max-h-[70vh]', 'overflow-y-auto', 'relative'
     );
 
+    const wrapper = Wrapper({classes: ['flex', 'justify-between', 'items-center', 'mb-4']});
+    
     const header = Text({
         content: 'Inivite friend to a game',
-        classes: ['text-lg', 'font-bold', 'mb-4', 'text-center'],
+        classes: ['text-lg', 'font-bold', 'text-center'],
     });
-    container.appendChild(header);
+
+    const closeBtn = Button({
+        content: '✕',
+        variant: 'outline',
+        classes: [
+            'text-white', 'bg-transparent', 'border-none', 'cursor-pointer', 'text-3xl'
+        ],
+    });
+    closeBtn.onclick = () => overlay.remove();
+
+    wrapper.appendChild(header);
+    wrapper.appendChild(closeBtn);
+    container.appendChild(wrapper);
+
+    const friendsWrapper = Wrapper({classes: ['border', 'border-accent', 'rounded', 'p-4', 'w-full', 'h-full', 'flex-1']})
+    container.appendChild(friendsWrapper);
 
     if (friends.length === 0) {
-        container.appendChild(
-            Text({ content: 'No friends found.', classes: ['text-muted', 'text-center', 'py-4'] })
+        friendsWrapper.appendChild(
+            Text({ content: 'No friends found. You need to add a friend first.', classes: ['text-muted', 'text-center', 'py-4'] })
         );
     } else {
         friends.forEach((f: any) => {
@@ -50,11 +70,18 @@ export async function showLobbyOverlay() {
                 classes: ['text-base'],
             });
 
-            const inviteBtn = Button({
-                content: 'Invite',
-                variant: 'primary',
-                classes: ['ml-auto'],
+            const inviteIcon = Icon({
+                icon: MessageSquarePlus,
+                size: 'sm',
+                strokeWidth: 2.5,
             });
+
+            const inviteBtn = Button({
+                variant: 'primary',
+                classes: ['ml-auto', 'flex', 'items-center', 'gap-2'],
+            });
+            inviteBtn.appendChild(inviteIcon);
+            inviteBtn.appendChild(document.createTextNode('Invite'));
 
             inviteBtn.onclick = () => {
                 sendInvitation({ type: 'invite', message: 'Invitation send', toUserId: f.id });
@@ -65,19 +92,9 @@ export async function showLobbyOverlay() {
             row.appendChild(avatar);
             row.appendChild(name);
             row.appendChild(inviteBtn);
-            container.appendChild(row);
+            friendsWrapper.appendChild(row);
         });
     }
-
-    const closeBtn = Button({
-        content: '✕',
-        variant: 'outline',
-        classes: [
-            'absolute', 'top-2', 'right-4', 'text-white', 'bg-transparent', 'border-none', 'cursor-pointer'
-        ],
-    });
-    closeBtn.style.fontSize = '1.5rem';
-    closeBtn.onclick = () => overlay.remove();
 
     onInvitation(async (data) => {
         if (data.type === 'game_start' && data.fromUserId) {
@@ -90,7 +107,6 @@ export async function showLobbyOverlay() {
         }
     });
 
-    container.appendChild(closeBtn);
     overlay.appendChild(container);
     document.body.appendChild(overlay);
 }
