@@ -1,4 +1,4 @@
-import { MessageSquarePlus } from 'lucide';
+import { MessageSquarePlus, MessageSquareMore } from 'lucide';
 import { getFriends } from '../../../api/friendRequest';
 import { store } from '../../../store';
 import { Button } from '../../../components/button';
@@ -14,6 +14,7 @@ export async function showLobbyOverlay() {
     await getFriends();
     const user = store.getState().user;
     const friends = user?.friends || [];
+    let invitedFriendId: number | null = null;
 
     const overlay = document.createElement('div');
     overlay.classList.add(
@@ -23,11 +24,11 @@ export async function showLobbyOverlay() {
 
     const container = document.createElement('div');
     container.classList.add(
-        'flex', 'flex-col', 'bg-background', 'rounded', 'p-6', 'min-w-[40vw]', 'min-h-[50vh]', 'max-h-[70vh]', 'overflow-y-auto', 'relative'
+        'flex', 'flex-col', 'bg-foreground', 'rounded', 'p-6', 'min-w-[40vw]', 'min-h-[50vh]', 'max-h-[70vh]', 'overflow-y-auto', 'relative'
     );
 
-    const wrapper = Wrapper({classes: ['flex', 'justify-between', 'items-center', 'mb-4']});
-    
+    const wrapper = Wrapper({ classes: ['flex', 'justify-between', 'items-center', 'mb-4'] });
+
     const header = Text({
         content: 'Inivite friend to a game',
         classes: ['text-lg', 'font-bold', 'text-center'],
@@ -40,13 +41,17 @@ export async function showLobbyOverlay() {
             'text-white', 'bg-transparent', 'border-none', 'cursor-pointer', 'text-3xl'
         ],
     });
-    closeBtn.onclick = () => overlay.remove();
+    closeBtn.onclick = () => {
+        if (invitedFriendId != null)
+            sendInvitation({ type: 'uninvite', message: 'Deactivate invitation', toUserId: invitedFriendId });
+        overlay.remove();
+    }
 
     wrapper.appendChild(header);
     wrapper.appendChild(closeBtn);
     container.appendChild(wrapper);
 
-    const friendsWrapper = Wrapper({classes: ['border', 'border-accent', 'rounded', 'p-4', 'w-full', 'h-full', 'flex-1']})
+    const friendsWrapper = Wrapper({ classes: ['border', 'border-accent', 'rounded', 'p-4', 'w-full', 'h-full', 'flex-1'] })
     container.appendChild(friendsWrapper);
 
     if (friends.length === 0) {
@@ -56,7 +61,7 @@ export async function showLobbyOverlay() {
     } else {
         friends.forEach((f: any) => {
             const row = document.createElement('div');
-            row.classList.add('flex', 'items-center', 'gap-3', 'mb-3');
+            row.classList.add('flex', 'items-center', 'gap-3', 'mb-3', 'hover:bg-background/25');
             const avatar = Img({
                 src: f.avatar || `https://i.pravatar.cc/30${f.id}`,
                 alt: f.username,
@@ -84,9 +89,30 @@ export async function showLobbyOverlay() {
             inviteBtn.appendChild(document.createTextNode('Invite'));
 
             inviteBtn.onclick = () => {
-                sendInvitation({ type: 'invite', message: 'Invitation send', toUserId: f.id });
-                inviteBtn.textContent = 'Invited';
-                inviteBtn.disabled = true;
+                if (invitedFriendId == null) {
+                    sendInvitation({ type: 'invite', message: 'Invitation send', toUserId: f.id });
+                    invitedFriendId = f.id;
+                    inviteBtn.textContent = '';
+
+                    const invitedIcon = Icon({
+                        icon: MessageSquareMore,
+                        size: 'sm',
+                        strokeWidth: 2.5,
+                    });
+
+                    inviteBtn.appendChild(invitedIcon);
+                    inviteBtn.appendChild(document.createTextNode('Invited'));
+                    inviteBtn.disabled = true;
+
+                    setTimeout(() => {
+                        sendInvitation({ type: 'uninvite', message: 'Deactivate invitation', toUserId: f.id });
+                        invitedFriendId = null;
+                        inviteBtn.textContent = '';
+                        inviteBtn.appendChild(inviteIcon);
+                        inviteBtn.appendChild(document.createTextNode('Invite'));
+                        inviteBtn.disabled = false;
+                    }, 30000);
+                }
             };
 
             row.appendChild(avatar);

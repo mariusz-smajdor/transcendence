@@ -115,6 +115,17 @@ async function gameRoutes(fastify) {
         }
       }
 
+      if (data.type === 'uninvite' && data.toUserId) {
+        const target = clients.get(data.toUserId);
+        if (target) {
+          target.send(JSON.stringify({
+            type: 'uninvite',
+            fromUserId: userId,
+            message: data.message,
+          }));
+        }
+      }
+
       if (data.type === 'accept' && data.toUserId) {
         const target = clients.get(data.toUserId);
         if (target) {
@@ -129,7 +140,6 @@ async function gameRoutes(fastify) {
       if (data.type === 'game_start') {
         console.log('Received game_start');
         const target = clients.get(data.toUserId);
-        // console.log('target: ', target);
         if (target) {
           target.send(JSON.stringify({
             type: 'game_start_with_id',

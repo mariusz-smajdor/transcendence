@@ -179,7 +179,7 @@ function AllFriendsTab(parent: HTMLElement) {
 			const invitationToGame = Button({
 				type: 'button',
 				content: 'Invited to game',
-				classes: ['flex', 'gap-2', 'items-center', 'ml-auto', 'text-sm'],
+				classes: ['flex', 'gap-2', 'items-center', 'text-sm'],
 			});
 
 			invitationToGame.onclick = () => {
@@ -190,6 +190,11 @@ function AllFriendsTab(parent: HTMLElement) {
 			onInvitation((data) => {
 				if (data.type === 'invite' && !friends.contains(invitationToGame))
 					friends.appendChild(invitationToGame);
+			});
+
+			onInvitation((data) => {
+				if (data.type === 'uninvite' && friends.contains(invitationToGame))
+					friends.removeChild(invitationToGame);
 			});
 
 			button.addEventListener('click', () => {
