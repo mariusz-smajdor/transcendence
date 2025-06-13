@@ -155,6 +155,8 @@ function AllFriendsTab(parent: HTMLElement) {
 					'hover:bg-background/25',
 				],
 			});
+			friends.dataset.friendId = String(f.id);
+
 			const friend = Wrapper({
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
@@ -171,33 +173,12 @@ function AllFriendsTab(parent: HTMLElement) {
 				content: f.username,
 				classes: ['text-sm'],
 			});
-			const button = Button({ type: 'button', variant: 'ghost' });
+			const msgButton = Button({ type: 'button', variant: 'ghost', classes: ['ml-auto'] });
 			const msgIcon = Icon({
 				icon: MessageCircle,
 			});
 
-			const invitationToGame = Button({
-				type: 'button',
-				content: 'Invited to game',
-				classes: ['flex', 'gap-2', 'items-center', 'text-sm'],
-			});
-
-			invitationToGame.onclick = () => {
-				sendInvitation({ type: 'accept', message: 'Invitation accepted', toUserId: f.id });
-				friends.removeChild(invitationToGame);
-			}
-
-			onInvitation((data) => {
-				if (data.type === 'invite' && !friends.contains(invitationToGame))
-					friends.appendChild(invitationToGame);
-			});
-
-			onInvitation((data) => {
-				if (data.type === 'uninvite' && friends.contains(invitationToGame))
-					friends.removeChild(invitationToGame);
-			});
-
-			button.addEventListener('click', () => {
+			msgButton.addEventListener('click', () => {
 				if (messageCard && parent.contains(messageCard)) {
 					parent.removeChild(messageCard);
 					messageCard = MessageCard(f);
@@ -207,20 +188,48 @@ function AllFriendsTab(parent: HTMLElement) {
 				parent.appendChild(messageCard);
 			});
 
-			button.appendChild(msgIcon);
+			msgButton.appendChild(msgIcon);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
 			friends.appendChild(friend);
-			friends.appendChild(button);
+			friends.appendChild(msgButton);
 			wrapper.appendChild(friends);
 		});
 	}
 
 	onInvitation((data) => {
+		if (data.type === 'invite' && data.fromUserId) {
+			const friendRow = wrapper.querySelector(`[data-friend-id="${data.fromUserId}"]`);
+			if (friendRow && !friendRow.querySelector('.invitation-to-game-btn')) {
+				const invitationToGame = Button({
+					type: 'button',
+					content: 'Invited to game',
+					classes: ['flex', 'gap-2', 'items-center', 'text-sm', 'invitation-to-game-btn'],
+				});
+				invitationToGame.onclick = () => {
+					sendInvitation({ type: 'accept', message: 'Invitation accepted', toUserId: data.fromUserId });
+					friendRow.removeChild(invitationToGame);
+				};
+				friendRow.appendChild(invitationToGame);
+			}
+		}
+	});
+
+	onInvitation((data) => {
+		if (data.type === 'uninvite' && data.fromUserId) {
+			const friendRow = wrapper.querySelector(`[data-friend-id="${data.fromUserId}"]`);
+			const invitationBtn = friendRow?.querySelector('.invitation-to-game-btn');
+			if (friendRow && invitationBtn) {
+				friendRow.removeChild(invitationBtn);
+			}
+		}
+	});
+
+	onInvitation((data) => {
 		if (data.type === 'game_start_with_id' && data.gameId) {
 			showGameOverlay(data.gameId, 'network');
 			const newUrl = `/game?gameId=${data.gameId}`;
-            history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
+			history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
 		}
 	});
 

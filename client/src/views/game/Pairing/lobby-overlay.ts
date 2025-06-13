@@ -127,6 +127,7 @@ export async function showLobbyOverlay() {
             const response = await fetch('http://localhost:3000/game/create');
             const respData = await response.json();
             sendInvitation({ type: 'game_start', message: 'Game started', toUserId: data.fromUserId, gameId: respData.gameId });
+            overlay.remove();
             showGameOverlay(respData.gameId, 'network');
             const newUrl = `/game?gameId=${respData.gameId}`;
             history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
