@@ -1,4 +1,4 @@
-import { initGame, gameLoop, stopGameLoop, getGameStateProportional } from "../game/gameState.js";
+import { initGame, gameLoop, stopGameLoop, getGameStateProportional, resetGameStatus } from "../game/gameState.js";
 import { broadcastGameState, broadcastMessage, broadcastStatus } from "../game/broadcast.js";
 import { authenticateToken } from "./authentication.js";
 import { saveClosedMatch } from "../models/gameHistory.js";
@@ -48,16 +48,17 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 		//Readiness
 
 		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
-            if (role === 'left') {
-                game.readyL = true;
+			if (role === 'left' && game.readyL === false) {
+				game.readyL = true;
                 broadcastMessage(game.clients, 'left_player_ready');
-            }
-            if (role === 'right') {
-                game.readyR = true;
+				if (game.readyL && game.readyR)
+					countdownAndStart(game, fastify.db);
+			}
+            if (role === 'right' && game.readyR === false) {
+				game.readyR = true;
                 broadcastMessage(game.clients, 'right_player_ready');
-            }
-            if (game.readyL && game.readyR) {
-                countdownAndStart(game, fastify.db);
+				if (game.readyL && game.readyR)
+					countdownAndStart(game, fastify.db);
             }
             return;
         }
@@ -79,7 +80,7 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 			}
 		}
 		if (msg.type === 'status' && msg.status === 'RESET'){
-			//logic for rematch
+			resetGameStatus(game);
 		}
 
     });
@@ -129,8 +130,6 @@ function countdownAndStart(game, db) {
         } else {
             broadcastMessage(game.clients, 'game_on');
             game.isRunning = true;
-            game.readyL = false;
-            game.readyR = false;
             gameLoop(game, db);
         }
     }

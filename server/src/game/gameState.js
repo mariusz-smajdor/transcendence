@@ -12,15 +12,18 @@ export function updateGameState(gameState, ballSpeed) {
   gameState.ball.y += ballSpeed.ballSpeedY;
 
   //top/bottom edge bounce
-  if (gameState.ball.y - ballRadius < 0 || gameState.ball.y + ballRadius > canvasHeight) {
-    ballSpeed.ballSpeedY = -ballSpeed.ballSpeedY;
-  }
+  if (gameState.ball.y - ballRadius < 0 && ballSpeed.ballSpeedY < 0) {
+	  ballSpeed.ballSpeedY = -ballSpeed.ballSpeedY;
+	}
+	if (gameState.ball.y + ballRadius > canvasHeight && ballSpeed.ballSpeedY > 0){
+	  ballSpeed.ballSpeedY = -ballSpeed.ballSpeedY;
+	}
 
   //left paddle bounce
   if (
     ballSpeed.ballSpeedX < 0 &&
     gameState.ball.x - ballRadius <= 20 &&
-    gameState.ball.x - ballRadius >= 16 &&
+    gameState.ball.x - ballRadius >= 12 &&
     gameState.ball.y > gameState.paddles.left - 5 &&
     gameState.ball.y < gameState.paddles.left + paddleHeight + 5
   ) {
@@ -31,7 +34,7 @@ export function updateGameState(gameState, ballSpeed) {
   else if (
     ballSpeed.ballSpeedX > 0
     && gameState.ball.x + ballRadius >= canvasWidth - 20
-    && gameState.ball.x + ballRadius <= canvasWidth - 16
+    && gameState.ball.x + ballRadius <= canvasWidth - 12
     && gameState.ball.y > gameState.paddles.right - 5
     && gameState.ball.y < gameState.paddles.right + paddleHeight + 5
   ) {
@@ -51,7 +54,7 @@ export function updateGameState(gameState, ballSpeed) {
     gameState.ball.x = canvasWidth / 2;
     gameState.ball.y = canvasHeight / 2;
     ballSpeed.ballSpeedX = 3 * (Math.random() > 0.5 ? 1 : -1);
-    ballSpeed.ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
+    ballSpeed.ballSpeedY = 0.1;
   }
 
 }
@@ -75,7 +78,7 @@ export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
-    score: { left: 0, right: 10 },
+    score: { left: 0, right: 0 },
 	gameOver: false
   };
   return gameState;
@@ -85,37 +88,46 @@ export function gameLoop(game, db) {
   console.log('game started');
   let ballSpeed = {
     ballSpeedX: 3,
-    ballSpeedY: 2
-  };
+    ballSpeedY: 1
+};
   if (game.gameType === "CPU")
   	startAI(game,ballSpeed);
-  game.intervalId = setInterval(() => {
-	updateGameState(game.gameState, ballSpeed);
-	if (game.gameState.gameOver) {
-		stopGameLoop(game);//potencialy add stop ai
-		game.isRunning = false;
-		const winner = game.gameState.score.left >= 11 ? 'left' : 'right';
-		if(game.needAuthentication === 2){
-			game.playersManager.updateScore(game.gameState.score, game.gameType);
-			saveMatchResult(db,game.playersManager.stats, winner, game.gameType)
-		}
-		const gameStatePropotional = getGameStateProportional(game.gameState);
-		broadcastGameState(game.clients, gameStatePropotional);
-		broadcastMessage(game.clients, `The winner is: ${game.playersManager.stats.get(winner)?.username ?? winner}`);
+  let id = setInterval(() => {
+	  updateGameState(game.gameState, ballSpeed);
+	  if (game.gameState.gameOver) {
+		  stopGameLoop(game);
+		  game.isRunning = false;
+		  const winner = game.gameState.score.left >= 11 ? 'left' : 'right';
+		  if(game.needAuthentication === 2){
+			  game.playersManager.updateScore(game.gameState.score, game.gameType);
+			  saveMatchResult(db,game.playersManager.stats, winner, game.gameType)
+			}
+			const gameStatePropotional = getGameStateProportional(game.gameState);
+			broadcastGameState(game.clients, gameStatePropotional);
+			broadcastMessage(game.clients, `The winner is: ${game.playersManager.stats.get(winner)?.username ?? winner}`);
 		return;
 	}
     let gameStatePropotional = getGameStateProportional(game.gameState);
     broadcastGameState(game.clients, gameStatePropotional);
-  }, 20);
+}, 20);
+  game.intervalId.add(id);
 }
 
 export function stopGameLoop(game) {
-  let intervalId = game.intervalId;
-  if (intervalId != null) {
-    clearInterval(intervalId);
-    intervalId = null;
-    console.log('game stopped');
-  }
+	let ids = game.intervalId; 
+	ids.forEach((id) => {
+		clearInterval(id);
+		ids.delete(id);
+  	});
+	console.log('game stopped');
+}
+
+export function resetGameStatus(game){
+	game.gameState = initGame();
+	game.readyL = false;
+	game.readyR = false;
+	broadcastMessage(game.clients, 'rematch');
+	broadcastGameState(game.clients, getGameStateProportional(game.gameState));
 }
 
 function paddleBounce(gameState, ballSpeed, side) {
@@ -134,4 +146,5 @@ function paddleBounce(gameState, ballSpeed, side) {
     ballSpeed.ballSpeedX = -speed * Math.cos(bounceAngle);
     ballSpeed.ballSpeedY = speed * Math.sin(bounceAngle);
   }
+  ballSpeed.ballSpeedX *= 1.05;
 }

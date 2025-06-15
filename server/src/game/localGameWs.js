@@ -1,4 +1,4 @@
-import { gameLoop, stopGameLoop } from "../game/gameState.js";
+import { gameLoop, resetGameStatus, stopGameLoop } from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
 import { initGame } from "../game/gameState.js";
 import { broadcastGameState } from "../game/broadcast.js";
@@ -18,8 +18,11 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
         console.log(`Message received from ${role}:`, msg);
 
 		//Readiness
-		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
-                countdownAndStart(game);
+		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning){ 
+			if (game.readyL === false){
+				countdownAndStart(game);
+				game.readyL = true;
+			}
         }
 
 		//Movement
@@ -36,10 +39,7 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
 		}
 
 		if (msg.type === 'status' && msg.status === 'RESET'){
-			game.gameState = initGame();
-			game.isRunning = false;
-			broadcastMessage(game.clients, 'rematch');
-			broadcastGameState(game.clients, getGameStateProportional(game.gameState));
+			resetGameStatus(game);
 		}
 
     });
@@ -67,8 +67,6 @@ function countdownAndStart(game) {
         } else {
             broadcastMessage(game.clients, 'game_on');
             game.isRunning = true;
-            game.readyL = false;
-            game.readyR = false;
             gameLoop(game);
         }
     }
