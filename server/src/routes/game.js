@@ -32,7 +32,7 @@ async function gameRoutes(fastify) {
       gameState: initGame(),
       clients: new Set(),
       playersManager: new PlayersManager(),
-      intervalId: null,
+      intervalId: new Set(),
       isRunning: false,
       readyR: false,
       readyL: false,

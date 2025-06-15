@@ -1,6 +1,10 @@
 import { gameLoop, stopGameLoop } from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
 import { authenticateToken } from "./authentication.js";
+import { initGame, getGameStateProportional} from "../game/gameState.js";
+import { broadcastGameState } from "../game/broadcast.js";
+import { resetGameStatus } from "../game/gameState.js";
+
 export function manageLocalGameWebSocketAI(game, connection, games, gameId, fastify) {
 	
 	game.clients.add(connection);
@@ -25,7 +29,10 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId, fast
 		console.log(`Message received from ${role}:`, msg); 
 		//Readiness
 		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
-			countdownAndStart(game, fastify.db);
+			if (game.readyL === false){
+				game.readyL = true; 
+				countdownAndStart(game, fastify.db);
+			}
 		}
 
 		//Movement
@@ -38,7 +45,7 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId, fast
 		}
 
 		if (msg.type === 'status' && msg.status === 'RESET'){
-			//rematch logic
+			resetGameStatus(game);
 		}
 	});
 
@@ -65,8 +72,6 @@ function countdownAndStart(game, db) {
 		} else {
 			broadcastMessage(game.clients, 'game_on');
 			game.isRunning = true;
-			game.readyL = false;
-			game.readyR = false;
 			gameLoop(game, db,true);
 		}
 	}

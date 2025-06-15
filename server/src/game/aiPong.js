@@ -1,7 +1,7 @@
 
 export function startAI(game, ballSpeed) {
 	let aiMove = 0;
-	setInterval(() => {
+	let id = setInterval(() => {
 		if (!game.isRunning) return;
 		
         const { ball, paddles } = game.gameState;		
@@ -38,8 +38,10 @@ export function startAI(game, ballSpeed) {
         }
     }, 1000);
 
+	game.intervalId.add(id);
+
 	// ai moves like human
-    setInterval(() => {
+    id = setInterval(() => {
         if (!game.isRunning) return;
         if (aiMove !== 0) {
             if (aiMove > 0) {
@@ -51,4 +53,7 @@ export function startAI(game, ballSpeed) {
             }
         }
     }, 100);
+
+	game.intervalId.add(id);
+
 }
