@@ -8,7 +8,12 @@ import { resetGameStatus } from "../game/gameState.js";
 export function manageLocalGameWebSocketAI(game, connection, games, gameId, fastify) {
 	
 	game.clients.add(connection);
-    game.playersManager.assignRole(connection);
+  game.playersManager.assignRole(connection);
+
+	connection.send(JSON.stringify({
+			type: 'role',
+			role: game.playersManager.getRole(connection)
+	}));
 
 	connection.send(JSON.stringify({
 		type: 'gameState',

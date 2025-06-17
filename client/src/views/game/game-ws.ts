@@ -25,7 +25,7 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 
 			if (data.type === 'role') {
 				gameState.playerRole = data.role;
-
+				console.log(data.role);
 				if (gameState.playerRole === 'left') {
 					ui.roleText.textContent = 'Role: Left player';
 				} else if (gameState.playerRole === 'right') {
@@ -34,7 +34,7 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 					ui.roleText.textContent = 'Role: Spectator';
 				}
 
-				ui.text.textContent = 'Connected to server!';
+				ui.text.textContent = 'Connected to server! Press \'R\' to play.';
 			}
 
 			else if (data.type === 'gameState') {
@@ -108,10 +108,17 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 			if (gameState.playerRole === 'right') {
 				ui.text.textContent = 'Left player is ready. Press \'R\' if you are ready.';
 			}
+			else if(gameState.playerRole === 'left'){
+				ui.text.textContent = 'Waiting for the second player to be ready.'
+			}
+				
 			break;
 		case 'right_player_ready':
 			if (gameState.playerRole === 'left') {
 				ui.text.textContent = 'Right player is ready. Press \'R\' if you are ready.';
+			}
+			else if(gameState.playerRole === 'right'){
+				ui.text.textContent = 'Waiting for the second player to be ready.'
 			}
 			break;
 		case 'count_to_start':
@@ -129,10 +136,10 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 			ui.text.textContent = 'Game stopped. Waiting for a second player to connect';
 			break;
 		case 'rematch':
-			if (gameState.playerRole === 'left' || gameState.playerRole === 'right')
-				ui.text.textContent = 'Rematch proposed! Press \'R\' if you are ready.';
-			else
+			if (gameState.playerRole === 'spectator')
 				ui.text.textContent = 'Rematch proposed! Waiting for players to confirm.';
+			else
+				ui.text.textContent = 'Rematch proposed! Press \'R\' if you are ready.';
 			break;
 		case 'winner_left':
 			ui.text.textContent = 'Left player won!';
@@ -143,6 +150,12 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 		case 'error_please_reload':
 			ui.text.textContent = 'Error occured. Please reload game.';
 			break;
+		case 'reset':
+			ui.text.textContent = 'Reseting the game... The oponent left the game.';
+			break;
+		case 'left':
+			ui.text.textContent = 'The oponent left the game';
+			break; 
 		default:
 			ui.text.textContent = data.message;
 			console.warn('Displayed unknown message: ', data.message);
