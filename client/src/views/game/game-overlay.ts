@@ -59,14 +59,27 @@ export function showGameOverlay(gameId: string, gameType: GameType) {
 
     const gameUrl = `${window.location.origin}/game?gameId=${gameId}`;
     const link = document.createElement('a');
-    link.href = gameUrl;
+    link.href = '#';
     link.textContent = 'copy link';
-    link.target = '_blank';
     link.classList.add(
         'text-blue-400',
         'underline',
         'hover:text-blue-200',
     );
+
+    link.onclick = async (e) => {
+        e.preventDefault();
+        try {
+            await navigator.clipboard.writeText(gameUrl);
+            const oldText = link.textContent;
+            link.textContent = 'copied!';
+            setTimeout(() => {
+                link.textContent = oldText;
+            }, 1500);
+        } catch {
+            link.textContent = 'error';
+        }
+    };
 
     document.body.appendChild(overlay);
     if (gameElementForDOM) {
