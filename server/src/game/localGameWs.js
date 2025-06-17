@@ -6,6 +6,7 @@ import { broadcastGameState } from "../game/broadcast.js";
 export function manageLocalGameWebSocket(game, connection, games, gameId) {
     
     game.clients.add(connection);
+  	game.playersManager.assignRole(connection);
 
     connection.send(JSON.stringify({
         type: 'gameState',
@@ -13,9 +14,9 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
     }));
 
     connection.on('message', message => {
-        const msg = JSON.parse(message);
-		const role = game.playersManager.getRole(connection);
-        console.log(`Message received from ${role}:`, msg);
+      const msg = JSON.parse(message);
+			const role = game.playersManager.getRole(connection);
+      console.log(`Message received from ${role}:`, msg);
 
 		//Readiness
 		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning){ 
@@ -23,10 +24,10 @@ export function manageLocalGameWebSocket(game, connection, games, gameId) {
 				countdownAndStart(game);
 				game.readyL = true;
 			}
-        }
+    }
 
 		//Movement
-		if(msg.type = 'move'){
+		if(msg.type === 'move'){
             if (msg.direction === 'LEFT_UP') {
                 game.gameState.paddles.left = Math.max(0, game.gameState.paddles.left - 20);
             } else if (msg.direction === 'LEFT_DOWN') {

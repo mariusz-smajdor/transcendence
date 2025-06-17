@@ -36,8 +36,8 @@ async function gameRoutes(fastify) {
       isRunning: false,
       readyR: false,
       readyL: false,
-	  gameType: "",
-	  needAuthentication: 0 //0 - no, 1 - optional 2 - required 
+	  	gameType: "",
+	  	needAuthentication: 0 //0 - no, 1 - optional 2 - required 
     });
     console.log(`created gameId: ${gameId}`)
     res.send({ gameId });

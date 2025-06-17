@@ -22,8 +22,8 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 	if (game.isRunning === true){
 		broadcastMessage(game.clients, 'game_on');
 	} else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null){
-        console.log("Waiting for a second player");
-        broadcastMessage(game.clients, 'waiting_for_second_player');
+    console.log("Waiting for a second player");
+    broadcastMessage(game.clients, 'waiting_for_second_player');
 	} else if(game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null){
 		broadcastMessage(game.clients, 'waiting_for_readiness');
 	}
@@ -44,24 +44,24 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 		if (role !== 'spectator' && game.needAuthentication !== 0)
 			authenticateToken(game,connection,fastify,msg);
 
-        console.log(`Message received from ${role}:`, msg);
+    console.log(`Message received from ${role}:`, msg);
 		//Readiness
 
-		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning) {
+		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning && game.playersManager.playersPresence()) {
 			if (role === 'left' && game.readyL === false) {
 				game.readyL = true;
-                broadcastMessage(game.clients, 'left_player_ready');
+        broadcastMessage(game.clients, 'left_player_ready');
 				if (game.readyL && game.readyR)
 					countdownAndStart(game, fastify.db);
 			}
-            if (role === 'right' && game.readyR === false) {
+      if (role === 'right' && game.readyR === false) {
 				game.readyR = true;
-                broadcastMessage(game.clients, 'right_player_ready');
+        broadcastMessage(game.clients, 'right_player_ready');
 				if (game.readyL && game.readyR)
 					countdownAndStart(game, fastify.db);
-            }
-            return;
-        }
+      }
+      return;
+    }
 
 		//Movement
 		if (msg.type === 'move'){
@@ -86,22 +86,37 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
     });
 
     connection.on('close', () => {
-		const role = game.playersManager.getRole(connection);
-		if(game.isRunning === 1 && role !== 'spectator' && 
-			game.playersManager.stats.get('left') !== undefined &&
-			game.playersManager.stats.get('right') !== undefined)
-			saveClosedMatch(fastify.db, role, game.playersManager.stats, game.gameType);
-        console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
-        game.playersManager.removeRole(connection);
-        game.clients.delete(connection);
-        if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
-            stopGameLoop(game);
-            game.isRunning = false;
-            broadcastMessage(game.clients, 'game_stop');
-        }
-        if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
-            games.delete(gameId);
-        }
+			console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
+			const role = game.playersManager.getRole(connection);
+			if(game.isRunning === 1 && role !== 'spectator' && 
+				game.playersManager.stats.get('left') !== undefined &&
+				game.playersManager.stats.get('right') !== undefined){
+				saveClosedMatch(fastify.db, role, game.playersManager.stats, game.gameType);
+			}
+			game.playersManager.removePlayer(connection);
+			game.clients.delete(connection);
+			if (game.isRunning === false && (role === 'left' || role === 'right')){
+				if(game.gameState.score.left === 11 || game.gameState.score.right === 11)
+					resetGameStatus(game,false);
+				broadcastMessage(game.clients,'left');
+				game.readyL = false;
+				game.readyR = false;
+			}
+			else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
+				stopGameLoop(game);
+				game.isRunning = false;
+				resetGameStatus(game, false);
+			}
+
+			setTimeout(() => {
+				if (role === 'left' && !game.playersManager.leftPlayer 
+					|| role === 'right' && !game.playersManager.rightPlayer)
+					broadcastMessage(game.clients,'waiting_for_second_player');
+			}, 3000);
+
+			if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
+				games.delete(gameId);
+			}
     });
 
     connection.on('error', (err) => {

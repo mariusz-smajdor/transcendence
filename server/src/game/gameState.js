@@ -78,7 +78,7 @@ export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
-    score: { left: 0, right: 0 },
+    score: { left: 0, right: 10 },
 	gameOver: false
   };
   return gameState;
@@ -122,11 +122,14 @@ export function stopGameLoop(game) {
 	console.log('game stopped');
 }
 
-export function resetGameStatus(game){
+export function resetGameStatus(game, rematch = true){
 	game.gameState = initGame();
 	game.readyL = false;
 	game.readyR = false;
-	broadcastMessage(game.clients, 'rematch');
+	if (rematch)
+		broadcastMessage(game.clients, 'rematch');
+	else
+		broadcastMessage(game.clients, 'reset')
 	broadcastGameState(game.clients, getGameStateProportional(game.gameState));
 }
 
