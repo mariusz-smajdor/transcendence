@@ -33,6 +33,10 @@ export function connectInvitationSocket() {
 
 export function onInvitation(handler: InvitationHandler) {
     handlers.push(handler);
+    return () => {
+        const idx = handlers.indexOf(handler);
+        if (idx !== -1) handlers.splice(idx, 1);
+    };
 }
 
 export function sendInvitation(payload: any) {
