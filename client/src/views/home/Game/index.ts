@@ -6,7 +6,7 @@ import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
-import { showLobbyOverlay } from '../../game/Pairing/lobby-overlay';
+import { showLobbyOverlay } from '../../game//lobby-overlay';
 import { fetchMe } from '../../../api/me';
 
 function FriendCard() {

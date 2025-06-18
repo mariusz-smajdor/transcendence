@@ -1,13 +1,13 @@
 import { MessageSquarePlus, MessageSquareMore } from 'lucide';
-import { getFriends } from '../../../api/friendRequest';
-import { store } from '../../../store';
-import { Button } from '../../../components/button';
-import { Text } from '../../../components/text';
-import { Img } from '../../../components/img';
-import { Wrapper } from '../../../components/wrapper';
-import { Icon } from '../../../components/icon';
-import { sendInvitation, onInvitation } from '../../../api/invitationSocket';
-import { showGameOverlay } from '../game-overlay';
+import { getFriends } from '../../api/friendRequest';
+import { store } from '../../store';
+import { Button } from '../../components/button';
+import { Text } from '../../components/text';
+import { Img } from '../../components/img';
+import { Wrapper } from '../../components/wrapper';
+import { Icon } from '../../components/icon';
+import { sendInvitation, onInvitation } from '../../api/invitationSocket';
+import { showGameOverlay } from './game-overlay';
 
 export async function showLobbyOverlay() {
 
@@ -44,6 +44,7 @@ export async function showLobbyOverlay() {
     closeBtn.onclick = () => {
         if (invitedFriendId != null)
             sendInvitation({ type: 'uninvite', message: 'Deactivate invitation', toUserId: invitedFriendId });
+        unsubscribe();
         overlay.remove();
     }
 
@@ -122,7 +123,7 @@ export async function showLobbyOverlay() {
         });
     }
 
-    onInvitation(async (data) => {
+    const unsubscribe = onInvitation(async (data) => {
         if (data.type === 'game_start' && data.fromUserId) {
             const response = await fetch('http://localhost:3000/game/create');
             const respData = await response.json();
@@ -131,6 +132,8 @@ export async function showLobbyOverlay() {
             showGameOverlay(respData.gameId, 'network');
             const newUrl = `/game?gameId=${respData.gameId}`;
             history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+
+            unsubscribe();
         }
     });
 
