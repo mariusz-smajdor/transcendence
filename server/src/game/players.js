@@ -51,12 +51,12 @@ export class PlayersManager {
 
 	setStats(connection, payload) {
 		const role = this.roles.get(connection);
-		console.log("Player's stats set");
+		//console.log("Player's stats set");
 		this.stats.set(role, { id: payload.userId, username: payload.username, score: 0 });
 	}
 
 	updateScore(scores) {
-		console.log(scores);
+		//console.log(scores);
 		this.stats.get("left").score = scores.left;
 		this.stats.get("right").score = scores.right;
 	}

@@ -25,7 +25,7 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId, fast
 	
 	connection.on('message', message => {
 		const msg = JSON.parse(message);
-		console.log(msg);
+		//console.log(msg);
 		//authentication (no other players expected)
 		if (game.needAuthentication !== 0)
 			authenticateToken(game,connection,fastify,msg);
@@ -55,12 +55,14 @@ export function manageLocalGameWebSocketAI(game, connection, games, gameId, fast
 	});
 
 	connection.on('close', () => {
+		stopGameLoop(game);
 		game.clients.delete(connection);
 		games.delete(gameId);
 	});
 
 	connection.on('error', (err) => {
 		console.error('WebSocket error:', err);
+		stopGameLoop(game);
 		game.clients.delete(connection);
 		games.delete(gameId);
 		broadcastMessage(game.clients, 'error_please_reload');

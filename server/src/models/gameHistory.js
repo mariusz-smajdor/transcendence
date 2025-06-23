@@ -39,7 +39,6 @@ function formatDate(number){
 	return(number < 10 ? `0${number}` : `${number}`);
 }
 
-//to do: if one of the players is not registered
 function dataToSave(stats, player){
 	return{id: stats.get(player).id, score: stats.get(player).score}
 }
