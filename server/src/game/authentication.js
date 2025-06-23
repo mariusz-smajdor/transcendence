@@ -2,12 +2,14 @@ import { broadcastStatus } from "./broadcast.js";
 
 export function authenticateToken(game, connection, fastify, msg){
 	let payload;
+	if (game.playersManager.authenticated.has(connection))
+		return;
 	if (!game.playersManager.authenticated.has(connection)) {
 		if (msg.type === 'auth' && msg.token) {
 			try {
 				payload = fastify.jwt.verify(msg.token);
 				game.needAuthentication = 2;
-				console.log(payload);
+				//console.log(payload);
 			} catch (err) {
 				if (game.needAuthentication === 2){
 					console.log(err.message);

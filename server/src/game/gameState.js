@@ -78,7 +78,7 @@ export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
     paddles: { left: 150, right: 150 },
-    score: { left: 0, right: 10 },
+    score: { left: 0, right: 0 },
 	gameOver: false
   };
   return gameState;
@@ -119,7 +119,7 @@ export function stopGameLoop(game) {
 		clearInterval(id);
 		ids.delete(id);
   	});
-	console.log('game stopped');
+	console.log('Game stopped');
 }
 
 export function resetGameStatus(game, rematch = true){
