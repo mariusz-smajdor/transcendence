@@ -27,7 +27,7 @@ function Home() {
 
 	const user = store.getState().user;
 
-	container.appendChild(Game(user));
+	container.appendChild(Game());
 	container.appendChild(user ? Friends() : Auth());
 	user && container.appendChild(History(USER));
 	return container;

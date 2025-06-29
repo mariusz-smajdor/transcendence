@@ -7,6 +7,8 @@ export type GameState = {
     scoreRight: number;
     playerRole: 'left' | 'right' | 'spectator';
     gameOver: boolean;
+	leftPlayerName: string;
+	rightPlayerName: string;
 };
 
 export type UIElements = {
