@@ -6,6 +6,8 @@ import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
+import { showLobbyOverlay } from '../../game//lobby-overlay';
+import { fetchMe } from '../../../api/me';
 
 function FriendCard() {
 	const card = Card({
@@ -55,7 +57,7 @@ function FriendCard() {
 		const response = await fetch('http://localhost:3000/game/create');
 		const data = await response.json();
 		showGameOverlay(data.gameId, 'local');
-    });
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -111,11 +113,17 @@ function OnlineCard() {
 	});
 
 	card.addEventListener('click', async () => {
-		const response = await fetch('http://localhost:3000/game/create');
-		const data = await response.json();
-		showGameOverlay(data.gameId, 'network');
-		// window.location.href = `/game?gameId=${data.gameId}`;
-    });
+		const isLoggedIn = await fetchMe();
+		if (isLoggedIn) {
+			showLobbyOverlay();
+		} else {
+			const response = await fetch('http://localhost:3000/game/create');
+			const respData = await response.json();
+			showGameOverlay(respData.gameId, 'network');
+			const newUrl = `/game?gameId=${respData.gameId}`;
+			history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+		}
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -169,10 +177,10 @@ function AiCard() {
 	});
 
 	card.addEventListener('click', async () => {
-	const response = await fetch('http://localhost:3000/game/create');
-	const data = await response.json();
-	showGameOverlay(data.gameId, 'ai');
-    });
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'ai');
+	});
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -273,7 +281,7 @@ function TournamentTab() {
 	return tab;
 }
 
-export default function Game(user: any) {
+export default function Game() {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],

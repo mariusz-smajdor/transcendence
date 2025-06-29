@@ -1,7 +1,7 @@
 import { store } from '../store';
 import { connectSocket } from '../socket';
 
-export async function fetchMe() {
+export async function fetchMe(): Promise<boolean> {
 	try {
 		const res = await fetch('http://localhost:3000/me', {
 			method: 'GET',
@@ -9,7 +9,7 @@ export async function fetchMe() {
 		});
 
 		const data = await res.json();
-		if (!res.ok || !data.success) return;
+		if (!res.ok || !data.success) return false;
 
 		store.setState({
 			user: {
@@ -19,9 +19,9 @@ export async function fetchMe() {
 				avatar: data.avatar,
 			},
 		});
-
-		connectSocket();
+		return true;
 	} catch (error) {
 		console.log(error);
+		return false;
 	}
 }
