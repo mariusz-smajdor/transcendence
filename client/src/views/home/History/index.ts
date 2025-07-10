@@ -135,6 +135,7 @@ export default function History(user: any) {
 			'w-full',
 			'lg:col-span-3',
 			'overflow-hidden',
+			'min-h-72'
 		],
 	});
 	const heading = Heading({
