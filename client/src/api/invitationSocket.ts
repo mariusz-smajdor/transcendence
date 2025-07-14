@@ -6,29 +6,35 @@ let socket: WebSocket | null = null;
 const handlers: InvitationHandler[] = [];
 
 export function connectInvitationSocket() {
-    if (socket) return;
+	if (socket) return;
 
-    socket = new WebSocket('ws://localhost:3000/invitations');
+	socket = new WebSocket('ws://localhost:3000/invitations');
 
-    socket.onopen = () => {
-        const token = getCookie('access_token');
-        socket?.send(JSON.stringify({ type: 'auth', token: token }));
-        console.log('Invitation WebSocket opened');
-    };
+	socket.onopen = () => {
+		const token = getCookie('access_token');
+		socket?.send(JSON.stringify({ type: 'auth', token: token }));
+		console.log('Invitation WebSocket opened');
+	};
 
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handlers.forEach((handler) => handler(data));
-    };
+	socket.onmessage = (event) => {
+		const data = JSON.parse(event.data);
+		if (data.type === 'session' && data.sessionId) {
+			document.cookie = `sessionId=${data.sessionId}; path=/;`;
+			return;
+		}
+		handlers.forEach((handler) => handler(data));
+	};
 
-    socket.onclose = () => {
-        console.log('Invitation WebSocket closed');
-        socket = null;
-    };
+	socket.onclose = () => {
+		console.log('Invitation WebSocket closed');
+		document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		socket = null;
+	};
 
-    socket.onerror = (err) => {
-        console.error('Invitation WebSocket error:', err);
-    };
+	socket.onerror = (err) => {
+		console.error('Invitation WebSocket error:', err);
+		document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+	};
 }
 
 export function onInvitation(handler: InvitationHandler) {

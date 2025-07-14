@@ -23,6 +23,20 @@ export class PlayersManager {
 		this.roles.set(connection, role);
 	}
 
+	setRole(connection,role = 'spectator'){
+		if(role === 'left'){
+			this.leftPlayer = connection;
+			role = 'left';
+		}
+		else if (role === 'right'){
+			this.rightPlayer = connection;
+			role = 'right';
+		}
+		else
+			this.spectators.add(connection)
+		this.roles.set(connection, role);
+	}
+
 	getRole(connection) {
 		return this.roles.get(connection);
 	}

@@ -6,7 +6,8 @@ import { PlayersManager } from "../game/players.js";
 import { v4 as uuidv4 } from 'uuid';
 
 const games = new Map();
-const clients = new Map();
+export const clients = new Map();
+export const notAuthenticated = new Map();
 
 async function gameRoutes(fastify) {
   fastify.get('/game', { websocket: true }, (connection, req) => {
@@ -77,6 +78,7 @@ async function gameRoutes(fastify) {
   fastify.get('/invitations', { websocket: true }, (connection, req) => {
     let authenticated = false;
     let userId = null;
+		let sessionId = null;
 
     connection.on('message', (message) => {
       let data;
@@ -93,12 +95,26 @@ async function gameRoutes(fastify) {
           authenticated = true;
           console.log(`User ${userId} has been authorized`);
           clients.set(userId, connection);
+					if (sessionId){
+						connection.send(JSON.stringify({ type: 'session', sessionId }));
+						notAuthenticated.delete(sessionId);
+					}
         } catch (err) {
           console.log(`User ${userId} has not been authorized. Closing connection.`);
           connection.close();
         }
         return;
       }
+
+			if (!authenticated && data.type === 'auth') {
+				if (!sessionId){
+					sessionId = uuidv4;
+					notAuthenticated.set(sessionId, connection);
+					authenticated = false;
+					connection.send(JSON.stringify({ type: 'session', sessionId }));
+				}
+      	return;
+    	}
 
       if (!authenticated) {
         return;
@@ -154,6 +170,7 @@ async function gameRoutes(fastify) {
 
     connection.on('close', () => {
       clients.delete(userId);
+			notAuthenticated.delete(sessionId);
     })
   });
 
