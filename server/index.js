@@ -30,11 +30,14 @@ fastify.register(FastifyEnv, {
   confKey: 'config',
   schema: {
     type: 'object',
-    required: ['JWT_SECRET', 'COOKIES_SECRET'],
+    required: ['JWT_SECRET', 'COOKIES_SECRET', 'CONTRACT_ADDRESS', 'WALLET_PRIVATE_KEY', 'BLOCKCHAIN_RPC_URL'],
     properties: {
       PORT: { type: 'number', default: 3000 },
       JWT_SECRET: { type: 'string' },
       COOKIES_SECRET: { type: 'string' },
+      CONTRACT_ADDRESS: { type: 'string' },
+      WALLET_PRIVATE_KEY: { type: 'string' },
+      BLOCKCHAIN_RPC_URL: { type: 'string' }
     },
   },
   dotenv: true, // Automatically load .env file
@@ -66,9 +69,8 @@ fastify.after((err) => {
       auth: oauthPlugin.GOOGLE_CONFIGURATION,
     },
     startRedirectPath: '/login/google',
-    callbackUri: `http://localhost:${
-      process.env.PORT || 3000
-    }/login/google/callback`,
+    callbackUri: `http://localhost:${process.env.PORT || 3000
+      }/login/google/callback`,
     callbackUriParams: {
       access_type: 'offline',
     },
