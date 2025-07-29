@@ -6,6 +6,7 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import gameRoutes from './src/routes/game.js';
+import { tournamentRoutes } from './src/routes/tournament.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import {
@@ -118,6 +119,7 @@ fastify.register(async (fastify) => {
 
 fastify.register(userAuthenticationRoutes);
 fastify.register(gameRoutes);
+fastify.register(tournamentRoutes)
 fastify.register(privateChatRoutes);
 
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {

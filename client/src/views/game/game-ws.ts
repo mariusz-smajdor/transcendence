@@ -171,5 +171,7 @@ function setWebsocketURL(gameType: GameType)
 			return "ws://localhost:3000/localgame?gameId=";
 		case 'ai':
 			return "ws://localhost:3000/aigame?gameId=";
+		case 'tournament':
+			return "ws://loclahost:3000/turnament?gameId=";
 	}
 }

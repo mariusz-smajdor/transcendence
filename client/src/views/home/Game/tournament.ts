@@ -14,6 +14,7 @@ import {
 } from '../../../components/table.js';
 import { Img } from '../../../components/img.js';
 import { Wrapper } from '../../../components/wrapper.js';
+import { getCookie } from '../../game/game-cookies.js';
 
 const tournaments = [
     {
@@ -91,6 +92,51 @@ export function TournamentTab() {
         content: 'New Tournament',
     });
 
+		(async () => {
+        const token = getCookie('access_token') ?? null;
+        const sessionId = getCookie('session') ?? null;
+        const rooms = await fetchTournamentRooms(token, sessionId);
+        console.log(rooms);
+
+				rooms.forEach(room => {
+					const row = TableRow({});
+        	const creatorCell = TableCell({
+          	content: room.creator,
+          	classes: ['flex', 'items-center', 'gap-2'],
+        })
+        creatorCell.prepend(
+            Img({
+                src: 'https://i.pravatar.cc/300?u=mario',
+                classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
+                alt: 'Creator avatar',
+                loading: 'lazy',
+            })
+					);
+        const playersCell = TableCell({
+            content: `${room.playersIn}/${room.playersExpected}`
+        });
+
+        const joinButton = Button({
+            variant: 'tab',
+            content: 'join'
+        });
+        
+        const joinCell =
+            room.playersIn === room.playersExpected
+                ? TableCell({ content: 'full' })
+                : TableCell({});
+        
+        if (room.playersIn !== room.playersExpected) {
+            joinCell.appendChild(joinButton);
+        } 
+
+        row.appendChild(creatorCell);
+        row.appendChild(playersCell);
+        row.appendChild(joinCell);
+        tableBody.appendChild(row);
+			});
+	})();
+
     const wrapper = Wrapper({
         element: 'div',
         classes: ['flex', 'justify-between'],
@@ -105,7 +151,7 @@ export function TournamentTab() {
     const playersHeader = TableHeaderCell({ content: 'Players' });
     const joinHeader = TableHeaderCell({ content: 'Join' });
     const tableBody = TableBody({});
-    tournaments.forEach((tournament) => {
+    /*tournaments.forEach((tournament) => {
         const row = TableRow({});
         const creatorCell = TableCell({
             content: tournament.creator,
@@ -141,7 +187,7 @@ export function TournamentTab() {
         row.appendChild(playersCell);
         row.appendChild(joinCell);
         tableBody.appendChild(row);
-    });
+    });*/
 
     headerRow.appendChild(creatorHeader);
     headerRow.appendChild(playersHeader);
@@ -155,4 +201,13 @@ export function TournamentTab() {
     tab.appendChild(card);
 
     return tab;
+}
+
+async function fetchTournamentRooms(token: string | null, sessionId: string | null){
+	const response = await fetch('http://localhost:3000/tournament/rooms',{
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({token, sessionId}),
+	});
+	return await response.json();
 }

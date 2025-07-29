@@ -85,6 +85,7 @@ async function gameRoutes(fastify) {
       try {
         data = JSON.parse(message);
       } catch {
+				console.log("JSON expected");
         return;
       }
 
@@ -101,7 +102,7 @@ async function gameRoutes(fastify) {
 					}
         } catch (err) {
           console.log(`User ${userId} has not been authorized. Closing connection.`);
-          connection.close();
+          //connection.close();
         }
         return;
       }

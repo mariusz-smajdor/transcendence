@@ -5,9 +5,9 @@ import { connectInvitationSocket } from './api/invitationSocket';
 
 document.addEventListener('DOMContentLoaded', async () => {
 	// do race all
+	connectInvitationSocket();
 	await fetchMe();
 	await getFriends();
 	await getFriendRequest();
-	connectInvitationSocket();
 	new Router();
 });

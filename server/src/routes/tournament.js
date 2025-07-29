@@ -1,12 +1,11 @@
-import { tournamentGame } from "../tournament/tournamentGame";
-import { Tournaments } from "../tournament/tournaments";
-import { clients, notAuthenticated } from "./game";
+import { Tournaments } from "../tournament/tournaments.js";
+import { clients, notAuthenticated } from "./game.js";
 
 const tournaments = new Tournaments();
 
-export async function tournamentRoute(fastify){
+export async function tournamentRoutes(fastify){
 	//check for available tournamnets or open the current tournament
-	fastify.post('/tournament/rooms', async (req, res) =>{
+	fastify.post('/tournament/rooms', async (req, res) => {
 		let {token , sessionId} = req.body;
 		let userRoom = tournaments.userTournament(sessionId,token);
 		let rooms;
@@ -15,25 +14,25 @@ export async function tournamentRoute(fastify){
 				found: true,
 				id: userRoom.roomId,
 				creator: userRoom.creator,
-				playersIn: userRoom.players.size,
-				playersExpected: 8};
+				playersIn: userRoom.players.length,
+				playersExpected: userRoom.getExpectedPlayers()};
 		}
 		else{
-			rooms = Array.from(tournaments.rooms).map(room => ({
+			rooms = Array.from(tournaments.rooms.values()).map(room => ({
 				found: false,
 				id: room.roomId,
 				creator: room.creator,
-				playersIn: room.players.size,
-				playersExpected: 8
+				playersIn: room.players.length,
+				playersExpected: room.getExpectedPlayers()
 			}));
 		}
 		res.code(200).send(rooms);
 	})
 
 	//creat tournament room
-	fastify.post('/tournament/create'), async (req, res) =>{
+	fastify.post('/tournament/create', async (req, res) => {
 		const { creator,token,sessionId,numberOfPlayers} = req.body;
-		const connection = getWs(sessionId,token,res);
+		const connection = getWs(fastify,sessionId,token,res);
 
 		let roomId = tournaments.createRoom(connection,creator,numberOfPlayers,token,sessionId);
 		res.code(200).send({
@@ -42,11 +41,11 @@ export async function tournamentRoute(fastify){
 			playersIn: 1,
 			playersExpected: numberOfPlayers
 		});
-	}
+	});
 
-	fastify.post('/tournament/join'), async (req, res) =>{
+	fastify.post('/tournament/join' , async (req, res) =>{
 		const { name,token,sessionId,roomId } = req.body;
-		let connection = getWs(sessionId, token,res);
+		let connection = getWs(fastify,sessionId, token,res);
 
 		let room = tournaments.joinRoom(roomId,connection,name,token,sessionId);
 
@@ -67,7 +66,7 @@ export async function tournamentRoute(fastify){
 					playersExpected: room.playersExpected.size
 			});
 		}
-	}
+	});
 
 	fastify.get('/tournament/start', async (req, res) => {
 		const { roomId } = req.query;
@@ -80,7 +79,7 @@ export async function tournamentRoute(fastify){
 		res.code(200).send({success: true});
   });
 
-	fastify.post('/tournament/play', { websocket: true }, (connection, req) => {
+	fastify.get('/tournament/play', { websocket: true }, (connection, req) => {
     const {roomId , matchNumber} = req.query;
 		
 		const room = tournaments.getRoom(roomId);
@@ -99,20 +98,38 @@ export async function tournamentRoute(fastify){
       console.log('Match not found');
       return;
 		}
-    manageMatchWebSocket(tournaments,match,connection);
+    tournamentGame(tournaments,match,connection);
   });
 
 }
 
-function getWs(sessionId, token, res){
+function getWs(fastify,sessionId, token, res){
 	if (!token && !sessionId){
 		res.code(400).send({error: "Missing token or sessionId. Cannot identify user."});
 		return null;
 	}
-	const connection = token ? clients.get(token) : notAuthenticated.get(sessionId)
+	let connection;
+	try{
+		connection = token ? clients.get(getId(fastify,token)) : notAuthenticated.get(sessionId)
+	} catch (err){
+		console.log(err)
+		res.code(400).send({error: "Wrong token. Cannot identify user."});
+	}
 	if (connection === undefined){
 		res.code(400).send({error: "Wrong token or sessionId. Cannot identify user."});
 		return null;
 	}
 	return connection;
 }
+
+function getId(fastify,token){
+	const decoded = fastify.jwt.verify(token);
+	return decoded.userId
+}
+
+/*curl -X POST http://localhost:3000/tournament/create   -H "Content-Type: application/json"   -d '{
+    "creator": "filip",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiRmlsaXAhMjMiLCJlbWFpbCI6ImZpbGlwQGdtYWlsLmNvbSIsImlhdCI6MTc1Mzc5Mjc3NywiZXhwIjoxNzUzNzk2Mzc3fQ.qNpc-YhJqYG6k-FIvXlCICHwn30NiJI5Hq24AxxRaqU",
+    "sessionId": null,
+    "numberOfPlayers": 8
+  }'*/

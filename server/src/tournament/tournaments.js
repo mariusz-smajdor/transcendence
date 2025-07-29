@@ -1,6 +1,6 @@
-import { uuidv4 } from "uuid";
-import { initGame } from "../game/gameState";
-import { clients, notAuthenticated } from "../routes/game";
+import { v4 as uuidv4 } from "uuid";
+import { initGame } from "../game/gameState.js";
+import { clients, notAuthenticated } from "../routes/game.js";
 
 export class Tournaments{
 	rooms = new Map();// roomId : room
@@ -15,17 +15,16 @@ export class Tournaments{
 		return room;
 	}
 
-	createRoom(connection, creator, numberOfPlayers, token = null, session = null){
+	createRoom(connection, creator, numberOfPlayers, token = null, sessionId = null){
 		const room  = new Room(creator, numberOfPlayers);
 		const roomId = uuidv4()
 		room.addPlayer(connection,creator,token,sessionId);
-		rooms.set(roomId,room);
+		this.rooms.set(roomId,room);
 		return roomId;
 	}
 
 	userTournament(sessionId = null, token = null){
-
-		for (const room of this.rooms){
+		for (const room of this.rooms.values()){
 			for (const player of room.players){
 				if (token && player.token === token)
 					return room;
@@ -51,12 +50,12 @@ export class Room{
 
 	constructor(creator,numberOfPlayers){
 		this.creator = creator;
-		setExpectedPlayers(numberOfPlayers);
-		setMatchesToPlay();
+		this.setExpectedPlayers(numberOfPlayers);
+		this.setMatchesToPlay();
 	}
 
 	//to do:checking if the user joined the match, if not walkover
-	sendNofification(connection, matchNum){
+	sendNofication(connection, matchNum){
 		connection.send(JSON.stringify({
 			type: 'join',
 			matchNumber: match.matchNumber
@@ -92,7 +91,7 @@ export class Room{
 	}
 
 	addPlayer(connection,nickname,token,sessionId){
-		this.players.add(new Player(connection,nickname,token,nickname));
+		this.players.push(new Player(connection,nickname,token,sessionId));
 	}
 
 	getPlayersForMatch(match, matchNumber){
@@ -100,7 +99,7 @@ export class Room{
 		let i = toCheck * (matchNumber - this.matchesPlayed) - 1;
 		for(let last = i + toCheck - 1; i < last; i++){
 			if (this.players[i].lastWin = true){
-				this.sendNofification(this.players[i].connection,matchNumber);
+				this.sendNofication(this.players[i].connection,matchNumber);
 				if (!match.leftIndex)
 					match.leftIndex = i;
 				else{
@@ -111,15 +110,15 @@ export class Room{
 		}
 	}
 	getActivePlayers(){
-		return this.players.size;
+		return this.players.length;
 	}	
 
 	getExpectedPlayers(){
-		return this.expectedPlayers.length;
+		return this.expectedPlayers.size;
 	}
 
 	createMatches(){
-		let toCreate = this.players.size / Math.pow(2,this.courentRound);
+		let toCreate = this.players.length / Math.pow(2,this.courentRound);
 		let matchNum = this.matchesCreated + 1; 
 		for(i = 0; i < toCreate; i++){
 			let match = new Match();
