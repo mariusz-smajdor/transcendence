@@ -96,9 +96,9 @@ export function TournamentTab() {
         const token = getCookie('access_token') ?? null;
         const sessionId = getCookie('session') ?? null;
         const rooms = await fetchTournamentRooms(token, sessionId);
-        console.log(rooms);
-
-				rooms.forEach(room => {
+				console.log(rooms);
+				const tournaments = Array.isArray(rooms) ? rooms : [rooms];
+				tournaments.forEach(room => {
 					const row = TableRow({});
         	const creatorCell = TableCell({
           	content: room.creator,
@@ -120,12 +120,25 @@ export function TournamentTab() {
             variant: 'tab',
             content: 'join'
         });
+
+				joinButton.addEventListener('click',async () => {
+					const response = await fetch('http://localhost:3000/tournament/join',{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							name: "example",
+							token,
+							sessionId,
+							roomId: room.id}),
+					})
+					console.log(response);
+				})
         
         const joinCell =
             room.playersIn === room.playersExpected
                 ? TableCell({ content: 'full' })
                 : TableCell({});
-        
+      
         if (room.playersIn !== room.playersExpected) {
             joinCell.appendChild(joinButton);
         } 

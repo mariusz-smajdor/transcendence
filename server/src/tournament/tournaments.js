@@ -17,7 +17,8 @@ export class Tournaments{
 
 	createRoom(connection, creator, numberOfPlayers, token = null, sessionId = null){
 		const room  = new Room(creator, numberOfPlayers);
-		const roomId = uuidv4()
+		const roomId = uuidv4();
+		room.id = roomId;
 		room.addPlayer(connection,creator,token,sessionId);
 		this.rooms.set(roomId,room);
 		return roomId;
@@ -38,6 +39,7 @@ export class Tournaments{
 }
 
 export class Room{
+	id = null;
 	tournamentGames = new Map(); // matchID: Match
 	players = new Array(); //Player
 	expectedPlayers = new Set();
@@ -91,7 +93,7 @@ export class Room{
 	}
 
 	addPlayer(connection,nickname,token,sessionId){
-		this.players.push(new Player(connection,nickname,token,sessionId));
+		this.players.push(new Player(connection,nickname,sessionId,token));
 	}
 
 	getPlayersForMatch(match, matchNumber){

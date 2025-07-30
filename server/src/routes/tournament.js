@@ -12,7 +12,7 @@ export async function tournamentRoutes(fastify){
 		if (userRoom){
 			rooms = {
 				found: true,
-				id: userRoom.roomId,
+				id: userRoom.id,
 				creator: userRoom.creator,
 				playersIn: userRoom.players.length,
 				playersExpected: userRoom.getExpectedPlayers()};
@@ -20,7 +20,7 @@ export async function tournamentRoutes(fastify){
 		else{
 			rooms = Array.from(tournaments.rooms.values()).map(room => ({
 				found: false,
-				id: room.roomId,
+				id: room.id,
 				creator: room.creator,
 				playersIn: room.players.length,
 				playersExpected: room.getExpectedPlayers()
@@ -49,12 +49,12 @@ export async function tournamentRoutes(fastify){
 
 		let room = tournaments.joinRoom(roomId,connection,name,token,sessionId);
 
-		if (room.players.size == room.playersExpected.size){
+		if (room.players.length == room.getExpectedPlayers()){
 			res.code(200).send({
 					id: roomId,
 					creator: room.creator,
-					playersIn: room.players.size,
-					playersExpected: room.playersExpected.size,
+					playersIn: room.players.length,
+					playersExpected: room.getExpectedPlayers(),
 					bracket: room.getDraw()
 			});
 		}
@@ -62,8 +62,8 @@ export async function tournamentRoutes(fastify){
 			res.code(200).send({
 					id: roomId,
 					creator: room.creator,
-					playersIn: room.players.size,
-					playersExpected: room.playersExpected.size
+					playersIn: room.players.length,
+					playersExpected: room.getExpectedPlayers()
 			});
 		}
 	});
@@ -127,9 +127,11 @@ function getId(fastify,token){
 	return decoded.userId
 }
 
-/*curl -X POST http://localhost:3000/tournament/create   -H "Content-Type: application/json"   -d '{
+/*
+curl -X POST http://localhost:3000/tournament/create   -H "Content-Type: application/json"   -d '{
     "creator": "filip",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsInVzZXJuYW1lIjoiRmlsaXAhMjMiLCJlbWFpbCI6ImZpbGlwQGdtYWlsLmNvbSIsImlhdCI6MTc1Mzc5Mjc3NywiZXhwIjoxNzUzNzk2Mzc3fQ.qNpc-YhJqYG6k-FIvXlCICHwn30NiJI5Hq24AxxRaqU",
+    "token": "",
     "sessionId": null,
     "numberOfPlayers": 8
-  }'*/
+  }'
+	
