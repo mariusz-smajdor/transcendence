@@ -97,29 +97,29 @@ async function gameRoutes(fastify) {
           console.log(`User ${userId} has been authorized`);
           clients.set(userId, connection);
 					if (sessionId){
-						connection.send(JSON.stringify({ type: 'session', sessionId }));
+						sessionId = null;
+						connection.send(JSON.stringify({ type: 'session', session: sessionId }));
 						notAuthenticated.delete(sessionId);
 					}
+					return;
         } catch (err) {
-          console.log(`User ${userId} has not been authorized. Closing connection.`);
-          //connection.close();
+          console.log(`User has not been authorized.`);
         }
-        return;
       }
 
 			if (!authenticated && data.type === 'auth') {
 				if (!sessionId){
-					sessionId = uuidv4;
+					sessionId = uuidv4();
 					notAuthenticated.set(sessionId, connection);
 					authenticated = false;
-					connection.send(JSON.stringify({ type: 'session', sessionId }));
+					connection.send(JSON.stringify({ type: 'session', session: sessionId }));
 				}
       	return;
     	}
 
-      if (!authenticated) {
-        return;
-      }
+      // if (!authenticated) {
+      //   return;
+      // }
 
       if (data.type === 'invite' && data.toUserId) {
         const target = clients.get(data.toUserId);

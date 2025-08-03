@@ -16,46 +16,6 @@ import { Img } from '../../../components/img.js';
 import { Wrapper } from '../../../components/wrapper.js';
 import { getCookie } from '../../game/game-cookies.js';
 
-const tournaments = [
-    {
-        creator: 'Bot Krzysiek',
-        avatar: 'https://i.pravatar.cc/300?u=bot1',
-        players: '3',
-        maxPlayers: '4'
-    },
-    {
-        creator: 'Wirtualna Magda',
-        avatar: 'https://i.pravatar.cc/300?u=bot3',
-        players: '8',
-        maxPlayers: '8'
-    },
-    {
-        creator: 'Filip i Filip',
-        avatar: 'https://i.pravatar.cc/300?u=filip',
-        players: '4',
-        maxPlayers: '4'
-    },
-    {
-        creator: 'Maciej Pawian',
-        avatar: 'https://i.pravatar.cc/300?u=maciej2',
-        players: '1',
-        maxPlayers: '4'
-    },
-    {
-        creator: 'WowaPL',
-        avatar: 'https://i.pravatar.cc/300?u=wowa',
-        players: '3',
-        maxPlayers: '8'
-    },
-    {
-        creator: 'Mario',
-        avatar: 'https://i.pravatar.cc/300?u=mario',
-        players: '8',
-        maxPlayers: '8'
-    },
-];
-
-
 export function TournamentTab() {
     const tab = Tab({
         value: 'tournament',
@@ -92,6 +52,23 @@ export function TournamentTab() {
         content: 'New Tournament',
     });
 
+		newTournamentButton.addEventListener('click', async () => {
+			const token = getCookie('access_token') ?? null;
+      const sessionId = getCookie('session') ?? null;
+			const response = await fetch('http://localhost:3000/tournament/create',{
+				 		method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							creator: "example",
+							token,
+							sessionId,
+							numberOfPlayers: 8}),
+					})
+			if (!response.ok){
+				 console.log(response);
+			}
+		});
+
 		(async () => {
         const token = getCookie('access_token') ?? null;
         const sessionId = getCookie('session') ?? null;
@@ -112,6 +89,7 @@ export function TournamentTab() {
                 loading: 'lazy',
             })
 					);
+
         const playersCell = TableCell({
             content: `${room.playersIn}/${room.playersExpected}`
         });

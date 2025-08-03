@@ -34,6 +34,8 @@ export async function tournamentRoutes(fastify){
 		const { creator,token,sessionId,numberOfPlayers} = req.body;
 		const connection = getWs(fastify,sessionId,token,res);
 
+		if(!tournaments.userTournament(sessionId,token))
+			res.code(400).send({error: "Player is already in another tournament"})
 		let roomId = tournaments.createRoom(connection,creator,numberOfPlayers,token,sessionId);
 		res.code(200).send({
 			id: roomId,
@@ -113,7 +115,9 @@ function getWs(fastify,sessionId, token, res){
 		connection = token ? clients.get(getId(fastify,token)) : notAuthenticated.get(sessionId)
 	} catch (err){
 		console.log(err)
-		res.code(400).send({error: "Wrong token. Cannot identify user."});
+		if (!sessionId)
+			res.code(400).send({error: "Wrong token. Cannot identify user."});
+		connection = notAuthenticated.get(sessionId);
 	}
 	if (connection === undefined){
 		res.code(400).send({error: "Wrong token or sessionId. Cannot identify user."});
@@ -134,4 +138,4 @@ curl -X POST http://localhost:3000/tournament/create   -H "Content-Type: applica
     "sessionId": null,
     "numberOfPlayers": 8
   }'
-	
+*/

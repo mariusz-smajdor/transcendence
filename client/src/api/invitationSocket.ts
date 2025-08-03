@@ -18,8 +18,8 @@ export function connectInvitationSocket() {
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
-		if (data.type === 'session' && data.sessionId) {
-			document.cookie = `sessionId=${data.sessionId}; path=/;`;
+		if (data.type === 'session' && data.session) {
+			document.cookie = `sessionId=${data.session}; path=/;`;
 			return;
 		}
 		handlers.forEach((handler) => handler(data));
