@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { initGame } from "../game/gameState.js";
 import { clients, notAuthenticated } from "../routes/game.js";
+import { extractId , getAvatar} from "./utils.js";
 
 export class Tournaments{
 	rooms = new Map();// roomId : room
@@ -15,8 +16,8 @@ export class Tournaments{
 		return room;
 	}
 
-	createRoom(connection, creator, numberOfPlayers, token = null, sessionId = null){
-		const room  = new Room(creator, numberOfPlayers);
+	createRoom(connection, creator, avatar, numberOfPlayers, token = null, sessionId = null){
+		const room  = new Room(creator, numberOfPlayers, avatar);
 		const roomId = uuidv4();
 		room.id = roomId;
 		room.addPlayer(connection,creator,token,sessionId);
@@ -40,7 +41,6 @@ export class Tournaments{
 
 export class Room{
 	id = null;
-	tournamentGames = new Map(); // matchID: Match
 	players = new Array(); //Player
 	expectedPlayers = new Set();
 	courentRound = 1;
@@ -50,8 +50,9 @@ export class Room{
 	matchesPlayed = 0
 	creator = null;
 
-	constructor(creator,numberOfPlayers){
+	constructor(creator,numberOfPlayers, avatar){
 		this.creator = creator;
+		this.avatar = avatar;
 		this.setExpectedPlayers(numberOfPlayers);
 		this.setMatchesToPlay();
 	}
@@ -60,7 +61,7 @@ export class Room{
 	sendNofication(connection, matchNum){
 		connection.send(JSON.stringify({
 			type: 'join',
-			matchNumber: match.matchNumber
+			matchNumber: matchNum
 		}));
 	}
 
@@ -90,6 +91,17 @@ export class Room{
 			draw.push({id: element.tmpId, nickname: element.nickname});
 		});
 		return draw;
+	}
+
+	getMatches(roomId){ //result scoreL: x, scoreR: y, winner: nickname
+		const room = this.rooms.get(roomId);
+		let result = new Array();
+		room.matches.forEach((match) => {
+			result.push({scoreL: match.gameState.score.left,
+				scoreR: match.gameState.score.right,
+				winner: match.winner});
+		});
+		return result;
 	}
 
 	addPlayer(connection,nickname,token,sessionId){
@@ -135,7 +147,7 @@ export class Room{
 
 export class Player{
 	tmpId = null
-	sessionId = null //to identify logged in players
+	sessionId = null //to identify anonymous players
 	connection = null //for sending the notification
 	token = null; //to identify logged in players
 	nickname = null;
@@ -153,7 +165,7 @@ export class Player{
 
 export class Match{
 	matchNumber = null;
-	gameId = uuidv4();//probably usless 
+	gameId = uuidv4();
 	game = {
 				gameState: initGame(),
 				clients: new Set(),

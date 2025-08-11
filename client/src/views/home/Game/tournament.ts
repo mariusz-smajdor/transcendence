@@ -54,7 +54,7 @@ export function TournamentTab() {
 
 		newTournamentButton.addEventListener('click', async () => {
 			const token = getCookie('access_token') ?? null;
-      const sessionId = getCookie('session') ?? null;
+      const sessionId = getCookie('sessionId') ?? null;
 			const response = await fetch('http://localhost:3000/tournament/create',{
 				 		method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
@@ -69,11 +69,27 @@ export function TournamentTab() {
 			}
 		});
 
-		(async () => {
-        const token = getCookie('access_token') ?? null;
-        const sessionId = getCookie('session') ?? null;
-        const rooms = await fetchTournamentRooms(token, sessionId);
-				console.log(rooms);
+    const wrapper = Wrapper({
+        element: 'div',
+        classes: ['flex', 'justify-between'],
+    });
+    wrapper.appendChild(heading);
+    wrapper.appendChild(newTournamentButton);
+
+    const table = Table({});
+    const tableHeader = TableHeader({});
+    const headerRow = TableRow({});
+    const creatorHeader = TableHeaderCell({ content: 'Creator' });
+    const playersHeader = TableHeaderCell({ content: 'Players' });
+    const joinHeader = TableHeaderCell({ content: 'Join' });
+    const tableBody = TableBody({});
+
+		async function renderRooms() {
+			const token = getCookie('access_token') ?? null;
+			const sessionId = getCookie('sessionId') ?? null;
+			const rooms = await fetchTournamentRooms(token,sessionId);
+			tableBody.innerHTML = '';
+			
 				const tournaments = Array.isArray(rooms) ? rooms : [rooms];
 				tournaments.forEach(room => {
 					const row = TableRow({});
@@ -83,7 +99,7 @@ export function TournamentTab() {
         })
         creatorCell.prepend(
             Img({
-                src: 'https://i.pravatar.cc/300?u=mario',
+                src: room.avatar ?? 'https://i.pravatar.cc/300?u=9',
                 classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
                 alt: 'Creator avatar',
                 loading: 'lazy',
@@ -126,59 +142,9 @@ export function TournamentTab() {
         row.appendChild(joinCell);
         tableBody.appendChild(row);
 			});
-	})();
-
-    const wrapper = Wrapper({
-        element: 'div',
-        classes: ['flex', 'justify-between'],
-    });
-    wrapper.appendChild(heading);
-    wrapper.appendChild(newTournamentButton);
-
-    const table = Table({});
-    const tableHeader = TableHeader({});
-    const headerRow = TableRow({});
-    const creatorHeader = TableHeaderCell({ content: 'Creator' });
-    const playersHeader = TableHeaderCell({ content: 'Players' });
-    const joinHeader = TableHeaderCell({ content: 'Join' });
-    const tableBody = TableBody({});
-    /*tournaments.forEach((tournament) => {
-        const row = TableRow({});
-        const creatorCell = TableCell({
-            content: tournament.creator,
-            classes: ['flex', 'items-center', 'gap-2'],
-        });
-        creatorCell.prepend(
-            Img({
-                src: tournament.avatar,
-                classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
-                alt: 'Creator avatar',
-                loading: 'lazy',
-            })
-        )
-        const playersCell = TableCell({
-            content: `${tournament.players}/${tournament.maxPlayers}`
-        });
-
-        const joinButton = Button({
-            variant: 'tab',
-            content: 'join'
-        });
-        
-        const joinCell =
-            tournament.players === tournament.maxPlayers
-                ? TableCell({ content: 'full' })
-                : TableCell({});
-        
-        if (tournament.players !== tournament.maxPlayers) {
-            joinCell.appendChild(joinButton);
-        }
-
-        row.appendChild(creatorCell);
-        row.appendChild(playersCell);
-        row.appendChild(joinCell);
-        tableBody.appendChild(row);
-    });*/
+	};
+	renderRooms();
+	setInterval(renderRooms, 2000);
 
     headerRow.appendChild(creatorHeader);
     headerRow.appendChild(playersHeader);

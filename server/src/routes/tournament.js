@@ -1,45 +1,58 @@
 import { Tournaments } from "../tournament/tournaments.js";
 import { clients, notAuthenticated } from "./game.js";
-
+import { extractId, getAvatar } from "../tournament/utils.js";
 const tournaments = new Tournaments();
 
 export async function tournamentRoutes(fastify){
 	//check for available tournamnets or open the current tournament
 	fastify.post('/tournament/rooms', async (req, res) => {
-		let {token , sessionId} = req.body;
-		let userRoom = tournaments.userTournament(sessionId,token);
-		let rooms;
-		if (userRoom){
-			rooms = {
-				found: true,
-				id: userRoom.id,
-				creator: userRoom.creator,
-				playersIn: userRoom.players.length,
-				playersExpected: userRoom.getExpectedPlayers()};
+		try{
+			let {token , sessionId} = req.body;
+			let userRoom = tournaments.userTournament(sessionId,token);
+			let rooms;
+			if (userRoom){
+				rooms = {
+					found: true,
+					id: userRoom.id,
+					avatar: userRoom.avatar,
+					creator: userRoom.creator,
+					playersIn: userRoom.players.length,
+					playersExpected: userRoom.getExpectedPlayers()};
+			} 
+			else {
+				rooms = Array.from(tournaments.rooms.values()).map(room => ({
+					found: false,
+					id: room.id,
+					avatar: room.avatar,
+					creator: room.creator,
+					playersIn: room.players.length,
+					playersExpected: room.getExpectedPlayers()
+				}));
+			}
+			res.code(200).send(rooms);
 		}
-		else{
-			rooms = Array.from(tournaments.rooms.values()).map(room => ({
-				found: false,
-				id: room.id,
-				creator: room.creator,
-				playersIn: room.players.length,
-				playersExpected: room.getExpectedPlayers()
-			}));
+		catch (err){
+			res.code(400).send({error: `${err}`});
 		}
-		res.code(200).send(rooms);
-	})
+	});
 
 	//creat tournament room
 	fastify.post('/tournament/create', async (req, res) => {
 		const { creator,token,sessionId,numberOfPlayers} = req.body;
 		const connection = getWs(fastify,sessionId,token,res);
 
-		if(!tournaments.userTournament(sessionId,token))
+		if (!connection)
+				return;
+		if(tournaments.userTournament(sessionId,token)){
 			res.code(400).send({error: "Player is already in another tournament"})
-		let roomId = tournaments.createRoom(connection,creator,numberOfPlayers,token,sessionId);
+			return;
+		}
+		const avatar = getAvatar(fastify,extractId(fastify,token));
+		let roomId = tournaments.createRoom(connection,creator,avatar,numberOfPlayers,token,sessionId);
 		res.code(200).send({
 			id: roomId,
 			creator: creator,
+			avatar: tournaments.rooms.get(roomId).avatar,
 			playersIn: 1,
 			playersExpected: numberOfPlayers
 		});
@@ -48,6 +61,11 @@ export async function tournamentRoutes(fastify){
 	fastify.post('/tournament/join' , async (req, res) =>{
 		const { name,token,sessionId,roomId } = req.body;
 		let connection = getWs(fastify,sessionId, token,res);
+
+		if(tournaments.userTournament(sessionId,token)){
+			res.code(400).send({error: "Player is already in another tournament"})
+			return;
+		}
 
 		let room = tournaments.joinRoom(roomId,connection,name,token,sessionId);
 
@@ -115,8 +133,10 @@ function getWs(fastify,sessionId, token, res){
 		connection = token ? clients.get(getId(fastify,token)) : notAuthenticated.get(sessionId)
 	} catch (err){
 		console.log(err)
-		if (!sessionId)
+		if (!sessionId){
 			res.code(400).send({error: "Wrong token. Cannot identify user."});
+			return null;
+		}
 		connection = notAuthenticated.get(sessionId);
 	}
 	if (connection === undefined){
