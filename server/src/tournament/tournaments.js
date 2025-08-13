@@ -6,6 +6,18 @@ import { extractId , getAvatar} from "./utils.js";
 export class Tournaments{
 	rooms = new Map();// roomId : room
 	
+	playerLeave(room,token,sessionId){
+		const number = room.players.length;
+		room.removePlayer(token,sessionId);
+		if (number === room.players.length){
+			res.code(400).send({error: "Error: Player is not a member of this room"});
+			return false;
+		}
+		if (room.players.length === 0)
+			this.rooms.delete(room.id);
+		return true;
+	}
+
 	getRoom(roomId){
 		return this.rooms.get(roomId);
 	}
@@ -30,7 +42,7 @@ export class Tournaments{
 			for (const player of room.players){
 				if (token && player.token === token)
 					return room;
-				if (!token && player.sessionId === sessionId)
+				if (sessionId && player.sessionId === sessionId)
 					return room;
 			}
 		}
@@ -93,10 +105,11 @@ export class Room{
 		return draw;
 	}
 
-	getMatches(roomId){ //result scoreL: x, scoreR: y, winner: nickname
-		const room = this.rooms.get(roomId);
+	getMatches(){ //result scoreL: x, scoreR: y, winner: nickname
 		let result = new Array();
-		room.matches.forEach((match) => {
+		if (!this.matches)
+			return result;
+		this.matches.forEach((match) => {
 			result.push({scoreL: match.gameState.score.left,
 				scoreR: match.gameState.score.right,
 				winner: match.winner});
@@ -106,6 +119,16 @@ export class Room{
 
 	addPlayer(connection,nickname,token,sessionId){
 		this.players.push(new Player(connection,nickname,sessionId,token));
+	}
+
+	removePlayer(token = null,sessionId = null){
+		this.players = this.players.filter(player => {
+			if (token && token === player.token)
+				return false;
+			if (sessionId && sessionId === player.sessionId)
+				return false;
+			return true;
+		})
 	}
 
 	getPlayersForMatch(match, matchNumber){

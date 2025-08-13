@@ -17,7 +17,8 @@ export async function tournamentRoutes(fastify){
 					avatar: userRoom.avatar,
 					creator: userRoom.creator,
 					playersIn: userRoom.players.length,
-					playersExpected: userRoom.getExpectedPlayers()};
+					playersExpected: userRoom.getExpectedPlayers(),
+					matches: userRoom.getMatches()};
 			} 
 			else {
 				rooms = Array.from(tournaments.rooms.values()).map(room => ({
@@ -88,15 +89,33 @@ export async function tournamentRoutes(fastify){
 		}
 	});
 
-	fastify.get('/tournament/start', async (req, res) => {
-		const { roomId } = req.query;
+	// fastify.get('/tournament/start', async (req, res) => {
+	// 	const { roomId } = req.query;
+	// 	let room = tournaments.getRoom(roomId);
+	// 	if (room === undefined)
+	// 		res.code(400).send({error: "Error: Cannot find tournament with this id"});
+	// 	if (room.playersExpected.size != room.playersIn.length)
+	// 		res.code(400).send({error: "Error: Wrong amount of players"});
+	// 	room.createMatches();
+	// 	res.code(200).send({success: true});
+  // });
+
+	fastify.post('/tournament/leave', async (req, res) => {
+		const { roomId, token, sessionId } = req.body;
+		if (!token && !sessionId){
+			res.code(400).send({error: "Error: Missing token and sessionId"});
+			return;
+		}
 		let room = tournaments.getRoom(roomId);
-		if (room === undefined)
-			res.code(400).send({error: "Error: Cannot found tournament with this id"});
-		if (room.playersExpected.size != room.playersIn.length)
-			res.code(400).send({error: "Error: Wrong amount of players"});
-		room.createMatches();
-		res.code(200).send({success: true});
+		if (room === undefined){
+			res.code(400).send({error: "Error: Cannot find tournament with this id"});
+			return;
+		}
+		if(!tournaments.playerLeave(room,token,sessionId))
+			return
+
+		res.code(200).send({success: "true"});
+
   });
 
 	fastify.get('/tournament/play', { websocket: true }, (connection, req) => {

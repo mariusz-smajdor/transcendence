@@ -85,6 +85,7 @@ export function TournamentTab() {
         card.appendChild(table);
 
         async function renderRooms() {
+        		tableBody.innerHTML = '';
             const token = getCookie('access_token') ?? null;
             const sessionId = getCookie('sessionId') ?? null;
             const rooms = await fetchTournamentRooms(token, sessionId);
