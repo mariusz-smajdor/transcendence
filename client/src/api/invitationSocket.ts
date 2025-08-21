@@ -1,4 +1,5 @@
 import { getCookie } from "../views/game/game-cookies";
+import { showPopupMessage } from "../views/home/Game/tournament";
 
 type InvitationHandler = (data: any) => void;
 
@@ -22,6 +23,8 @@ export function connectInvitationSocket() {
 			document.cookie = `sessionId=${data.session}; path=/;`;
 			return;
 		}
+		else if (data.message === 'join')
+			showPopupMessage('You have a tournament match to play!');
 		handlers.forEach((handler) => handler(data));
 	};
 

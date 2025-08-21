@@ -60,6 +60,7 @@ export async function tournamentRoutes(fastify){
 	});
 
 	fastify.post('/tournament/join' , async (req, res) =>{
+		console.log("siema")
 		const { name,token,sessionId,roomId } = req.body;
 		let connection = getWs(fastify,sessionId, token,res);
 
@@ -114,12 +115,35 @@ export async function tournamentRoutes(fastify){
 		if(!tournaments.playerLeave(room,token,sessionId))
 			return
 
-		res.code(200).send({success: "true"});
+		res.code(200).send({success: "Succesfully left the room"});
 
   });
 
-	fastify.get('/tournament/play', { websocket: true }, (connection, req) => {
-    const {roomId , matchNumber} = req.query;
+	fastify.post('/tournament/play', async (req, res) => {
+    const {roomId , token, sessionId} = req.query;
+		
+		if (!token && !sessionId){
+			res.code(400).send({error: "Error: Missing token and sessionId"});
+			return;
+		}
+
+		const room = tournaments.getRoom(roomId);
+		if (room === undefined)
+		{
+			res.code(400).send({error: "Error: Cannot find tournament with this id"});
+      return;
+		}
+		const gameId = room.getMatchToPlay(token, sessionId)
+		if (!gameId)
+		{
+			res.code(400).send({error: "Error: No match available yet"});
+      return;
+		}
+		res.code(200).send({gameId: gameId});
+  });
+
+	fastify.get('/tournament/match', { websocket: true }, (connection, req) => {
+    const {roomId , gameId} = req.query;
 		
 		const room = tournaments.getRoom(roomId);
 		if (room === undefined)
@@ -129,7 +153,7 @@ export async function tournamentRoutes(fastify){
       console.log('Room not found');
       return;
 		}
-		const match = room.match.get(parseInt(matchNumber));
+		const match = room.match.get(gameId);
 		if (match === undefined)
 		{
 			connection.send(JSON.stringify({ error: 'Match not found' }));
@@ -137,6 +161,7 @@ export async function tournamentRoutes(fastify){
       console.log('Match not found');
       return;
 		}
+		connection.send(JSON.stringify({ success: 'Match found' }));
     tournamentGame(tournaments,match,connection);
   });
 

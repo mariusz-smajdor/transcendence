@@ -56,11 +56,12 @@ export class Room{
 	players = new Array(); //Player
 	expectedPlayers = new Set();
 	courentRound = 1;
-	matches = new Map(); //matchNumber: Match
+	matches = new Map(); //gameId: Match
 	matchesToPlay = 0;
 	matchesCreated = 0;
 	matchesPlayed = 0
 	creator = null;
+	gameOn = false;
 
 	constructor(creator,numberOfPlayers, avatar){
 		this.creator = creator;
@@ -70,11 +71,15 @@ export class Room{
 	}
 
 	//to do:checking if the user joined the match, if not walkover
-	sendNofication(connection, matchNum){
-		connection.send(JSON.stringify({
-			type: 'join',
-			matchNumber: matchNum
-		}));
+	sendNotifications(){
+		for(let player of this.players){
+			if (!player.lastWin)
+				continue;
+			connection.send(JSON.stringify({
+				type: 'join',
+				matchNumber: matchNum
+			}));
+		}
 	}
 
 	setExpectedPlayers(numberOfPlayers){
@@ -94,7 +99,17 @@ export class Room{
 			player.tmpId = tmp[index];
 			tmp.splice(index,1);
 		}
+		this.sortPlayersOnTmpId();
+		for(let player of this.players){
+			console.log(player.tmpId);
+		}
 	}
+
+	sortPlayersOnTmpId() {
+    this.players.sort((a, b) => {
+        return a.tmpId - b.tmpId;
+    });
+}
 
 	getDraw(){
 		this.tournamentDraw();
@@ -119,6 +134,10 @@ export class Room{
 
 	addPlayer(connection,nickname,token,sessionId){
 		this.players.push(new Player(connection,nickname,sessionId,token));
+		if(this.players.length === this.expectedPlayers.size){
+			console.log("wi did it");
+			this.createMatches();
+		}
 	}
 
 	removePlayer(token = null,sessionId = null){
@@ -131,21 +150,6 @@ export class Room{
 		})
 	}
 
-	getPlayersForMatch(match, matchNumber){
-		let toCheck = 2 * round;
-		let i = toCheck * (matchNumber - this.matchesPlayed) - 1;
-		for(let last = i + toCheck - 1; i < last; i++){
-			if (this.players[i].lastWin = true){
-				this.sendNofication(this.players[i].connection,matchNumber);
-				if (!match.leftIndex)
-					match.leftIndex = i;
-				else{
-					match.rightIndex = i;
-					return;
-				}
-			}
-		}
-	}
 	getActivePlayers(){
 		return this.players.length;
 	}	
@@ -156,16 +160,44 @@ export class Room{
 
 	createMatches(){
 		let toCreate = this.players.length / Math.pow(2,this.courentRound);
-		let matchNum = this.matchesCreated + 1; 
+		let matchNum = this.matchesCreated + 1;
+		let roundMatchNum = 1;
 		for(i = 0; i < toCreate; i++){
 			let match = new Match();
-			this.getPlayersForMatch(match, matchNum);
-			this.matches.set(matchNum);
+			this.matches.set(match.gameId, match);
+			this.assignPlayers(match,roundMatchNum);
+			roundMatchNum++;
 			this.matchesCreated++;
 			matchNum++;
 		}
+		this.sendNotifications();
 	}
 
+	assignPlayers(match, roundMatchNum){
+		let playersToCheck = Math.pow(2,this.courentRound);
+		for(let i = playersToCheck * roundMatchNum - 1;
+			 i < playersToCheck * roundMatchNum - 1 + playersToCheck; i++){
+				let player = this.players[i];
+			if (!player.lastWin)
+				continue;
+			if (!match.leftPlayer)
+				match.leftPlayer = player.token ? player.token : player.sessionId;
+			else
+				match.rightPlayer = player.token ? player.token : player.sessionId;
+		}
+	}
+
+	getMatchToPlay(token = null, sessionId = null){
+		for (let match of this.matches.values()){
+			if (match.winner)
+				continue;
+			if (token && (token === match.leftPlayer || token === token.rightPlayer))
+				return match.gameId;
+			if (sessionId && (sessionId === match.leftPlayer || sessionId === sessionId.rightPlayer))
+				return match.gameId;
+		}
+		return null;
+	}
 }
 
 export class Player{
@@ -187,7 +219,6 @@ export class Player{
 }
 
 export class Match{
-	matchNumber = null;
 	gameId = uuidv4();
 	game = {
 				gameState: initGame(),
@@ -200,8 +231,8 @@ export class Match{
 				gameType: "", //probably useless
 				needAuthentication: 1 //0 - no, 1 - optional 2 - required 
 	}
-	leftIndex = null;//token/sessionId to verify player
-	rightIndex = null;
+	leftPlayer = null;//token/sessionId to verify player
+	rightPlayer = null;
 	winner = null; //null - match unfinished
 	leftScore = 0;
 	rightScore = 0;

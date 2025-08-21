@@ -16,6 +16,8 @@ import { Img } from '../../../components/img.js';
 import { Wrapper } from '../../../components/wrapper.js';
 import { getCookie } from '../../game/game-cookies.js';
 
+let currentRoomId: string | null = null;
+
 export function TournamentTab() {
     const tab = Tab({
         value: 'tournament',
@@ -89,6 +91,13 @@ export function TournamentTab() {
             const token = getCookie('access_token') ?? null;
             const sessionId = getCookie('sessionId') ?? null;
             const rooms = await fetchTournamentRooms(token, sessionId);
+						if (rooms.found && rooms.id){
+							currentRoomId = rooms.id;
+							renderBracketCanvas(rooms.playersExpected, rooms.playersIn);
+							return;
+						}
+						else
+							currentRoomId = null;
             const tournaments = Array.isArray(rooms) ? rooms : [rooms];
             tournaments.forEach(room => {
                 const row = TableRow({});
@@ -126,6 +135,9 @@ export function TournamentTab() {
                         }),
                     });
                     console.log(response);
+										const data = await response.json();
+										if(response.ok)
+											renderBracketCanvas(data.playersExpected, data.playersIn)
                 });
 
                 const joinCell =
@@ -143,7 +155,6 @@ export function TournamentTab() {
                 tableBody.appendChild(row);
             });
         }
-
         renderRooms();
         setInterval(renderRooms, 2000);
     }
@@ -239,17 +250,17 @@ export function TournamentTab() {
             if (!response.ok) {
                 console.log(response);
             }
-            renderBracketCanvas(numberOfPlayers);
+            renderBracketCanvas(numberOfPlayers, 1);
         };
     }
 
-    function renderBracketCanvas(numberOfPlayers: number) {
+    function renderBracketCanvas(numberOfPlayers: number, playersIn: number) {
         card.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'gap-6', 'py-8');
 
         const title = document.createElement('div');
-        title.textContent = `Tournament bracket (${numberOfPlayers} players)`;
+        title.textContent = `Tournament bracket (${playersIn}/${numberOfPlayers} players)`;
         title.classList.add('font-bold', 'mb-4', 'text-lg');
         wrapper.appendChild(title);
 
@@ -341,9 +352,14 @@ export function TournamentTab() {
         wrapper.appendChild(canvas);
 
         const backBtn = document.createElement('button');
-        backBtn.textContent = 'Back to tournaments';
+        backBtn.textContent = 'Leave tournament';
         backBtn.classList.add('btn', 'btn-secondary', 'mt-8', 'px-4', 'py-2');
-        backBtn.onclick = () => renderTournamentList();
+        backBtn.onclick = async () => {
+				  const token = getCookie('access_token') ?? null;
+    			const sessionId = getCookie('sessionId') ?? null;
+					if (await leaveRoom(currentRoomId,token,sessionId))
+						await renderTournamentList();
+				};
         wrapper.appendChild(backBtn);
 
         card.appendChild(wrapper);
@@ -363,4 +379,41 @@ async function fetchTournamentRooms(token: string | null, sessionId: string | nu
         body: JSON.stringify({ token, sessionId }),
     });
     return await response.json();
+}
+
+async function leaveRoom(roomId: string | null, token: string | null,
+	sessionId: string | null){
+	const response = await fetch('http://localhost:3000/tournament/leave',{
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json'},
+		body: JSON.stringify({roomId, token, sessionId})
+	});
+	return response.ok;
+}
+
+
+export function showPopupMessage(
+    message: string,
+    duration: number = 3000
+) {
+    const oldPopup = document.getElementById('popup-message');
+    if (oldPopup) oldPopup.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'popup-message';
+    popup.textContent = message;
+
+    popup.className = `
+        fixed top-8 left-1/2 transform -translate-x-1/2 z-[9999]
+        px-6 py-3 rounded-lg font-bold shadow-2xl
+        bg-primary text-white border-2 border-primary
+        transition-opacity duration-500
+    `;
+
+    document.body.appendChild(popup);
+
+    setTimeout(() => {
+        popup.style.opacity = '0';
+        setTimeout(() => popup.remove(), 500);
+    }, duration);
 }
