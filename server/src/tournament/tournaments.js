@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { initGame } from "../game/gameState.js";
 import { clients, notAuthenticated } from "../routes/game.js";
 import { extractId , getAvatar} from "./utils.js";
+import { PlayersManager } from "../game/players.js"
 
 export class Tournaments{
 	rooms = new Map();// roomId : room
@@ -73,11 +74,12 @@ export class Room{
 	//to do:checking if the user joined the match, if not walkover
 	sendNotifications(){
 		for(let player of this.players){
-			if (!player.lastWin)
+			if (!player.lastWin){
+				console.log(player.lastWin);
 				continue;
-			connection.send(JSON.stringify({
-				type: 'join',
-				matchNumber: matchNum
+			}
+			player.connection.send(JSON.stringify({
+				type: 'join'
 			}));
 		}
 	}
@@ -95,7 +97,7 @@ export class Room{
 	tournamentDraw(){
 		let tmp = new Array(this.expectedPlayers);
 		for(const player of this.players){
-			let index = Math.floor(Math.random() * tmp.length());
+			let index = Math.floor(Math.random() * tmp.length);
 			player.tmpId = tmp[index];
 			tmp.splice(index,1);
 		}
@@ -135,7 +137,6 @@ export class Room{
 	addPlayer(connection,nickname,token,sessionId){
 		this.players.push(new Player(connection,nickname,sessionId,token));
 		if(this.players.length === this.expectedPlayers.size){
-			console.log("wi did it");
 			this.createMatches();
 		}
 	}
@@ -162,10 +163,11 @@ export class Room{
 		let toCreate = this.players.length / Math.pow(2,this.courentRound);
 		let matchNum = this.matchesCreated + 1;
 		let roundMatchNum = 1;
-		for(i = 0; i < toCreate; i++){
+		for(let i = 0; i < toCreate; i++){
 			let match = new Match();
 			this.matches.set(match.gameId, match);
 			this.assignPlayers(match,roundMatchNum);
+			console.log(match);
 			roundMatchNum++;
 			this.matchesCreated++;
 			matchNum++;
@@ -175,9 +177,10 @@ export class Room{
 
 	assignPlayers(match, roundMatchNum){
 		let playersToCheck = Math.pow(2,this.courentRound);
-		for(let i = playersToCheck * roundMatchNum - 1;
-			 i < playersToCheck * roundMatchNum - 1 + playersToCheck; i++){
-				let player = this.players[i];
+		for(let i = playersToCheck * (roundMatchNum - 1);
+			 i < playersToCheck * (roundMatchNum - 1) + playersToCheck; i++){
+			let player = this.players[i];
+			console.log(i);
 			if (!player.lastWin)
 				continue;
 			if (!match.leftPlayer)
