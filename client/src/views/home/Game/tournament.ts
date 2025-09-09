@@ -15,6 +15,7 @@ import {
 import { Img } from '../../../components/img.js';
 import { Wrapper } from '../../../components/wrapper.js';
 import { getCookie } from '../../game/game-cookies.js';
+import { showGameOverlay } from '../../game/game-overlay.js';
 
 let currentRoomId: string | null = null;
 
@@ -361,12 +362,36 @@ export function TournamentTab() {
 						await renderTournamentList();
 				};
         wrapper.appendChild(backBtn);
-
         card.appendChild(wrapper);
+				const playBtn = document.createElement('button');
+				playBtn.textContent = 'Play Match';
+				playBtn.classList.add('btn', 'btn-primary', 'mt-4', 'px-4', 'py-2');
+				playBtn.onclick = async () => {
+						const token = getCookie('access_token') ?? null;
+						const sessionId = getCookie('sessionId') ?? null;
+						// console.log(sessionId)
+						// console.log(token)
+						const response = await fetch('http://localhost:3000/tournament/play', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+										roomId: currentRoomId,
+										token,
+										sessionId
+								}),
+						});
+						const data = await response.json();
+						if (response.ok && data.gameId) {
+							showPopupMessage('Match found! Game ID: ' + data.gameId);
+							showGameOverlay(data.gameId,"tournament", currentRoomId);
+						} else {
+								showPopupMessage(data.error || 'No match available yet.');
+						}
+				};
+				wrapper.appendChild(playBtn);
     }
 
     renderTournamentList();
-
     tab.appendChild(card);
     return tab;
 }

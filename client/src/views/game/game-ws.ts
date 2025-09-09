@@ -7,6 +7,7 @@ type WebSocketDeps = {
 	ui: UIElements;
 	gameState: GameState;
 	actions: UIActions;
+	roomId: string | null;
 }
 
 type GameMessage = {
@@ -15,8 +16,8 @@ type GameMessage = {
 	player: string;
 }
 
-export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
-	const ws: WebSocket = new WebSocket(
+export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomId }: WebSocketDeps): WebSocket {
+	const ws: WebSocket = new WebSocket( roomId ? `ws://localhost:3000/tournament/match?gameId=${gameId}&roomId=${roomId}` :
 		`${setWebsocketURL(gameType)}${gameId}`);
 
 	ws.onmessage = (event: MessageEvent) => {
@@ -70,7 +71,8 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 
 	ws.onopen = () => {
 		const token = getCookie('access_token');
-		ws.send(JSON.stringify({ type:'auth', token: token}));
+		const sessionId = getCookie('sessionId')
+		ws.send(JSON.stringify({ type:'auth', token: token, sessionId}));
 		if (gameType === 'network')
 			ui.text.textContent = 'Connected to server. Waiting for role assignment...';
 		else
@@ -172,6 +174,6 @@ function setWebsocketURL(gameType: GameType)
 		case 'ai':
 			return "ws://localhost:3000/aigame?gameId=";
 		case 'tournament':
-			return "ws://loclahost:3000/turnament?gameId=";
+			return "ws://localhost:3000/tournament/match?gameId=";
 	}
 }

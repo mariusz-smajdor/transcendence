@@ -3,7 +3,7 @@ import { setupWebSocket } from './game-ws';
 import { setupKeyboardControls, setupKeyboardControlsForLocal } from './game-keys';
 import { GameType } from '../../types/game';
 
-export default function Game(gameId: string, gameType: GameType) {
+export default function Game(gameId: string, gameType: GameType, roomId: string | null = null) {
 	if (!gameId || !gameType) {
 		console.error('Error: gameId or type missing');
 		return;
@@ -11,7 +11,7 @@ export default function Game(gameId: string, gameType: GameType) {
 
 	const { ui, gameState, actions } = createGameUI(gameType);
 	actions.resizeCanvas();
-	const ws = setupWebSocket({ gameId, gameType, ui, gameState, actions });
+	const ws = setupWebSocket({ gameId, gameType, ui, gameState, actions, roomId});
 	switch (gameType){
 		case 'local':
 			setupKeyboardControlsForLocal(ws);

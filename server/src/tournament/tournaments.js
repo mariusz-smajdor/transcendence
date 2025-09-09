@@ -75,7 +75,7 @@ export class Room{
 	sendNotifications(){
 		for(let player of this.players){
 			if (!player.lastWin){
-				console.log(player.lastWin);
+				//console.log(player.lastWin);
 				continue;
 			}
 			player.connection.send(JSON.stringify({
@@ -95,23 +95,20 @@ export class Room{
 	}
 
 	tournamentDraw(){
-		let tmp = new Array(this.expectedPlayers);
+		let tmp = Array.from(this.expectedPlayers);
 		for(const player of this.players){
 			let index = Math.floor(Math.random() * tmp.length);
 			player.tmpId = tmp[index];
 			tmp.splice(index,1);
 		}
 		this.sortPlayersOnTmpId();
-		for(let player of this.players){
-			console.log(player.tmpId);
-		}
 	}
 
 	sortPlayersOnTmpId() {
     this.players.sort((a, b) => {
         return a.tmpId - b.tmpId;
     });
-}
+	}
 
 	getDraw(){
 		this.tournamentDraw();
@@ -127,8 +124,8 @@ export class Room{
 		if (!this.matches)
 			return result;
 		this.matches.forEach((match) => {
-			result.push({scoreL: match.gameState.score.left,
-				scoreR: match.gameState.score.right,
+			result.push({scoreL: match.game.gameState.score.left,
+				scoreR: match.game.gameState.score.right,
 				winner: match.winner});
 		});
 		return result;
@@ -167,7 +164,7 @@ export class Room{
 			let match = new Match();
 			this.matches.set(match.gameId, match);
 			this.assignPlayers(match,roundMatchNum);
-			console.log(match);
+			//console.log(match);
 			roundMatchNum++;
 			this.matchesCreated++;
 			matchNum++;
@@ -180,7 +177,7 @@ export class Room{
 		for(let i = playersToCheck * (roundMatchNum - 1);
 			 i < playersToCheck * (roundMatchNum - 1) + playersToCheck; i++){
 			let player = this.players[i];
-			console.log(i);
+			//console.log(i);
 			if (!player.lastWin)
 				continue;
 			if (!match.leftPlayer)
@@ -194,9 +191,9 @@ export class Room{
 		for (let match of this.matches.values()){
 			if (match.winner)
 				continue;
-			if (token && (token === match.leftPlayer || token === token.rightPlayer))
+			if (token && (token === match.leftPlayer || token === match.rightPlayer))
 				return match.gameId;
-			if (sessionId && (sessionId === match.leftPlayer || sessionId === sessionId.rightPlayer))
+			if (sessionId && (sessionId === match.leftPlayer || sessionId === match.rightPlayer))
 				return match.gameId;
 		}
 		return null;

@@ -1,6 +1,8 @@
 import { Tournaments } from "../tournament/tournaments.js";
 import { clients, notAuthenticated } from "./game.js";
 import { extractId, getAvatar } from "../tournament/utils.js";
+import { tournamentGame } from "../tournament/tournamentGame.js";
+
 const tournaments = new Tournaments();
 
 export async function tournamentRoutes(fastify){
@@ -60,7 +62,6 @@ export async function tournamentRoutes(fastify){
 	});
 
 	fastify.post('/tournament/join' , async (req, res) =>{
-		console.log("siema")
 		const { name,token,sessionId,roomId } = req.body;
 		let connection = getWs(fastify,sessionId, token,res);
 
@@ -120,8 +121,7 @@ export async function tournamentRoutes(fastify){
   });
 
 	fastify.post('/tournament/play', async (req, res) => {
-    const {roomId , token, sessionId} = req.query;
-		
+    const {roomId , token, sessionId} = req.body;
 		if (!token && !sessionId){
 			res.code(400).send({error: "Error: Missing token and sessionId"});
 			return;
@@ -143,28 +143,33 @@ export async function tournamentRoutes(fastify){
   });
 
 	fastify.get('/tournament/match', { websocket: true }, (connection, req) => {
-    const {roomId , gameId} = req.query;
+    const {gameId, roomId} = req.query;
 		
+		// console.log(gameId);
+		// console.log(roomId);
 		const room = tournaments.getRoom(roomId);
 		if (room === undefined)
 		{
 			connection.send(JSON.stringify({ error: 'Room not found' }));
-      connection.close();
       console.log('Room not found');
+      connection.close();
       return;
 		}
-		const match = room.match.get(gameId);
+		const match = room.matches.get(gameId);
 		if (match === undefined)
 		{
 			connection.send(JSON.stringify({ error: 'Match not found' }));
-      connection.close();
       console.log('Match not found');
+      connection.close();
       return;
 		}
-		connection.send(JSON.stringify({ success: 'Match found' }));
-    tournamentGame(tournaments,match,connection);
-  });
-
+		//connection.send(JSON.stringify({ success: 'Match found' }));
+		try {
+			tournamentGame(fastify,connection, match.game, match, room);
+		} catch (err) {
+			console.error("Error in tournamentGame:", err);
+  	}
+	});
 }
 
 function getWs(fastify,sessionId, token, res){
