@@ -56,7 +56,7 @@ export class Room{
 	id = null;
 	players = new Array(); //Player
 	expectedPlayers = new Set();
-	courentRound = 1;
+	currentRound = 1;
 	matches = new Map(); //gameId: Match
 	matchesToPlay = 0;
 	matchesCreated = 0;
@@ -157,7 +157,7 @@ export class Room{
 	}
 
 	createMatches(){
-		let toCreate = this.players.length / Math.pow(2,this.courentRound);
+		let toCreate = this.players.length / Math.pow(2,this.currentRound);
 		let matchNum = this.matchesCreated + 1;
 		let roundMatchNum = 1;
 		for(let i = 0; i < toCreate; i++){
@@ -173,7 +173,7 @@ export class Room{
 	}
 
 	assignPlayers(match, roundMatchNum){
-		let playersToCheck = Math.pow(2,this.courentRound);
+		let playersToCheck = Math.pow(2,this.currentRound);
 		for(let i = playersToCheck * (roundMatchNum - 1);
 			 i < playersToCheck * (roundMatchNum - 1) + playersToCheck; i++){
 			let player = this.players[i];
@@ -181,9 +181,9 @@ export class Room{
 			if (!player.lastWin)
 				continue;
 			if (!match.leftPlayer)
-				match.leftPlayer = player.token ? player.token : player.sessionId;
+				match.leftPlayer = player;
 			else
-				match.rightPlayer = player.token ? player.token : player.sessionId;
+				match.rightPlayer = player;
 		}
 	}
 
@@ -191,12 +191,51 @@ export class Room{
 		for (let match of this.matches.values()){
 			if (match.winner)
 				continue;
-			if (token && (token === match.leftPlayer || token === match.rightPlayer))
+			if (token && (token === match.leftPlayer.token || token === match.rightPlayer.token))
 				return match.gameId;
-			if (sessionId && (sessionId === match.leftPlayer || sessionId === match.rightPlayer))
+			if (sessionId && (sessionId === match.leftPlayer.sessionId || sessionId === match.rightPlayer.sessionId))
 				return match.gameId;
 		}
 		return null;
+	}
+
+	matchFinished(leftScore, rightScore, match){
+		if (match.winner)
+			return;
+		match.leftScore = leftScore;
+		match.rightScore = rightScore;
+		match.winner = true;
+		this.nextRound();
+	}
+	
+	nextRound(){
+		if(this.roundOver()){
+			this.currentRound++;
+			//no more rounds
+			if (this.currentRound > this.expectedRounds()){
+				return;
+			}
+			this.createMatches();
+		}
+	}
+
+	expectedRounds(){
+		let i = this.expectedPlayers.size; 
+		let expectedRounds = 0;
+		while(i != 1){
+			i /= 2;
+			expectedRounds++;
+		}
+		return expectedRounds;
+	}
+
+	roundOver(){
+		for(const match of this.matches.values()){
+			if(!match.winner){
+				return false;
+			}
+		}
+		return true;
 	}
 }
 
@@ -228,14 +267,13 @@ export class Match{
 				isRunning: false,
 				readyR: false,
 				readyL: false,
-				gameType: "", //probably useless
-				needAuthentication: 1 //0 - no, 1 - optional 2 - required 
+				gameType: "Tournament",
 	}
-	leftPlayer = null;//token/sessionId to verify player
+	leftPlayer = null;//reference to player
 	rightPlayer = null;
 	winner = null; //null - match unfinished
 	leftScore = 0;
 	rightScore = 0;
-
+	save = null;
 }
 

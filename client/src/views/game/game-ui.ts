@@ -140,7 +140,9 @@ export function createGameUI(gameType: GameType): GameUI {
 			  h / 2
 			);
 			ctx.restore();
-            restartBtn.style.display = '';
+			if(gameType !== 'tournament'){
+				restartBtn.style.display = '';
+			}
         } else {
             restartBtn.style.display = 'none';
         }

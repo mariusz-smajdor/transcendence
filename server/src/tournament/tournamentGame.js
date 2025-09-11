@@ -1,9 +1,14 @@
 import { authenticateToken } from "../game/authentication.js";
-import { stopGameLoop } from "../game/gameState.js";
+import { stopGameLoop , resetGameStatus , gameLoop} from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
+import { saveClosedMatch } from "../models/gameHistory.js";
+import { authenticatePlayer } from "./utils.js";
+import { tournamentGameLoop } from "./tournamentLoop.js";
+
 
 export function tournamentGame(fastify, connection, game, match, room) {
 	game.clients.add(connection);
+	let first = true;
 
 	connection.on('message', message => {
 		let msg;
@@ -15,30 +20,30 @@ export function tournamentGame(fastify, connection, game, match, room) {
 			return;
 		}
 
-		if(msg.type == "auth")
+		if(msg.type == "auth" && first){
 			assignPlayer(connection, msg.token,
 				msg.sessionId, match, game);
+		}
 		const role = game.playersManager.getRole(connection);
 
 		// checking user's token or previous authentication
-		if (role !== 'spectator' && game.needAuthentication !== 0)
-			authenticateToken(game, connection, fastify, msg);
-
-		console.log(`Message received from ${role}:`, msg);
-		//Readiness
+		if (role !== 'spectator' && first){
+			authenticatePlayer(game, connection, fastify, msg, match);
+		}
+		first = false;
 
 		if (msg.type === 'status' && msg.status === 'READY' && !game.isRunning && game.playersManager.playersPresence()) {
 			if (role === 'left' && game.readyL === false) {
 				game.readyL = true;
 				broadcastMessage(game.clients, 'left_player_ready');
 				if (game.readyL && game.readyR)
-					countdownAndStart(game, fastify.db);
+					countdownAndStart(connection, room, match, game, fastify.db);
 			}
 			if (role === 'right' && game.readyR === false) {
 				game.readyR = true;
 				broadcastMessage(game.clients, 'right_player_ready');
 				if (game.readyL && game.readyR)
-					countdownAndStart(game, fastify.db);
+					countdownAndStart(connection, room, match, game, fastify.db);
 			}
 			return;
 		}
@@ -59,12 +64,22 @@ export function tournamentGame(fastify, connection, game, match, room) {
 				}
 			}
 		}
-
 	});
 
 	connection.on('close', () => {
-		console.log(`Connection ${game.playersManager.getRole(connection)} closed`);
+		if (match.winner){
+			return;
+		}
 		const role = game.playersManager.getRole(connection);
+		console.log(`Connection ${role} closed`);
+
+		if (match.winner || role === 'spectator'){
+			return;
+		}
+
+		if(saveClosedMatch(fastify.db,role,))
+
+		
 		if (game.isRunning === 1 && role !== 'spectator' &&
 			game.playersManager.stats.get('left') !== undefined &&
 			game.playersManager.stats.get('right') !== undefined) {
@@ -91,13 +106,14 @@ export function tournamentGame(fastify, connection, game, match, room) {
 				broadcastMessage(game.clients, 'waiting_for_second_player');
 		}, 3000);
 
-		if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
-			games.delete(gameId);
-		}
 	});
 
 	connection.on('error', (err) => {
+		if (match.winner){
+			return;
+		}
 		console.error('WebSocket error:', err);
+		const role = game.playersManager.getRole(connection);
 		game.playersManager.removeRole(connection);
 		game.clients.delete(connection);
 		if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
@@ -105,14 +121,16 @@ export function tournamentGame(fastify, connection, game, match, room) {
 			game.isRunning = false;
 			broadcastMessage(game.clients, 'game_stop');
 		}
-		if (game.playersManager.leftPlayer === null && game.playersManager.rightPlayer === null) {
-			games.delete(gameId);//to do
+		if (role === 'left'){
+			room.matchFinished(-1,11, match);
+		}
+		else if (role === 'right'){
+			room.matchFinished(11,-1, match);
 		}
 	});
 }
 
-
-function countdownAndStart(game) {
+function countdownAndStart(connection, room, match, game, db) {
 	let count = 3;
 	broadcastMessage(game.clients, 'count_to_start');
 	function next() {
@@ -122,20 +140,20 @@ function countdownAndStart(game) {
 		} else {
 			broadcastMessage(game.clients, 'game_on');
 			game.isRunning = true;
-			gameLoop(game);
+			tournamentGameLoop(connection, room, match, game, db);
 		}
 	}
 	next();
 }
 
 function assignPlayer(connection, token, sessionId, match, game){
-if (token == match.leftPlayer
-		|| sessionId == match.leftPlayer) {
+	if (token && token == match.leftPlayer.token
+		|| sessionId && sessionId == match.leftPlayer.sessionId) {
 		game.playersManager.leftPlayer = connection
 		game.playersManager.roles.set(connection, 'left')
 	}
-	else if (token == match.rightPlayer
-		|| sessionId == match.rightPlayer) {
+	else if (token && token == match.rightPlayer.token
+		|| sessionId && sessionId == match.rightPlayer.sessionId) {
 		game.playersManager.rightPlayer = connection
 		game.playersManager.roles.set(connection, 'right')
 	}
