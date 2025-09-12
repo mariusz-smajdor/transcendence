@@ -5,10 +5,10 @@
  * @returns {object} Standardized success response
  */
 export const createSuccessResponse = (message, data = {}) => ({
-	success: true,
-	message,
-	...data,
-});
+  success: true,
+  message,
+  ...data,
+})
 
 /**
  * Creates a standardized error response
@@ -18,15 +18,15 @@ export const createSuccessResponse = (message, data = {}) => ({
  * @returns {object} Standardized error response
  */
 export const createErrorResponse = (
-	message,
-	error = null,
-	statusCode = 400
+  message,
+  error = null,
+  statusCode = 400
 ) => ({
-	success: false,
-	message,
-	...(error && { error }),
-	...(statusCode && { statusCode }),
-});
+  success: false,
+  message,
+  ...(error && { error }),
+  ...(statusCode && { statusCode }),
+})
 
 /**
  * Creates a standardized user response
@@ -35,12 +35,13 @@ export const createErrorResponse = (
  * @returns {object} Standardized user response
  */
 export const createUserResponse = (user, token = null) => ({
-	success: true,
-	message: "Authentication successful",
-	user: {
-		user_id: user.user_id,
-		username: user.username,
-		avatar_url: user.avatar_url,
-		email: user.email,
-	},
-});
+  success: true,
+  message: 'Authentication successful',
+  user: {
+    user_id: user.user_id,
+    username: user.username,
+    avatar_url: user.avatar_url,
+    email: user.email,
+  },
+  ...(token && { token }), // Include token as fallback for clients that need it
+})

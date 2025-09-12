@@ -149,46 +149,46 @@ export const getConversation = async (
 export const getConversations = async (userId) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT DISTINCT
-        CASE 
-          WHEN m.sender_id = ? THEN m.recipient_id
-          ELSE m.sender_id
-        END as other_user_id,
-        CASE 
-          WHEN m.sender_id = ? THEN u2.username
-          ELSE u1.username
-        END as other_username,
-        CASE 
-          WHEN m.sender_id = ? THEN u2.avatar_url
-          ELSE u1.avatar_url
-        END as other_avatar_url,
+      WITH conversation_partners AS (
+        SELECT DISTINCT
+          CASE 
+            WHEN m.sender_id = ? THEN m.recipient_id
+            ELSE m.sender_id
+          END as other_user_id
+        FROM messages m
+        WHERE m.sender_id = ? OR m.recipient_id = ?
+      )
+      SELECT 
+        cp.other_user_id,
+        u.username as other_username,
+        u.avatar_url as other_avatar_url,
         MAX(m.created_at) as last_message_time,
         (
           SELECT content 
           FROM messages m2 
-          WHERE ((m2.sender_id = ? AND m2.recipient_id = other_user_id) 
-                 OR (m2.sender_id = other_user_id AND m2.recipient_id = ?))
+          WHERE ((m2.sender_id = ? AND m2.recipient_id = cp.other_user_id) 
+                 OR (m2.sender_id = cp.other_user_id AND m2.recipient_id = ?))
           ORDER BY m2.created_at DESC 
           LIMIT 1
         ) as last_message_content,
         (
           SELECT message_type 
           FROM messages m3 
-          WHERE ((m3.sender_id = ? AND m3.recipient_id = other_user_id) 
-                 OR (m3.sender_id = other_user_id AND m3.recipient_id = ?))
+          WHERE ((m3.sender_id = ? AND m3.recipient_id = cp.other_user_id) 
+                 OR (m3.sender_id = cp.other_user_id AND m3.recipient_id = ?))
           ORDER BY m3.created_at DESC 
           LIMIT 1
         ) as last_message_type,
         (
           SELECT COUNT(*) 
           FROM messages m4 
-          WHERE m4.recipient_id = ? AND m4.sender_id = other_user_id AND m4.is_read = 0
+          WHERE m4.recipient_id = ? AND m4.sender_id = cp.other_user_id AND m4.is_read = 0
         ) as unread_count
-      FROM messages m
-      JOIN users u1 ON m.sender_id = u1.user_id
-      JOIN users u2 ON m.recipient_id = u2.user_id
-      WHERE m.sender_id = ? OR m.recipient_id = ?
-      GROUP BY other_user_id
+      FROM conversation_partners cp
+      JOIN users u ON cp.other_user_id = u.user_id
+      LEFT JOIN messages m ON ((m.sender_id = ? AND m.recipient_id = cp.other_user_id) 
+                               OR (m.sender_id = cp.other_user_id AND m.recipient_id = ?))
+      GROUP BY cp.other_user_id, u.username, u.avatar_url
       ORDER BY last_message_time DESC
     `
 
