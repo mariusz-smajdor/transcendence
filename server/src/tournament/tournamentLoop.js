@@ -2,6 +2,7 @@ import { updateGameState, stopGameLoop, getGameStateProportional } from "../game
 import { broadcastGameState, broadcastMessage } from "../game/broadcast.js";
 import { Room } from "./tournaments.js";
 import { clients } from "../routes/game.js";
+import { saveClosedMatch, saveMatchResult } from "../models/gameHistory.js";
 
 export function tournamentGameLoop(connection, room, match, game, db) {
 	console.log('game started');

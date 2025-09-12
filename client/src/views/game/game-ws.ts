@@ -161,6 +161,12 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 		case 'match_finished':
 			ui.text.textContent = 'Result saved! Back to tournament';
 			break;
+		case 'left_error':
+			ui.text.textContent = 'Walkover! Left player left the game';
+			break;
+		case 'right_error':
+			ui.text.textContent = 'Walkover! Right player left the game';
+			break;
 		default:
 			ui.text.textContent = data.message;
 			console.warn('Displayed unknown message: ', data.message);

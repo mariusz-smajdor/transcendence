@@ -69,9 +69,13 @@ export async function tournamentRoutes(fastify){
 			res.code(400).send({error: "Player is already in another tournament"})
 			return;
 		}
-
-		let room = tournaments.joinRoom(roomId,connection,name,token,sessionId);
-
+		let room = tournaments.getRoom(roomId);
+		if(room === undefined || room.players.length === room.getExpectedPlayers()){
+			res.code(400).send({error: "Room is full"});
+			return;
+		}
+		room = tournaments.joinRoom(roomId,connection,name,token,sessionId);
+	
 		if (room.players.length == room.getExpectedPlayers()){
 			res.code(200).send({
 					id: roomId,
@@ -113,9 +117,10 @@ export async function tournamentRoutes(fastify){
 			res.code(400).send({error: "Error: Cannot find tournament with this id"});
 			return;
 		}
-		if(!tournaments.playerLeave(room,token,sessionId))
-			return
-
+		if(!tournaments.playerLeave(room,token,sessionId)){
+			res.code(400).send({error: "Error: Player is not a member of this room"});
+			return;
+		}
 		res.code(200).send({success: "Succesfully left the room"});
 
   });

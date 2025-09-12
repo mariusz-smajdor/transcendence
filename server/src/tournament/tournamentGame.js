@@ -1,10 +1,10 @@
 import { authenticateToken } from "../game/authentication.js";
-import { stopGameLoop , resetGameStatus , gameLoop} from "../game/gameState.js";
+import { stopGameLoop , resetGameStatus , gameLoop, updateGameState} from "../game/gameState.js";
 import { broadcastMessage } from "../game/broadcast.js";
 import { saveClosedMatch } from "../models/gameHistory.js";
 import { authenticatePlayer } from "./utils.js";
 import { tournamentGameLoop } from "./tournamentLoop.js";
-
+import { saveMatchResult} from "../models/gameHistory.js";
 
 export function tournamentGame(fastify, connection, game, match, room) {
 	game.clients.add(connection);
@@ -67,66 +67,71 @@ export function tournamentGame(fastify, connection, game, match, room) {
 	});
 
 	connection.on('close', () => {
-		if (match.winner){
-			return;
-		}
-		const role = game.playersManager.getRole(connection);
-		console.log(`Connection ${role} closed`);
+		game.clients.delete(connection);
 
+		const role = game.playersManager.getRole(connection);
 		if (match.winner || role === 'spectator'){
 			return;
 		}
-
-		if(saveClosedMatch(fastify.db,role,))
-
-		
-		if (game.isRunning === 1 && role !== 'spectator' &&
-			game.playersManager.stats.get('left') !== undefined &&
-			game.playersManager.stats.get('right') !== undefined) {
-			saveClosedMatch(fastify.db, role, game.playersManager.stats, game.gameType);
+		if (role !== 'spectator'){
+			if(role === 'left')
+				broadcastMessage(game.clients, 'left_error');
+			else if (role === 'right')
+				broadcastMessage(game.clients, 'right_error');
 		}
-		game.playersManager.removePlayer(connection);
-		game.clients.delete(connection);
-		if (game.isRunning === false && (role === 'left' || role === 'right')) {
-			if (game.gameState.score.left === 11 || game.gameState.score.right === 11)
-				resetGameStatus(game, false);
-			broadcastMessage(game.clients, 'left');
-			game.readyL = false;
-			game.readyR = false;
-		}
-		else if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
-			stopGameLoop(game);
-			game.isRunning = false;
-			resetGameStatus(game, false);
-		}
-
-		setTimeout(() => {
-			if (role === 'left' && !game.playersManager.leftPlayer
-				|| role === 'right' && !game.playersManager.rightPlayer)
-				broadcastMessage(game.clients, 'waiting_for_second_player');
-		}, 3000);
-
-	});
-
-	connection.on('error', (err) => {
-		if (match.winner){
-			return;
-		}
-		console.error('WebSocket error:', err);
-		const role = game.playersManager.getRole(connection);
 		game.playersManager.removeRole(connection);
-		game.clients.delete(connection);
+		
 		if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
 			stopGameLoop(game);
 			game.isRunning = false;
-			broadcastMessage(game.clients, 'game_stop');
 		}
+		if(match.save)
+			saveClosedMatch(fastify.db,role,game.playersManager.stats,gameType);
 		if (role === 'left'){
 			room.matchFinished(-1,11, match);
 		}
 		else if (role === 'right'){
 			room.matchFinished(11,-1, match);
 		}
+		setTimeout(() => {
+			broadcastMessage(game.clients,'match_finished')
+			setTimeout(() => disconectPlayers(game.clients),3000)
+		},3000)
+
+	});
+
+	connection.on('error', (err) => {
+		console.error('WebSocket error:', err);
+		game.clients.delete(connection);
+
+		const role = game.playersManager.getRole(connection);
+		if (match.winner || role === 'spectator'){
+			return;
+		}
+		if (role !== 'spectator'){
+			if(role === 'left')
+				broadcastMessage(game.clients, 'left_error');
+			else if (role === 'right')
+				broadcastMessage(game.clients, 'right_error');
+		}
+		game.playersManager.removeRole(connection);
+		
+		if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
+			stopGameLoop(game);
+			game.isRunning = false;
+		}
+		if(match.save)
+			saveClosedMatch(fastify.db,role,game.playersManager.stats,gameType);
+		if (role === 'left'){
+			room.matchFinished(-1,11, match);
+		}
+		else if (role === 'right'){
+			room.matchFinished(11,-1, match);
+		}
+		setTimeout(() => {
+			broadcastMessage(game.clients,'match_finished')
+			setTimeout(disconetPlayers(game.clients),3000)
+		},3000)
 	});
 }
 
@@ -174,5 +179,11 @@ function assignPlayer(connection, token, sessionId, match, game){
 		broadcastMessage(game.clients, 'waiting_for_second_player');
 	} else if (game.playersManager.leftPlayer != null && game.playersManager.rightPlayer != null) {
 		broadcastMessage(game.clients, 'waiting_for_readiness');
+	}
+}
+
+function disconectPlayers(clients){
+	for(const client of clients){
+		client.close();
 	}
 }

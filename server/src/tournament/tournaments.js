@@ -8,14 +8,15 @@ export class Tournaments{
 	rooms = new Map();// roomId : room
 	
 	playerLeave(room,token,sessionId){
-		const number = room.players.length;
+		const number = room.getOnlinePlayers();
 		room.removePlayer(token,sessionId);
-		if (number === room.players.length){
-			res.code(400).send({error: "Error: Player is not a member of this room"});
+		if (number === room.getOnlinePlayers()){
 			return false;
 		}
-		if (room.players.length === 0)
+		if (room.getOnlinePlayers() === 0)
 			this.rooms.delete(room.id);
+		if(gameOn)
+			checkMatches();
 		return true;
 	}
 
@@ -41,6 +42,8 @@ export class Tournaments{
 	userTournament(sessionId = null, token = null){
 		for (const room of this.rooms.values()){
 			for (const player of room.players){
+				if (!player.active)
+					continue;
 				if (token && player.token === token)
 					return room;
 				if (sessionId && player.sessionId === sessionId)
@@ -74,7 +77,7 @@ export class Room{
 	//to do:checking if the user joined the match, if not walkover
 	sendNotifications(){
 		for(let player of this.players){
-			if (!player.lastWin){
+			if (!player.lastWin || !player.active){
 				//console.log(player.lastWin);
 				continue;
 			}
@@ -131,21 +134,42 @@ export class Room{
 		return result;
 	}
 
+	getOnlinePlayers(){
+		let i = 0;
+		for(const player of this.players){
+			if (player.active)
+				i++;
+		}
+		return i;
+	}
+
 	addPlayer(connection,nickname,token,sessionId){
 		this.players.push(new Player(connection,nickname,sessionId,token));
 		if(this.players.length === this.expectedPlayers.size){
+			this.gameOn = true;
 			this.createMatches();
 		}
 	}
 
 	removePlayer(token = null,sessionId = null){
-		this.players = this.players.filter(player => {
-			if (token && token === player.token)
-				return false;
-			if (sessionId && sessionId === player.sessionId)
-				return false;
-			return true;
-		})
+		if (this.gameOn){
+			for(const player of this.players){
+				if ((token && token === player.token)
+					|| (sessionId && sessionId === player.sessionId)){
+					player.connection = null;
+					player.active = false;
+				}
+			}
+		}
+		else{
+			this.players = this.players.filter(player => {
+				if (token && token === player.token)
+					return false;
+				if (sessionId && sessionId === player.sessionId)
+					return false;
+				return true;
+			})
+		}
 	}
 
 	getActivePlayers(){
@@ -170,6 +194,28 @@ export class Room{
 			matchNum++;
 		}
 		this.sendNotifications();
+		this.checkMatches();
+	}
+
+	checkMatches(){
+		for(const match of this.matches){
+			if (match.winner)
+				continue;
+			if (!match.leftPlayer.active){
+				match.winner = true;
+				match.leftPlayer.lastWin = false;
+				match.leftScore = -1;
+				match.rightScore = 11;
+				this.nextRound();
+			}
+			else if (!match.rightPlayer.active){
+				match.winner = true;
+				match.rightPlayer.lastWin = false;
+				match.leftScore = 11;
+				match.rightScore = -1;
+				this.nextRound();
+			}		
+		}
 	}
 
 	assignPlayers(match, roundMatchNum){
@@ -246,6 +292,7 @@ export class Player{
 	token = null; //to identify logged in players
 	nickname = null;
 	lastWin = true;
+	active = true;
 	//results = new Array(); //wins and looses, index is representing the round ->
 	//->(For now useless)
 
