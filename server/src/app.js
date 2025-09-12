@@ -3,6 +3,7 @@ import { initDatabase } from './database/init.js'
 import healthRoutes from './routes/health.js'
 import userRoutes from './routes/users.js'
 import friendsRoutes from './routes/friends.js'
+import { messageRoutes } from './routes/messages.js'
 import { getOAuthConfig, validateOAuthConfig } from './config/oauthConfig.js'
 
 const server = fastify()
@@ -49,6 +50,7 @@ const initializeServer = async () => {
   server.register(userRoutes, { prefix: '/api/users' })
   server.register(import('./routes/oauth.js'), { prefix: '/api/oauth' })
   server.register(friendsRoutes, { prefix: '/api/friends' })
+  server.register(messageRoutes, { prefix: '/api/messages' })
 
   return server
 }

@@ -1,7 +1,7 @@
-import { getHealth } from "../controllers/healthController.js";
+import { getHealth } from '../controllers/healthController.js'
 
 async function healthRoutes(fastify, options) {
-  fastify.get("/health", getHealth);
+  fastify.get('/', getHealth)
 }
 
-export default healthRoutes;
+export default healthRoutes

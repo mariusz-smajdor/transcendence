@@ -94,7 +94,7 @@ export class WebSocketService {
   }
 }
 
-// Message types for friends system
+// Message types for friends system and messaging
 export const WEBSOCKET_MESSAGE_TYPES = {
   FRIEND_REQUEST_RECEIVED: 'friend_request_received',
   FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
@@ -103,4 +103,7 @@ export const WEBSOCKET_MESSAGE_TYPES = {
   USER_ONLINE: 'user_online',
   USER_OFFLINE: 'user_offline',
   FRIENDS_LIST_UPDATE: 'friends_list_update',
+  NEW_MESSAGE: 'new_message',
+  MESSAGE_READ: 'message_read',
+  MESSAGE_DELETED: 'message_deleted',
 }

@@ -98,7 +98,7 @@ src/
 
 ### Health Check
 
-- `GET /api/health/health` - Server health status
+- `GET /api/health` - Server health status
 
 ### User Management
 
