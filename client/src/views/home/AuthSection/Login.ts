@@ -26,7 +26,7 @@ function loginUser(
 		};
 
 		try {
-			const res = await fetch('http://localhost:3000/login', {
+			const res = await fetch('http://localhost:3000/api/users/login', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -36,7 +36,8 @@ function loginUser(
 			});
 
 			const data = await res.json();
-
+			console.log(data);
+			// debugger;
 			if (!data.success) {
 				submitMessage.textContent = data.message;
 				form.appendChild(submitMessage);
