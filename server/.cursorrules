@@ -1,0 +1,24 @@
+description: Guidelines for ft_transcendence backend in JavaScript with Node.js Fastify
+
+-- Framework --
+- Use Node.js with Fastify.
+- Use JWT for authentication.
+- Use bcrypt for secure password hashing.
+- Use SQLite for database persistence.
+
+-- Folder Structure --
+- Source code is inside the src/ folder.
+- Use folders: src/models/, src/routes/, src/controllers/, src/services/, src/utils/.
+- Models contain DB schemas and queries.
+- Routes declare Fastify endpoints.
+- Controllers handle HTTP logic.
+- Services implement business logic and DB access.
+- Utils have helper functions.
+
+-- Coding Best Practices --
+- Write modular, clean, and DRY code.
+- Use async/await for asynchronous operations.
+- Validate and sanitize all user inputs.
+
+-- Testing --
+- Encourage writing unit tests for controllers and services.

@@ -1,47 +1,131 @@
-class UserController {
-  constructor(userServices) {
-    this.userServices = userServices;
-  }
+import { createUser, findUserByUsername } from "../services/userService.js";
+import {
+  hashPassword,
+  verifyPassword,
+  generateToken,
+} from "../services/authService.js";
+import {
+  validateRegistrationData,
+  validateLoginData,
+} from "../utils/userValidation.js";
+import {
+  createSuccessResponse,
+  createErrorResponse,
+  createUserResponse,
+} from "../utils/responseHelpers.js";
 
-  async createUser(request, reply) {
-    const user = await this.userServices.createUser(request.body);
-    reply.status(201).send(user);
-  }
+export const addUser = async (request, reply) => {
+  try {
+    const { username, password, avatar_url } = request.body;
 
-  async getAllUsers(request, reply) {
-    const users = await this.userServices.getAllUsers();
-    reply.send(users);
-  }
-
-  async getUserById(request, reply) {
-    const user = await this.userServices.getUserById(request.params.id);
-    if (!user) {
-      reply.status(404).send({ message: 'User not found' });
-      return;
+    // Validate input data
+    const validation = validateRegistrationData(username, password);
+    if (!validation.isValid) {
+      return reply
+        .code(400)
+        .send(
+          createErrorResponse("Validation failed", validation.errors.join(", "))
+        );
     }
-    reply.send(user);
-  }
 
-  async updateUser(request, reply) {
-    const updatedUser = await this.userServices.updateUser(
-      request.params.id,
-      request.body,
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Create user
+    const user = await createUser(username, hashedPassword, avatar_url);
+
+    return reply.code(201).send(
+      createSuccessResponse("User created successfully", {
+        user_id: user.user_id,
+        username: user.username,
+        avatar_url: user.avatar_url,
+      })
     );
-    if (!updatedUser) {
-      reply.status(404).send({ message: 'User not found' });
-      return;
+  } catch (error) {
+    if (error.message.includes("UNIQUE constraint failed")) {
+      return reply
+        .code(409)
+        .send(createErrorResponse("Username already exists", null, 409));
     }
-    reply.send(updatedUser);
-  }
 
-  async deleteUser(request, reply) {
-    const result = await this.userServices.deleteUser(request.params.id);
-    if (!result) {
-      reply.status(404).send({ message: 'User not found' });
-      return;
+    console.error("User creation error:", error);
+    return reply
+      .code(500)
+      .send(createErrorResponse("Failed to create user", null, 500));
+  }
+};
+
+export const loginUser = async (request, reply) => {
+  try {
+    const { username, password } = request.body;
+
+    // Validate input data
+    const validation = validateLoginData(username, password);
+    if (!validation.isValid) {
+      return reply
+        .code(400)
+        .send(
+          createErrorResponse("Validation failed", validation.errors.join(", "))
+        );
     }
-    reply.send({ message: 'User deleted', user: result });
-  }
-}
 
-export default UserController;
+    // Find user
+    const user = await findUserByUsername(username);
+    if (!user) {
+      return reply
+        .code(401)
+        .send(createErrorResponse("Invalid username or password", null, 401));
+    }
+
+    // Verify password
+    const isValidPassword = await verifyPassword(password, user.password);
+    if (!isValidPassword) {
+      return reply
+        .code(401)
+        .send(createErrorResponse("Invalid username or password", null, 401));
+    }
+
+    // Generate JWT token
+    const token = await generateToken(reply, {
+      user_id: user.user_id,
+      username: user.username,
+    });
+
+    return reply.code(200).send(createUserResponse(user, token));
+  } catch (error) {
+    console.error("Login error:", error);
+    return reply
+      .code(500)
+      .send(createErrorResponse("Internal server error", null, 500));
+  }
+};
+
+export const getCurrentUser = async (request, reply) => {
+  try {
+    // JWT token is automatically verified by FastifyJWT middleware
+    // User data is available in request.user
+    const { user_id, username } = request.user;
+
+    // Get fresh user data from database
+    const user = await findUserByUsername(username);
+    if (!user) {
+      return reply
+        .code(404)
+        .send(createErrorResponse("User not found", null, 404));
+    }
+
+    return reply.code(200).send(
+      createSuccessResponse("User data retrieved successfully", {
+        user_id: user.user_id,
+        username: user.username,
+        avatar_url: user.avatar_url,
+        email: user.email,
+      })
+    );
+  } catch (error) {
+    console.error("Get current user error:", error);
+    return reply
+      .code(500)
+      .send(createErrorResponse("Internal server error", null, 500));
+  }
+};
