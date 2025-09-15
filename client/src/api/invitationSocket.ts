@@ -13,30 +13,38 @@ export function connectInvitationSocket() {
 
 	socket.onopen = () => {
 		const token = getCookie('access_token');
-		socket?.send(JSON.stringify({ type: 'auth', token: token }));
+		const sessionId = getCookie('sessionId');
+		//console.log(token,sessionId);
+		socket?.send(JSON.stringify({ type: 'auth', token, sessionId }));
 		console.log('Invitation WebSocket opened');
 	};
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
-		if (data.type === 'session' && data.session) {
-			document.cookie = `sessionId=${data.session}; path=/;`;
+		console.log(data);
+		if (data.type === 'cookies') {
+			if (data.token){
+				document.cookie = `sessionId=; path=/;`
+			}
+			else {
+				document.cookie = `sessionId=${data.sessionId}; path=/;`;
+				document.cookie = 'token=; path=/;'
+			}
 			return;
 		}
-		else if (data.message === 'join')
-			showPopupMessage('You have a tournament match to play!');
+		else if (data.type === 'message')
+			showPopupMessage(data.message);
 		handlers.forEach((handler) => handler(data));
 	};
 
 	socket.onclose = () => {
 		console.log('Invitation WebSocket closed');
-		document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 		socket = null;
 	};
 
 	socket.onerror = (err) => {
 		console.error('Invitation WebSocket error:', err);
-		document.cookie = "sessionId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		socket = null;
 	};
 }
 

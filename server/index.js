@@ -19,6 +19,7 @@ import UserServices from './src/services/userServices.js';
 import privateChatRoutes from './src/routes/privateChatRoutes.js';
 import messageRoutes from './src/routes/messageRoutes.js';
 import MessageServices from './src/services/messageServices.js';
+import { invitations } from './src/routes/invitations.js';
 
 const fastify = Fastify();
 
@@ -119,6 +120,7 @@ fastify.register(async (fastify) => {
 
 fastify.register(userAuthenticationRoutes);
 fastify.register(gameRoutes);
+fastify.register(invitations);
 fastify.register(tournamentRoutes)
 fastify.register(privateChatRoutes);
 

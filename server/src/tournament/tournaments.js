@@ -1,12 +1,31 @@
 import { v4 as uuidv4 } from "uuid";
 import { initGame } from "../game/gameState.js";
-import { clients, notAuthenticated } from "../routes/game.js";
+import { clients, notAuthenticated } from "../routes/invitations.js";
 import { extractId , getAvatar} from "./utils.js";
 import { PlayersManager } from "../game/players.js"
+import { closeOldWs, closeCurrentWs, addNewConnection} from "../routes/invitations.js";
 
 export class Tournaments{
 	rooms = new Map();// roomId : room
 	
+	switchWs(sessionId, token, userId, connection){
+		let room = this.userTournament(sessionId, token);
+		if(!room){
+			closeOldWs(sessionId, userId);
+			addNewConnection(sessionId, userId, connection);
+		}
+		else{
+			if (room.gameOn)
+				closeCurrentWs(connection);
+			else{
+				let player = room.getPlayer(sessionId,token);
+				player.changeWs(connection);
+				closeOldWs(sessionId, userId);
+				addNewConnection(sessionId, userId, connection);
+			}
+		}
+	}
+
 	playerLeave(room,token,sessionId){
 		const number = room.getOnlinePlayers();
 		room.removePlayer(token,sessionId);
@@ -15,7 +34,7 @@ export class Tournaments{
 		}
 		if (room.getOnlinePlayers() === 0)
 			this.rooms.delete(room.id);
-		if(gameOn)
+		if(room.gameOn)
 			checkMatches();
 		return true;
 	}
@@ -85,6 +104,16 @@ export class Room{
 				type: 'join'
 			}));
 		}
+	}
+
+	getPlayer(sessionId, token){
+		for(const player of this.players){
+			if (sessionId && sessionId === player.sessionId)
+				return player;
+			if (token && token === player.token)
+				return player
+		}
+		return null;
 	}
 
 	setExpectedPlayers(numberOfPlayers){
@@ -300,6 +329,10 @@ export class Player{
 		this.sessionId = sessionId;
 		this.token = token;
 		this.nickname = nickname;
+		this.connection = connection;
+	}
+
+	changeWs(connection){
 		this.connection = connection;
 	}
 }

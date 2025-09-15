@@ -130,7 +130,7 @@ export function tournamentGame(fastify, connection, game, match, room) {
 		}
 		setTimeout(() => {
 			broadcastMessage(game.clients,'match_finished')
-			setTimeout(disconetPlayers(game.clients),3000)
+			setTimeout(disconectPlayers(game.clients),3000)
 		},3000)
 	});
 }

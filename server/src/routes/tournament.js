@@ -1,9 +1,9 @@
 import { Tournaments } from "../tournament/tournaments.js";
-import { clients, notAuthenticated } from "./game.js";
+import { clients, notAuthenticated } from "./invitations.js";
 import { extractId, getAvatar } from "../tournament/utils.js";
 import { tournamentGame } from "../tournament/tournamentGame.js";
 
-const tournaments = new Tournaments();
+export const tournaments = new Tournaments();
 
 export async function tournamentRoutes(fastify){
 	//check for available tournamnets or open the current tournament
