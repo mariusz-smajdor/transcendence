@@ -4,6 +4,7 @@ import { clients, notAuthenticated } from "../routes/invitations.js";
 import { extractId , getAvatar} from "./utils.js";
 import { PlayersManager } from "../game/players.js"
 import { closeOldWs, closeCurrentWs, addNewConnection} from "../routes/invitations.js";
+import { wsMessage } from "../routes/invitations.js";
 
 export class Tournaments{
 	rooms = new Map();// roomId : room
@@ -35,7 +36,7 @@ export class Tournaments{
 		if (room.getOnlinePlayers() === 0)
 			this.rooms.delete(room.id);
 		if(room.gameOn)
-			checkMatches();
+			room.checkMatches();
 		return true;
 	}
 
@@ -93,6 +94,10 @@ export class Room{
 		this.setMatchesToPlay();
 	}
 
+	positions(){
+		return(this.players.map(player => player.nickname));
+	}
+
 	//to do:checking if the user joined the match, if not walkover
 	sendNotifications(){
 		for(let player of this.players){
@@ -100,9 +105,8 @@ export class Room{
 				//console.log(player.lastWin);
 				continue;
 			}
-			player.connection.send(JSON.stringify({
-				type: 'join'
-			}));
+			if (player.connection)
+				wsMessage("You can join to tournamet game!", player.connection);
 		}
 	}
 
@@ -146,7 +150,7 @@ export class Room{
 		this.tournamentDraw();
 		let draw = [];
 		this.players.forEach(element => {
-			draw.push({id: element.tmpId, nickname: element.nickname});
+			draw.push(element.nickname);
 		});
 		return draw;
 	}
@@ -186,6 +190,8 @@ export class Room{
 				if ((token && token === player.token)
 					|| (sessionId && sessionId === player.sessionId)){
 					player.connection = null;
+					player.sessionId = null;
+					player.token = null
 					player.active = false;
 				}
 			}
@@ -227,7 +233,7 @@ export class Room{
 	}
 
 	checkMatches(){
-		for(const match of this.matches){
+		for(const match of this.matches.values()){
 			if (match.winner)
 				continue;
 			if (!match.leftPlayer.active){

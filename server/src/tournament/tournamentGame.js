@@ -74,12 +74,14 @@ export function tournamentGame(fastify, connection, game, match, room) {
 			return;
 		}
 		if (role !== 'spectator'){
-			if(role === 'left')
+			if(role === 'left'){
 				broadcastMessage(game.clients, 'left_error');
-			else if (role === 'right')
+			}
+			else if (role === 'right'){
 				broadcastMessage(game.clients, 'right_error');
+			}
 		}
-		game.playersManager.removeRole(connection);
+		game.playersManager.removeTournamentRole(connection);
 		
 		if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
 			stopGameLoop(game);
@@ -114,7 +116,7 @@ export function tournamentGame(fastify, connection, game, match, room) {
 			else if (role === 'right')
 				broadcastMessage(game.clients, 'right_error');
 		}
-		game.playersManager.removeRole(connection);
+		game.playersManager.removeTournamentRole(connection);
 		
 		if (game.playersManager.leftPlayer === null || game.playersManager.rightPlayer === null) {
 			stopGameLoop(game);

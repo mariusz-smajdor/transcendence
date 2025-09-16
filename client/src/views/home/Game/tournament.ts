@@ -94,7 +94,7 @@ export function TournamentTab() {
             const rooms = await fetchTournamentRooms(token, sessionId);
 						if (rooms.found && rooms.id){
 							currentRoomId = rooms.id;
-							renderBracketCanvas(rooms.playersExpected, rooms.playersIn);
+							renderBracketCanvas(rooms.playersExpected, rooms.playersIn, rooms);
 							return;
 						}
 						else
@@ -135,10 +135,10 @@ export function TournamentTab() {
                             roomId: room.id
                         }),
                     });
-                    console.log(response);
 										const data = await response.json();
+                    console.log(data);
 										if(response.ok)
-											renderBracketCanvas(data.playersExpected, data.playersIn)
+											renderBracketCanvas(data.playersExpected, data.playersIn, data)
                 });
 
                 const joinCell =
@@ -238,7 +238,7 @@ export function TournamentTab() {
             }
 
             const numberOfPlayers = parseInt(select.value, 10);
-            const response = await fetch('http://localhost:3000/tournament/create', {
+            let response = await fetch('http://localhost:3000/tournament/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -251,11 +251,14 @@ export function TournamentTab() {
             if (!response.ok) {
                 console.log(response);
             }
-            renderBracketCanvas(numberOfPlayers, 1);
+						response = await response.json();
+            renderBracketCanvas(numberOfPlayers, 1, response);
         };
     }
 
-    function renderBracketCanvas(numberOfPlayers: number, playersIn: number) {
+    function renderBracketCanvas(numberOfPlayers: number, playersIn: number, response : any) {
+				//console.log(response)
+				const players = response.positions ?? null;
         card.innerHTML = '';
         const wrapper = document.createElement('div');
         wrapper.classList.add('flex', 'flex-col', 'items-center', 'justify-center', 'gap-6', 'py-8');
@@ -290,13 +293,13 @@ export function TournamentTab() {
         if (numberOfPlayers === 4) {
             ctx.strokeRect(30, 40, 100, 40);
             ctx.strokeRect(30, 160, 100, 40);
-            ctx.fillText('Player 1', 80, 60);
-            ctx.fillText('Player 2', 80, 180);
+            ctx.fillText(players[0] ?? 'Player 1', 80, 60);
+            ctx.fillText(players[1] ?? 'Player 2', 80, 180);
 
             ctx.strokeRect(30, 220, 100, 40);
             ctx.strokeRect(30, 100, 100, 40);
-            ctx.fillText('Player 3', 80, 240);
-            ctx.fillText('Player 4', 80, 120);
+            ctx.fillText(players[2] ?? 'Player 3', 80, 240);
+            ctx.fillText(players[3] ?? 'Player 4', 80, 120);
 
             ctx.strokeRect(180, 90, 100, 40);
             ctx.fillText('Winner SF1', 230, 110);

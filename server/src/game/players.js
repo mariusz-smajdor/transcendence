@@ -63,6 +63,36 @@ export class PlayersManager {
 		}
 	}
 
+	removeTournamentRole(connection) {
+		const role = this.roles.get(connection);
+		if (role == 'left') {
+			this.roles.delete(connection)
+			console.log('Left player left the game');
+		} else if (role == 'right') {
+			this.roles.delete(connection)
+			console.log('Right player left the game');
+		} else {
+			this.spectators.delete(connection);
+			this.roles.delete(connection);
+		}
+	}
+
+	removeRole(connection) {
+		const role = this.roles.get(connection);
+		if (role == 'left') {
+			this.leftPlayer = null;
+			this.roles.delete(connection)
+			console.log('Left player left the game');
+		} else if (role == 'right') {
+			this.rightPlayer = null;
+			this.roles.delete(connection)
+			console.log('Right player left the game');
+		} else {
+			this.spectators.delete(connection);
+			this.roles.delete(connection);
+		}
+	}
+
 	setStats(connection, payload) {
 		const role = this.roles.get(connection);
 		//console.log("Player's stats set");

@@ -169,7 +169,8 @@ export function closeCurrentWs(connection){
 	wsMessage("Connection closed! Please close this tab and continue in previous one.",connection);
 	connection.close();
 }
-function wsMessage(message, connection){
+
+export function wsMessage(message, connection){
 	connection.send(JSON.stringify({type: 'message', message}));
 }
 

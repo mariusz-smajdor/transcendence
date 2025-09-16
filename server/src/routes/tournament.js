@@ -20,7 +20,8 @@ export async function tournamentRoutes(fastify){
 					creator: userRoom.creator,
 					playersIn: userRoom.players.length,
 					playersExpected: userRoom.getExpectedPlayers(),
-					matches: userRoom.getMatches()};
+					matches: userRoom.getMatches(),
+					positions: userRoom.positions()};
 			} 
 			else {
 				rooms = Array.from(tournaments.rooms.values()).map(room => ({
@@ -57,7 +58,8 @@ export async function tournamentRoutes(fastify){
 			creator: creator,
 			avatar: tournaments.rooms.get(roomId).avatar,
 			playersIn: 1,
-			playersExpected: numberOfPlayers
+			playersExpected: numberOfPlayers,
+			positions: tournaments.rooms.get(roomId).positions()
 		});
 	});
 
@@ -82,7 +84,7 @@ export async function tournamentRoutes(fastify){
 					creator: room.creator,
 					playersIn: room.players.length,
 					playersExpected: room.getExpectedPlayers(),
-					bracket: room.getDraw()
+					positions: room.getDraw()
 			});
 		}
 		else{
@@ -90,7 +92,8 @@ export async function tournamentRoutes(fastify){
 					id: roomId,
 					creator: room.creator,
 					playersIn: room.players.length,
-					playersExpected: room.getExpectedPlayers()
+					playersExpected: room.getExpectedPlayers(),
+					positions: room.positions()
 			});
 		}
 	});
