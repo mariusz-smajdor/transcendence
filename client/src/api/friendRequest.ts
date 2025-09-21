@@ -60,10 +60,10 @@ export async function getFriendRequest() {
 			store.setState({
 				user: {
 					...currentUser,
-					friendRequests: data.requests.map((f: any) => ({
-						senderId: f.senderId,
-						senderUsername: f.senderUsername,
-						senderAvatar: f.senderAvatar,
+					friendRequests: data.pending_requests.map((f: any) => ({
+						senderId: f.user_id,
+						senderUsername: f.username,
+						senderAvatar: f.avatar_url,
 					})),
 				},
 			});
