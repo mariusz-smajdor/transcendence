@@ -22,8 +22,6 @@ async function friendsRoutes(fastify, options) {
 
   // WebSocket endpoint for real-time notifications
   fastify.register(async function (fastify) {
-    await fastify.register(import('@fastify/websocket'))
-
     fastify.get('/ws', { websocket: true }, (connection, request) => {
       WebSocketHandler.handleConnection(connection, request, fastify)
     })

@@ -8,6 +8,8 @@ import { getOAuthConfig, validateOAuthConfig } from './config/oauthConfig.js'
 import cors from '@fastify/cors'
 import { invitations } from './routes/invitations.js'
 import { tournamentRoutes } from './routes/tournament.js'
+import gameRoutes from './routes/game.js'
+import fastifyWebsocket from '@fastify/websocket'
 
 const server = fastify()
 
@@ -40,6 +42,8 @@ const initializeServer = async () => {
       signed: true,
     },
   })
+
+  await server.register(fastifyWebsocket)
 
   // --- 3️⃣ Register OAuth2 plugin ---
   const oauthConfig = getOAuthConfig()
@@ -76,8 +80,9 @@ const initializeServer = async () => {
   server.register(import('./routes/oauth.js'), { prefix: '/api/oauth' })
   server.register(friendsRoutes, { prefix: '/api/friends' })
   server.register(messageRoutes, { prefix: '/api/messages' })
-  server.register(invitations, { prefix: '/api' })
-  server.register(tournamentRoutes, { prefix: '/api' })
+  server.register(invitations)
+  server.register(tournamentRoutes)
+  server.register(gameRoutes)
 
   return server
 }
