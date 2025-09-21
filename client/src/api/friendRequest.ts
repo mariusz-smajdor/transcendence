@@ -3,7 +3,7 @@ import { store } from '../store';
 
 export async function getFriends() {
 	try {
-		const res = await fetch('http://localhost:3000/friends', {
+		const res = await fetch('http://localhost:3000/api/friends', {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -24,7 +24,7 @@ export async function getFriends() {
 
 export async function sendFriendRequest(friendUsername: string) {
 	try {
-		const res = await fetch('http://localhost:3000/friend-request/send', {
+		const res = await fetch('http://localhost:3000/api/friends/request', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export async function sendFriendRequest(friendUsername: string) {
 
 export async function getFriendRequest() {
 	try {
-		const res = await fetch('http://localhost:3000/friend-request/get', {
+		const res = await fetch('http://localhost:3000/api/friends/requests/pending', {
 			method: 'GET',
 			credentials: 'include',
 		});
