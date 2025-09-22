@@ -24,6 +24,7 @@ export const sendMessage = async (db, senderId, receiverId, message) => {
         sender.username,
         message,
         receiverId,
+        senderId,
       );
       sendNotification(receiverId, notification);
 

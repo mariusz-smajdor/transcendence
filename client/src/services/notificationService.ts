@@ -195,6 +195,21 @@ class NotificationService {
 		// Show toast notification
 		Toaster(notification.message);
 
+		// Find the message button for the sender and change its color
+		const senderMessageIcon = document.querySelector(
+			`[data-chatter-id="${notification.data.senderId}"]`
+		);
+		if (senderMessageIcon) {
+			// Remove white color and add red color to indicate unread message
+			senderMessageIcon.classList.remove('text-white');
+			senderMessageIcon.classList.add('text-red-400');
+		} else {
+			console.log(
+				'Message button not found for senderId:',
+				notification.data.senderId
+			);
+		}
+
 		// Emit event to update messages UI
 		dataChangeEmitter.emit('messagesUpdated');
 	}

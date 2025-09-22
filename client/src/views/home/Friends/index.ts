@@ -200,8 +200,9 @@ function AllFriendsTab() {
 			const msgButton = Button({
 				type: 'button',
 				variant: 'ghost',
-				classes: ['text-green-400'],
+				classes: ['text-white'],
 			});
+			msgButton.dataset.chatterId = f.id.toString();
 			const msgIcon = Icon({
 				icon: MessageCircle,
 			});
@@ -215,6 +216,10 @@ function AllFriendsTab() {
 			});
 
 			msgButton.addEventListener('click', () => {
+				// Reset message button color to white when opening chat
+				msgButton.classList.remove('text-red-400');
+				msgButton.classList.add('text-white');
+
 				// Remove existing message card if any
 				const existingCard = document.querySelector('[data-chatter]');
 				if (existingCard) {

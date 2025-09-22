@@ -104,11 +104,13 @@ export const createMessageNotification = (
   senderUsername,
   message,
   receiverId,
+  senderId,
 ) => {
   return {
     type: NOTIFICATION_TYPES.MESSAGE,
     data: {
       senderUsername,
+      senderId,
       message: message.length > 50 ? message.substring(0, 50) + '...' : message,
       timestamp: Date.now(),
     },
