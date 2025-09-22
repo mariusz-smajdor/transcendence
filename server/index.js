@@ -11,6 +11,7 @@ import friendsRoutes from './src/routes/friendsRoutes.js';
 import notificationRoutes from './src/routes/notifications.js';
 import messagesRoutes from './src/routes/messagesRoutes.js';
 import oauthRoutes from './src/routes/oauthRoutes.js';
+import gameRoutes from './src/routes/game.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import FastifyStatic from '@fastify/static';
@@ -111,6 +112,7 @@ fastify.register(friendsRoutes); // /friends, /friends/request, /friends/request
 fastify.register(notificationRoutes); // /notifications (WebSocket)
 fastify.register(messagesRoutes); // /messages, /conversations
 fastify.register(oauthRoutes); // /login/google, /auth/google/callback
+fastify.register(gameRoutes);
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

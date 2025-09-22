@@ -1,6 +1,7 @@
 import Header from './layout/header';
 import Home from './views/home';
-import { store } from './store';
+// import Game from './views/game/game';
+import { showGameOverlay } from './views/game/game-overlay';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -9,6 +10,13 @@ export class Router {
 	constructor() {
 		this.routes = {
 			'/': Home,
+			'/game': () => {
+				const gameId = getGameIdFromUrl();
+				const home = Home();
+				if (gameId) showGameOverlay(gameId, 'network');
+
+				return home;
+			},
 		};
 
 		window.addEventListener('popstate', this.loadRoute.bind(this));
@@ -18,11 +26,6 @@ export class Router {
 				event.preventDefault();
 				this.navigateTo(target.href);
 			}
-		});
-
-		// Listen for user updates to re-render the view
-		store.on('userUpdated', () => {
-			this.loadRoute();
 		});
 
 		this.loadRoute();
@@ -43,4 +46,9 @@ export class Router {
 			this.rootElement.appendChild(view());
 		}
 	}
+}
+
+function getGameIdFromUrl() {
+	const params = new URLSearchParams(window.location.search);
+	return params.get('gameId');
 }

@@ -57,6 +57,18 @@ const dbConnector = async (fastify, options) => {
       FOREIGN KEY (sender) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (receiver) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS match_history (
+	  id INTEGER PRIMARY KEY AUTOINCREMENT,
+	  user_id_1 INTEGER,
+	  user_id_2 INTEGER,
+	  score_player_1 INTEGER NOT NULL,
+	  score_player_2 INTEGER NOT NULL,
+	  match_date TEXT NOT NULL,
+	  game_type TEXT NOT NULL,
+	  FOREIGN KEY (user_id_1) REFERENCES users (id),
+	  FOREIGN KEY (user_id_2) REFERENCES users (id)
+	  );
   `);
 
   fastify.decorate('db', db);

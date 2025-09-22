@@ -1,10 +1,13 @@
 import { Gamepad2, Users, Bot, Trophy } from 'lucide';
-import { Tabs, Trigger, Tab } from '../../components/tabs';
-import { Wrapper } from '../../components/wrapper';
-import { Card } from '../../components/card';
-import { Heading } from '../../components/heading';
-import { Icon } from '../../components/icon';
-import { Text } from '../../components/text';
+import { Tabs, Trigger, Tab } from '../../../components/tabs';
+import { Wrapper } from '../../../components/wrapper';
+import { Card } from '../../../components/card';
+import { Heading } from '../../../components/heading';
+import { Icon } from '../../../components/icon';
+import { Text } from '../../../components/text';
+import { showGameOverlay } from '../../game/game-overlay';
+import { showLobbyOverlay } from '../../game//lobby-overlay';
+import { fetchMe } from '../../../api/me';
 
 function FriendCard() {
 	const card = Card({
@@ -48,6 +51,12 @@ function FriendCard() {
 		element: 'p',
 		content: 'Challenge your friend on the same device',
 		classes: ['text-sm', 'text-muted', 'text-center'],
+	});
+
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'local');
 	});
 
 	iconWrapper.appendChild(icon);
@@ -103,6 +112,19 @@ function OnlineCard() {
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
 
+	card.addEventListener('click', async () => {
+		const isLoggedIn = await fetchMe();
+		if (isLoggedIn) {
+			showLobbyOverlay();
+		} else {
+			const response = await fetch('http://localhost:3000/game/create');
+			const respData = await response.json();
+			showGameOverlay(respData.gameId, 'network');
+			const newUrl = `/game?gameId=${respData.gameId}`;
+			history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+		}
+	});
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);
@@ -154,6 +176,12 @@ function AiCard() {
 		classes: ['text-sm', 'text-muted'],
 	});
 
+	card.addEventListener('click', async () => {
+		const response = await fetch('http://localhost:3000/game/create');
+		const data = await response.json();
+		showGameOverlay(data.gameId, 'ai');
+	});
+
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
 	wrapper.appendChild(description);
@@ -166,7 +194,14 @@ function AiCard() {
 function QuickPlayTab() {
 	const tab = Tab({
 		value: 'quick-play',
-		classes: ['grid', 'grid-rows-5', 'grid-cols-2', 'gap-4', 'lg:gap-6'],
+		classes: [
+			'grid',
+			'grid-rows-5',
+			'grid-cols-2',
+			'gap-4',
+			'h-full',
+			'lg:gap-6',
+		],
 	});
 	const friendCard = FriendCard();
 	const onlineCard = OnlineCard();
@@ -246,7 +281,7 @@ function TournamentTab() {
 	return tab;
 }
 
-export default function GameSection() {
+export default function Game() {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],

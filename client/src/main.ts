@@ -1,4 +1,5 @@
 import { getFriendRequests, getFriends } from './api/friendRequest';
+import { connectInvitationSocket } from './api/invitationSocket';
 import { fetchMe } from './api/me';
 import { Router } from './router';
 import { notificationService } from './services/notificationService';
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		await getFriends();
 		await getFriendRequests();
 		notificationService.connect();
+		connectInvitationSocket();
 
 		// Clean up URL parameters
 		window.history.replaceState({}, document.title, window.location.pathname);
@@ -28,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 		await getFriends();
 		await getFriendRequests();
 		notificationService.connect();
+		connectInvitationSocket();
 	}
 
 	new Router();

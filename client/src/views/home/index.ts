@@ -1,9 +1,9 @@
-import GameSection from './game-section';
 import Auth from './AuthSection';
 import { Container } from '../../components/container';
 import { store } from '../../store';
 import Friends from './Friends';
 import History from './History';
+import Game from './Game';
 
 export default function Home() {
 	// const USER = {
@@ -25,7 +25,7 @@ export default function Home() {
 
 	const user = store.getState().user;
 
-	container.appendChild(GameSection());
+	container.appendChild(Game());
 	container.appendChild(user ? Friends() : Auth());
 	user && container.appendChild(History(user));
 	return container;
