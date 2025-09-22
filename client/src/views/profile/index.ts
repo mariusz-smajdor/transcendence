@@ -10,6 +10,8 @@ import { Text } from '../../components/text';
 import { Img } from '../../components/img';
 import { Button } from '../../components/button';
 import { Toaster } from '../../components/toaster';
+import { getAvatarUrl } from '../../utils/avatarUtils';
+import { getFriends, getFriendRequests } from '../../api/friendRequest';
 
 export default function Profile() {
 	const user = store.getState().user;
@@ -51,9 +53,7 @@ export default function Profile() {
 			classes: ['flex', 'items-center', 'gap-4', 'cursor-pointer'],
 		});
 		const avatarImg = Img({
-			src: user?.avatar
-				? `http://localhost:3000${user?.avatar}`
-				: `https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
+			src: getAvatarUrl(user?.avatar, user?.username || 'User'),
 			alt: 'Avatar',
 			width: 48,
 			height: 48,
@@ -176,8 +176,19 @@ export default function Profile() {
 				const data = await res.json();
 
 				if (res.ok && data.success) {
-					// Update the store with new user data
-					store.setState({ user: data.user });
+					// Update the store with new user data, preserving existing friends data
+					const currentUser = store.getState().user;
+					store.setState({
+						user: {
+							...currentUser,
+							...data.user,
+						},
+					});
+
+					// Refresh friends data to ensure it's not lost during re-render
+					await getFriends();
+					await getFriendRequests();
+
 					Toaster('Profile updated successfully');
 					closeModal();
 				} else {

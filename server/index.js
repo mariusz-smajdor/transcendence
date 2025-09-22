@@ -10,6 +10,7 @@ import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import friendsRoutes from './src/routes/friendsRoutes.js';
 import notificationRoutes from './src/routes/notifications.js';
 import messagesRoutes from './src/routes/messagesRoutes.js';
+import oauthRoutes from './src/routes/oauthRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import FastifyStatic from '@fastify/static';
@@ -109,21 +110,7 @@ fastify.register(userAuthenticationRoutes); // /register /login /logout
 fastify.register(friendsRoutes); // /friends, /friends/request, /friends/requests, /friends/accept, /friends/reject
 fastify.register(notificationRoutes); // /notifications (WebSocket)
 fastify.register(messagesRoutes); // /messages, /conversations
-
-// Test WebSocket route
-fastify.get('/test-ws', { websocket: true }, (connection, req) => {
-  console.log('Test WebSocket connection received');
-  console.log('Test connection object keys:', Object.keys(connection));
-
-  connection.on('message', (message) => {
-    console.log('Received message:', message.toString());
-    connection.send('Echo: ' + message.toString());
-  });
-  connection.on('close', () => {
-    console.log('Test WebSocket closed');
-  });
-  connection.send('Test WebSocket connected');
-});
+fastify.register(oauthRoutes); // /login/google, /auth/google/callback
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

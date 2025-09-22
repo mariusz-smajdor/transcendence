@@ -8,6 +8,7 @@ import { Input } from '../../../components/input';
 import { Img } from '../../../components/img';
 import { Text } from '../../../components/text';
 import { Button } from '../../../components/button';
+import { getAvatarUrl } from '../../../utils/avatarUtils';
 import {
 	acceptFriendRequest,
 	rejectFriendRequest,
@@ -101,9 +102,7 @@ function FriendRequestTab() {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: f.senderAvatar
-					? `http://localhost:3000${f.senderAvatar}`
-					: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
+				src: getAvatarUrl(f.senderAvatar, f.senderUsername),
 				alt: f.senderUsername,
 				width: 35,
 				height: 35,
@@ -212,9 +211,7 @@ function AllFriendsTab() {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: f.avatar
-					? `http://localhost:3000${f.avatar}`
-					: `https://ui-avatars.com/api/?length=1&name=${f.username}&background=random`,
+				src: getAvatarUrl(f.avatar, f.username),
 				alt: f.username,
 				width: 35,
 				height: 35,

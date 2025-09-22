@@ -28,14 +28,13 @@ class Store {
 	}
 
 	setState(newState: Partial<State>) {
-		const oldState = { ...this.state };
 		this.state = { ...this.state, ...newState };
 
 		// Emit events for specific changes
-		if (newState.user && newState.user !== oldState.user) {
+		if (newState.user !== undefined) {
 			this.emit('userUpdated', newState.user);
 		}
-		if (newState.messages && newState.messages !== oldState.messages) {
+		if (newState.messages !== undefined) {
 			this.emit('messagesUpdated', newState.messages);
 		}
 	}

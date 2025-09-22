@@ -14,10 +14,14 @@ const dbConnector = async (fastify, options) => {
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
+      password TEXT,
       email TEXT UNIQUE NOT NULL,
-      totp_secret TEXT NOT NULL,
-      avatar TEXT
+      totp_secret TEXT,
+      avatar TEXT,
+      google_id TEXT UNIQUE,
+      firstName TEXT,
+      lastName TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS blacklisted_tokens (

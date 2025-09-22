@@ -6,6 +6,7 @@ import { Img } from '../../../components/img';
 import { Icon } from '../../../components/icon';
 import { Input } from '../../../components/input';
 import { Button } from '../../../components/button';
+import { getAvatarUrl } from '../../../utils/avatarUtils';
 import {
 	sendMessage,
 	getMessages,
@@ -59,9 +60,7 @@ export function MessageCard(friend: User | null) {
 		classes: ['flex', 'items-center', 'gap-4'],
 	});
 	const img = Img({
-		src: friend.avatar
-			? `http://localhost:3000${friend.avatar}`
-			: `https://ui-avatars.com/api/?length=1&name=${friend.username}&background=random`,
+		src: getAvatarUrl(friend.avatar, friend.username),
 		alt: 'friend',
 		classes: ['w-8', 'h-8', 'rounded-full'],
 	});

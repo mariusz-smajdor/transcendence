@@ -12,6 +12,7 @@ import {
 } from '../components/dropdown-menu';
 import { store } from '../store';
 import Profile from '../views/profile';
+import { getAvatarUrl } from '../utils/avatarUtils';
 
 function Menu() {
 	const menu = Wrapper({
@@ -46,9 +47,7 @@ function Menu() {
 			classes: ['relative'],
 		});
 		const avatar = Img({
-			src: user.avatar
-				? `http://localhost:3000${user.avatar}`
-				: `https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
+			src: getAvatarUrl(user.avatar, user?.username),
 			alt: 'User Avatar',
 			classes: [
 				'w-10',

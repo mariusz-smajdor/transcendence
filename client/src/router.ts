@@ -1,5 +1,6 @@
 import Header from './layout/header';
 import Home from './views/home';
+import { store } from './store';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -17,6 +18,11 @@ export class Router {
 				event.preventDefault();
 				this.navigateTo(target.href);
 			}
+		});
+
+		// Listen for user updates to re-render the view
+		store.on('userUpdated', () => {
+			this.loadRoute();
 		});
 
 		this.loadRoute();
