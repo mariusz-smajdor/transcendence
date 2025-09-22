@@ -35,11 +35,10 @@ function Menu() {
 			classes: ['relative'],
 		});
 		const avatar = Img({
-			src:
-				user.avatar ||
-				`https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
+			src: user.avatar
+				? `http://localhost:3000${user.avatar}`
+				: `https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
 			alt: 'User Avatar',
-			loading: 'lazy',
 			classes: [
 				'w-10',
 				'h-10',

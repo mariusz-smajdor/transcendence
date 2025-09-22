@@ -1,6 +1,8 @@
 import Fastify from 'fastify';
 import fjwt from '@fastify/jwt';
 import fCookie from '@fastify/cookie';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 import dbConnector from './src/models/database.js';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
@@ -9,6 +11,7 @@ import friendsRoutes from './src/routes/friendsRoutes.js';
 import notificationRoutes from './src/routes/notifications.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
+import FastifyStatic from '@fastify/static';
 import {
   cleanExpiredTokens,
   isTokenBlacklisted,
@@ -52,9 +55,13 @@ fastify.after((err) => {
 });
 
 fastify.register(multipart);
+fastify.register(FastifyStatic, {
+  root: path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads'),
+  prefix: '/uploads/',
+});
 fastify.register(cors, {
   origin: 'http://localhost:8080',
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 });

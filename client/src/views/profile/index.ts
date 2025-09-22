@@ -9,6 +9,7 @@ import { store } from '../../store';
 import { Text } from '../../components/text';
 import { Img } from '../../components/img';
 import { Button } from '../../components/button';
+import { Toaster } from '../../components/toaster';
 
 export default function Profile() {
 	const user = store.getState().user;
@@ -50,9 +51,9 @@ export default function Profile() {
 			classes: ['flex', 'items-center', 'gap-4', 'cursor-pointer'],
 		});
 		const avatarImg = Img({
-			src:
-				user?.avatar ||
-				`https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
+			src: user?.avatar
+				? `http://localhost:3000${user?.avatar}`
+				: `https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
 			alt: 'Avatar',
 			width: 48,
 			height: 48,
@@ -147,17 +148,45 @@ export default function Profile() {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (file) avatarImg.src = URL.createObjectURL(file);
 		});
-		form.addEventListener('submit', (e) => {
+		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
 
-			const data = {
-				username: usernameInput.value.trim() || null,
-				email: emailInput.value.trim() || null,
-				password: passwordInput.value || null,
-				avatar: avatarInput.files?.[0] || null,
-			};
+			try {
+				const formData = new FormData();
 
-			console.log('Prepared form data:', data);
+				if (usernameInput.value.trim()) {
+					formData.append('username', usernameInput.value.trim());
+				}
+				if (emailInput.value.trim()) {
+					formData.append('email', emailInput.value.trim());
+				}
+				if (passwordInput.value) {
+					formData.append('password', passwordInput.value);
+				}
+				if (avatarInput.files?.[0]) {
+					formData.append('avatar', avatarInput.files[0]);
+				}
+
+				const res = await fetch('http://localhost:3000/profile', {
+					method: 'PUT',
+					body: formData,
+					credentials: 'include',
+				});
+
+				const data = await res.json();
+
+				if (res.ok && data.success) {
+					// Update the store with new user data
+					store.setState({ user: data.user });
+					Toaster('Profile updated successfully');
+					closeModal();
+				} else {
+					Toaster(data.message || 'Failed to update profile');
+				}
+			} catch (error) {
+				console.error('Profile update error:', error);
+				Toaster('Failed to update profile');
+			}
 		});
 
 		return form;

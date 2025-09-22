@@ -2,6 +2,7 @@ export type UserData = {
 	id: number;
 	username: string;
 	email: string;
+	avatar?: string;
 	friendRequests?: {
 		id: number;
 		senderId: number;

@@ -17,6 +17,10 @@ async function userAuthenticationRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await userAuthController.meHandler(req, res);
   });
+  fastify.put('/profile', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.updateProfileHandler(req, res);
+  });
 }
 
 export default userAuthenticationRoutes;

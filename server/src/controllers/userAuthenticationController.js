@@ -1,4 +1,7 @@
 import User from '../models/userModel.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 export const registrationHandler = async (req, res) => {
   const { username, password, confirmPassword, email } = req.body;
@@ -124,4 +127,153 @@ export const meHandler = async (req, res) => {
   };
 
   return res.status(200).send({ payload });
+};
+
+export const updateProfileHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
+
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+
+  if (!token) {
+    return res
+      .status(400)
+      .send({ success: false, message: 'No token provided' });
+  }
+
+  let decoded;
+  try {
+    decoded = req.server.jwt.verify(token);
+  } catch (err) {
+    return res.status(400).send({ success: false, message: 'Invalid token' });
+  }
+
+  const userId = decoded.userId;
+  const db = req.context.config.db;
+
+  try {
+    const parts = req.parts();
+    let updateData = {};
+    let avatarPath = null;
+
+    for await (const part of parts) {
+      if (part.type === 'file' && part.fieldname === 'avatar') {
+        // Handle avatar file upload
+        const filename = `${userId}_${Date.now()}_${part.filename}`;
+        const uploadDir = path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'uploads',
+          'avatars',
+        );
+
+        // Create upload directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const filePath = path.join(uploadDir, filename);
+        const writeStream = fs.createWriteStream(filePath);
+
+        await new Promise((resolve, reject) => {
+          part.file.pipe(writeStream);
+          writeStream.on('finish', resolve);
+          writeStream.on('error', reject);
+        });
+
+        avatarPath = `/uploads/avatars/${filename}`;
+        updateData.avatar = avatarPath;
+      } else if (part.type === 'field') {
+        // Handle text fields
+        if (part.fieldname === 'username' && part.value.trim()) {
+          updateData.username = part.value.trim();
+        } else if (part.fieldname === 'email' && part.value.trim()) {
+          updateData.email = part.value.trim();
+        } else if (part.fieldname === 'password' && part.value) {
+          updateData.password = part.value;
+        }
+      }
+    }
+
+    // Validate username if provided
+    if (updateData.username) {
+      const existingUser = db
+        .prepare('SELECT id FROM users WHERE username = ? AND id != ?')
+        .get(updateData.username, userId);
+      if (existingUser) {
+        return res
+          .status(400)
+          .send({ success: false, message: 'Username already taken' });
+      }
+    }
+
+    // Validate email if provided
+    if (updateData.email) {
+      const existingUser = db
+        .prepare('SELECT id FROM users WHERE email = ? AND id != ?')
+        .get(updateData.email, userId);
+      if (existingUser) {
+        return res
+          .status(400)
+          .send({ success: false, message: 'Email already taken' });
+      }
+    }
+
+    // Build update query dynamically
+    const updateFields = [];
+    const updateValues = [];
+
+    if (updateData.username) {
+      updateFields.push('username = ?');
+      updateValues.push(updateData.username);
+    }
+    if (updateData.email) {
+      updateFields.push('email = ?');
+      updateValues.push(updateData.email);
+    }
+    if (updateData.avatar) {
+      updateFields.push('avatar = ?');
+      updateValues.push(updateData.avatar);
+    }
+    if (updateData.password) {
+      // Hash the new password
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(updateData.password, 10);
+      updateFields.push('password = ?');
+      updateValues.push(hashedPassword);
+    }
+
+    if (updateFields.length === 0) {
+      return res
+        .status(400)
+        .send({ success: false, message: 'No valid fields to update' });
+    }
+
+    updateValues.push(userId);
+    const updateQuery = `UPDATE users SET ${updateFields.join(
+      ', ',
+    )} WHERE id = ?`;
+
+    const stmt = db.prepare(updateQuery);
+    stmt.run(...updateValues);
+
+    // Get updated user data
+    const updatedUser = db
+      .prepare('SELECT id, username, email, avatar FROM users WHERE id = ?')
+      .get(userId);
+
+    return res.status(200).send({
+      success: true,
+      message: 'Profile updated successfully',
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return res
+      .status(500)
+      .send({ success: false, message: 'Failed to update profile' });
+  }
 };

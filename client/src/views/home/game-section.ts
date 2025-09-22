@@ -166,14 +166,7 @@ function AiCard() {
 function QuickPlayTab() {
 	const tab = Tab({
 		value: 'quick-play',
-		classes: [
-			'grid',
-			'grid-rows-5',
-			'grid-cols-2',
-			'gap-4',
-			'h-full',
-			'lg:gap-6',
-		],
+		classes: ['grid', 'grid-rows-5', 'grid-cols-2', 'gap-4', 'lg:gap-6'],
 	});
 	const friendCard = FriendCard();
 	const onlineCard = OnlineCard();
