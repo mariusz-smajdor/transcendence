@@ -31,6 +31,9 @@ function Menu() {
 	menu.appendChild(languagesIcon);
 
 	if (user) {
+		const avatarContainer = Wrapper({
+			classes: ['relative'],
+		});
 		const avatar = Img({
 			src:
 				user.avatar ||
@@ -51,7 +54,7 @@ function Menu() {
 		});
 		const dropdownMenu = DropdownMenu({
 			dropdownTrigger: avatar,
-			classes: ['top-16', 'right-12'],
+			classes: ['top-12', 'right-0'],
 		});
 		const dropdownTitle = DropdownTitle({
 			content: user.username,
@@ -102,8 +105,9 @@ function Menu() {
 		dropdownMenu.appendChild(DropdownSeparator());
 		dropdownMenu.appendChild(dropdownProfile);
 		dropdownMenu.appendChild(dropdownLogout);
-		menu.appendChild(avatar);
-		menu.appendChild(dropdownMenu);
+		avatarContainer.appendChild(avatar);
+		avatarContainer.appendChild(dropdownMenu);
+		menu.appendChild(avatarContainer);
 	}
 
 	return menu;

@@ -3,20 +3,23 @@ import Auth from './AuthSection';
 import { Container } from '../../components/container';
 import { store } from '../../store';
 import Friends from './Friends';
+import History from './History';
+
+const USER = {
+	name: 'John Doe',
+	avatar: 'https://i.pravatar.cc/300',
+};
 
 export default function Home() {
 	const container = Container({
 		classes: [
 			'grid',
 			'gap-4',
-			'min-h-[calc(100vh-5.5rem)]',
+			'lg:h-[calc(100vh-6.5rem)]',
 			'my-4',
-			'grid-rows-2',
 			'lg:grid-cols-5',
-			'lg:grid-rows-1',
 			'lg:gap-6',
 			'lg:my-6',
-			'lg:min-h-[calc(100vh-6.5rem)]',
 		],
 	});
 
@@ -24,5 +27,6 @@ export default function Home() {
 
 	container.appendChild(GameSection());
 	container.appendChild(user ? Friends() : Auth());
+	user && container.appendChild(History(USER));
 	return container;
 }
