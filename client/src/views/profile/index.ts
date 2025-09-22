@@ -63,10 +63,11 @@ export default function Profile() {
 			type: 'file',
 			name: 'avatar',
 			id: 'avatar',
+			accept: '.png,image/png',
 			classes: ['hidden'],
 		});
 		const uploadText = Text({
-			content: 'Change avatar',
+			content: 'Change avatar (PNG only)',
 			classes: [
 				'text-sm',
 				'text-secondary',
@@ -146,10 +147,51 @@ export default function Profile() {
 
 		avatarInput.addEventListener('change', (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
-			if (file) avatarImg.src = URL.createObjectURL(file);
+
+			// Remove any existing error message
+			const existingError = form.querySelector('.avatar-error');
+			if (existingError) {
+				existingError.remove();
+			}
+
+			if (file) {
+				// Check if file is PNG
+				if (file.type !== 'image/png') {
+					// Show error message
+					const errorMessage = Text({
+						content: 'Avatar must be a PNG file',
+						classes: ['avatar-error', 'text-red-400', 'text-xs', 'mt-2'],
+					});
+					avatarLabel.appendChild(errorMessage);
+
+					// Clear the file input
+					(e.target as HTMLInputElement).value = '';
+					return;
+				}
+
+				// If valid PNG, update the preview
+				avatarImg.src = URL.createObjectURL(file);
+			}
 		});
 		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
+
+			// Validate avatar file type before submission
+			if (avatarInput.files?.[0] && avatarInput.files[0].type !== 'image/png') {
+				// Remove any existing error message
+				const existingError = form.querySelector('.avatar-error');
+				if (existingError) {
+					existingError.remove();
+				}
+
+				// Show error message
+				const errorMessage = Text({
+					content: 'Avatar must be a PNG file',
+					classes: ['avatar-error', 'text-red-400', 'text-xs', 'mt-2'],
+				});
+				avatarLabel.appendChild(errorMessage);
+				return;
+			}
 
 			try {
 				const formData = new FormData();

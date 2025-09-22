@@ -6,6 +6,7 @@ type InputProps = ComponentProps & {
 	placeholder?: string;
 	id?: string;
 	required?: boolean;
+	accept?: string;
 };
 
 export function Input({
@@ -14,6 +15,7 @@ export function Input({
 	name,
 	id,
 	required = false,
+	accept,
 	classes = [],
 }: InputProps) {
 	const input = document.createElement('input');
@@ -38,6 +40,9 @@ export function Input({
 	}
 	if (id) {
 		input.id = id;
+	}
+	if (accept) {
+		input.accept = accept;
 	}
 
 	return input;
