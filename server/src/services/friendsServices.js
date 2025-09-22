@@ -183,11 +183,18 @@ export const acceptFriendRequest = async (db, requestId, userId) => {
       .get(userId);
 
     // Send notification to original sender
-    const notification = createFriendRequestAcceptedNotification(
+    const senderNotification = createFriendRequestAcceptedNotification(
       accepter.username,
       request.sender_id,
     );
-    sendNotification(request.sender_id, notification);
+    sendNotification(request.sender_id, senderNotification);
+
+    // Also send notification to receiver to refresh their friends list
+    const receiverNotification = createFriendRequestAcceptedNotification(
+      accepter.username,
+      request.receiver_id,
+    );
+    sendNotification(request.receiver_id, receiverNotification);
 
     return { success: true, message: 'Friend request accepted successfully' };
   } catch (error) {

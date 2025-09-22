@@ -14,8 +14,6 @@ import { store } from '../store';
 import Profile from '../views/profile';
 
 function Menu() {
-	const user = store.getState().user;
-
 	const menu = Wrapper({
 		classes: ['flex', 'gap-4', 'lg:gap-6', 'items-center'],
 	});
@@ -30,7 +28,20 @@ function Menu() {
 	});
 	menu.appendChild(languagesIcon);
 
-	if (user) {
+	function renderUserMenu() {
+		// Remove existing user menu if it exists
+		const existingUserMenu = menu.querySelector('.user-menu');
+		if (existingUserMenu) {
+			existingUserMenu.remove();
+		}
+
+		const user = store.getState().user;
+		if (!user) return;
+
+		const userMenu = Wrapper({
+			classes: ['user-menu', 'relative'],
+		});
+
 		const avatarContainer = Wrapper({
 			classes: ['relative'],
 		});
@@ -106,8 +117,15 @@ function Menu() {
 		dropdownMenu.appendChild(dropdownLogout);
 		avatarContainer.appendChild(avatar);
 		avatarContainer.appendChild(dropdownMenu);
-		menu.appendChild(avatarContainer);
+		userMenu.appendChild(avatarContainer);
+		menu.appendChild(userMenu);
 	}
+
+	// Initial render
+	renderUserMenu();
+
+	// Listen for user updates
+	store.on('userUpdated', renderUserMenu);
 
 	return menu;
 }

@@ -6,6 +6,11 @@ import Friends from './Friends';
 import History from './History';
 
 export default function Home() {
+	// const USER = {
+	// 	name: 'John Doe',
+	// 	avatar: 'https://i.pravatar.cc/300',
+	// };
+
 	const container = Container({
 		classes: [
 			'grid',

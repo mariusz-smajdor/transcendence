@@ -1,5 +1,6 @@
 import { Toaster } from '../components/toaster';
 import { store } from '../store';
+import { dataChangeEmitter } from '../services/notificationService';
 
 export async function getFriends() {
 	try {
@@ -111,8 +112,12 @@ export async function acceptFriendRequest(requestId: number) {
 			},
 		});
 
+		// Emit events to update UI
+		dataChangeEmitter.emit('friendRequestsUpdated');
+
 		// Refresh friends list to include the new friend
 		await getFriends();
+		dataChangeEmitter.emit('friendsUpdated');
 
 		Toaster('Friend request accepted');
 	} catch (error) {
@@ -152,6 +157,9 @@ export async function rejectFriendRequest(requestId: number) {
 			},
 		});
 
+		// Emit event to update UI
+		dataChangeEmitter.emit('friendRequestsUpdated');
+
 		Toaster('Friend request rejected');
 	} catch (error) {
 		if (error instanceof Error) {
@@ -189,6 +197,9 @@ export async function removeFriend(friendId: number) {
 				),
 			},
 		});
+
+		// Emit event to update UI
+		dataChangeEmitter.emit('friendsUpdated');
 
 		Toaster('Friend removed successfully');
 	} catch (error) {
