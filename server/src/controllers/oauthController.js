@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { deleteAvatarFile } from '../utils/avatarCleanup.js';
 
 // Google OAuth handler - redirects to Google's OAuth consent screen
 export const googleOAuthHandler = async (req, res) => {
@@ -92,9 +93,14 @@ export const googleOAuthCallbackHandler = async (req, res) => {
     } else {
       // Update existing user with Google info if needed
       if (!user.google_id) {
+        // Delete old uploaded avatar if user had one
+        if (user.avatar) {
+          deleteAvatarFile(user.avatar);
+        }
+
         const updateUser = db.prepare(`
           UPDATE users 
-          SET google_id = ?, avatar = COALESCE(avatar, ?), firstName = COALESCE(firstName, ?), lastName = COALESCE(lastName, ?)
+          SET google_id = ?, avatar = ?, firstName = COALESCE(firstName, ?), lastName = COALESCE(lastName, ?)
           WHERE id = ?
         `);
         updateUser.run(

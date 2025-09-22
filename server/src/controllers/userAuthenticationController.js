@@ -2,6 +2,7 @@ import User from '../models/userModel.js';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { deleteAvatarFile } from '../utils/avatarCleanup.js';
 
 export const registrationHandler = async (req, res) => {
   const { username, password, confirmPassword, email } = req.body;
@@ -154,12 +155,22 @@ export const updateProfileHandler = async (req, res) => {
   const db = req.context.config.db;
 
   try {
+    // Get current user data to check for existing avatar
+    const currentUser = db
+      .prepare('SELECT avatar FROM users WHERE id = ?')
+      .get(userId);
+
     const parts = req.parts();
     let updateData = {};
     let avatarPath = null;
 
     for await (const part of parts) {
       if (part.type === 'file' && part.fieldname === 'avatar') {
+        // Delete previous avatar file if it exists and is not a Google OAuth avatar
+        if (currentUser?.avatar) {
+          deleteAvatarFile(currentUser.avatar);
+        }
+
         // Handle avatar file upload
         const filename = `${userId}_${Date.now()}_${part.filename}`;
         const uploadDir = path.join(

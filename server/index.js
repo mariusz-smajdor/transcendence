@@ -119,6 +119,26 @@ fastify.get('/', async (req, res) => {
   });
 });
 
+// Cleanup endpoint for orphaned avatar files (admin/maintenance)
+fastify.get('/cleanup-avatars', async (req, res) => {
+  try {
+    const { cleanupOrphanedAvatars } = await import(
+      './src/utils/avatarCleanup.js'
+    );
+    cleanupOrphanedAvatars(fastify.db);
+    return res.status(200).send({
+      success: true,
+      message: 'Avatar cleanup completed',
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    return res.status(500).send({
+      success: false,
+      message: 'Cleanup failed',
+    });
+  }
+});
+
 fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
   if (err) {
     fastify.log.error(err);
