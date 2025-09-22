@@ -200,9 +200,9 @@ class NotificationService {
 			`[data-chatter-id="${notification.data.senderId}"]`
 		);
 		if (senderMessageIcon) {
-			// Remove white color and add red color to indicate unread message
+			// Remove white color and add glow effect to indicate unread message
 			senderMessageIcon.classList.remove('text-white');
-			senderMessageIcon.classList.add('text-red-400');
+			senderMessageIcon.classList.add('glow-secondary-animate');
 		} else {
 			console.log(
 				'Message button not found for senderId:',

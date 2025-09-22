@@ -6,7 +6,11 @@ import { Img } from '../../../components/img';
 import { Icon } from '../../../components/icon';
 import { Input } from '../../../components/input';
 import { Button } from '../../../components/button';
-import { sendMessage, getMessages } from '../../../api/messages';
+import {
+	sendMessage,
+	getMessages,
+	markMessagesAsRead,
+} from '../../../api/messages';
 import { type User } from '../../../types/user';
 import { renderMessages } from './renderMessages';
 import { dataChangeEmitter } from '../../../services/notificationService';
@@ -106,6 +110,9 @@ export function MessageCard(friend: User | null) {
 		try {
 			messages = await getMessages(friend.id);
 			renderMessages(chat, friend.id, messages);
+
+			// Mark messages as read when opening the chat
+			await markMessagesAsRead(friend.id);
 		} catch (error) {
 			console.error('Failed to load messages:', error);
 		}

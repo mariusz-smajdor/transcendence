@@ -49,6 +49,7 @@ const dbConnector = async (fastify, options) => {
       receiver INTEGER NOT NULL,
       message TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      read BOOLEAN DEFAULT FALSE,
       FOREIGN KEY (sender) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (receiver) REFERENCES users(id) ON DELETE CASCADE
     );

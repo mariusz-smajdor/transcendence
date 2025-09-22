@@ -14,12 +14,43 @@ import {
 	removeFriend,
 	sendFriendRequest,
 } from '../../../api/friendRequest';
+import { getConversations } from '../../../api/messages';
 // import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
 import { dataChangeEmitter } from '../../../services/notificationService';
 import { Toaster } from '../../../components/toaster';
 // import { showGameOverlay } from '../../game/game-overlay';
+
+// Track which friends have unread messages
+const unreadMessages = new Set<number>();
+
+async function checkUnreadMessages() {
+	try {
+		const conversations = await getConversations();
+		unreadMessages.clear();
+
+		// Check each conversation for unread messages
+		conversations.forEach((conversation: any) => {
+			if (conversation.unread_count > 0) {
+				unreadMessages.add(conversation.user_id);
+			}
+		});
+
+		// Apply glow effect to message buttons for friends with unread messages
+		unreadMessages.forEach((friendId) => {
+			const messageButton = document.querySelector(
+				`[data-chatter-id="${friendId}"]`
+			);
+			if (messageButton) {
+				messageButton.classList.remove('text-white');
+				messageButton.classList.add('glow-secondary-animate');
+			}
+		});
+	} catch (error) {
+		console.error('Failed to check unread messages:', error);
+	}
+}
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 	e.preventDefault();
@@ -217,8 +248,11 @@ function AllFriendsTab() {
 
 			msgButton.addEventListener('click', () => {
 				// Reset message button color to white when opening chat
-				msgButton.classList.remove('text-red-400');
+				msgButton.classList.remove('glow-secondary-animate');
 				msgButton.classList.add('text-white');
+
+				// Remove from unread messages set
+				unreadMessages.delete(f.id);
 
 				// Remove existing message card if any
 				const existingCard = document.querySelector('[data-chatter]');
@@ -310,7 +344,13 @@ function AllFriendsTab() {
 	searchInput.addEventListener('input', renderFriends);
 
 	// Listen for friends updates
-	dataChangeEmitter.on('friendsUpdated', renderFriends);
+	dataChangeEmitter.on('friendsUpdated', () => {
+		renderFriends();
+		// Check for unread messages after friends list is updated
+		setTimeout(() => {
+			checkUnreadMessages();
+		}, 200);
+	});
 
 	// Initial render
 	renderFriends();
@@ -408,6 +448,11 @@ export default function Friends() {
 
 	// Initial count update
 	updateRequestsCount();
+
+	// Check for unread messages after component is fully loaded
+	setTimeout(() => {
+		checkUnreadMessages();
+	}, 100);
 
 	heading.prepend(
 		Icon({

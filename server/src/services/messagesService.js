@@ -45,7 +45,7 @@ export const sendMessage = async (db, senderId, receiverId, message) => {
 export const getMessages = async (db, userId, otherUserId) => {
   try {
     const messagesQuery = `
-      SELECT m.id, m.sender, m.receiver, m.message, m.created_at, u.username as sender_username
+      SELECT m.id, m.sender, m.receiver, m.message, m.created_at, m.read, u.username as sender_username
       FROM messages m
       INNER JOIN users u ON m.sender = u.id
       WHERE (m.sender = ? AND m.receiver = ?) OR (m.sender = ? AND m.receiver = ?)
@@ -105,7 +105,7 @@ export const getConversations = async (db, userId) => {
           END as other_user_id,
           COUNT(*) as count
         FROM messages 
-        WHERE receiver = ? AND sender != ?
+        WHERE receiver = ? AND sender != ? AND read = FALSE
         GROUP BY other_user_id
       ) unread_count ON conversations.other_user_id = unread_count.other_user_id
       ORDER BY last_message_time DESC
@@ -133,9 +133,19 @@ export const getConversations = async (db, userId) => {
 
 export const markMessagesAsRead = async (db, userId, otherUserId) => {
   try {
-    // For simplicity, we'll just return success since we don't have a read status column
-    // In a real app, you'd update a read_at timestamp or similar
-    return { success: true, message: 'Messages marked as read' };
+    const stmt = db.prepare(`
+      UPDATE messages 
+      SET read = TRUE 
+      WHERE sender = ? AND receiver = ? AND read = FALSE
+    `);
+
+    const result = stmt.run(otherUserId, userId);
+
+    return {
+      success: true,
+      message: 'Messages marked as read',
+      updatedCount: result.changes,
+    };
   } catch (error) {
     console.error('Error marking messages as read:', error);
     return { success: false, message: 'Failed to mark messages as read' };
