@@ -16,6 +16,7 @@ import {
 // import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
+import { dataChangeEmitter } from '../../../services/notificationService';
 // import { showGameOverlay } from '../../game/game-overlay';
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
@@ -32,8 +33,6 @@ function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 }
 
 function FriendRequestTab() {
-	const currentUser = store.getState().user;
-
 	const tab = Tab({
 		value: 'requests',
 		classes: ['flex', 'flex-col', 'gap-4'],
@@ -44,72 +43,91 @@ function FriendRequestTab() {
 		classes: ['text-muted', 'text-center', 'py-4', 'lg:py-6'],
 	});
 
-	currentUser?.friendRequests?.length === 0
-		? wrapper.appendChild(noFriendsMessage)
-		: currentUser?.friendRequests?.forEach((f) => {
-				const friends = Wrapper({
-					classes: [
-						'flex',
-						'p-2',
-						'items-center',
-						'justify-between',
-						'gap-2',
-						'rounded',
-						'hover:bg-background/25',
-					],
-				});
-				const friend = Wrapper({
-					classes: ['flex', 'items-center', 'gap-4'],
-				});
-				const avatar = Img({
-					src: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
-					alt: f.senderUsername,
-					width: 35,
-					height: 35,
-					classes: ['rounded-full', 'border', 'border-accent'],
-				});
-				const name = Text({
-					element: 'span',
-					content: f.senderUsername,
-					classes: ['text-sm'],
-				});
-				const buttons = Wrapper({ classes: ['flex', 'gap-4'] });
-				const addButton = Button({
-					type: 'button',
-					variant: 'ghost',
-					classes: ['text-green-400'],
-				});
-				const rejectButton = Button({
-					type: 'button',
-					variant: 'ghost',
-					classes: ['text-red-400'],
-				});
+	function renderFriendRequests() {
+		wrapper.innerHTML = '';
+		const currentUser = store.getState().user;
 
-				addButton.addEventListener('click', () => {
-					acceptFriendRequest(f.id);
-					wrapper.removeChild(friends);
-					if (wrapper.childElementCount === 0) {
-						wrapper.appendChild(noFriendsMessage);
-					}
-				});
-				rejectButton.addEventListener('click', () => {
-					rejectFriendRequest(f.id);
-					wrapper.removeChild(friends);
-					if (wrapper.childElementCount === 0) {
-						wrapper.appendChild(noFriendsMessage);
-					}
-				});
+		if (!currentUser?.friendRequests?.length) {
+			wrapper.appendChild(noFriendsMessage);
+			return;
+		}
 
-				addButton.appendChild(Icon({ icon: UserPlus }));
-				rejectButton.appendChild(Icon({ icon: UserX }));
-				buttons.appendChild(addButton);
-				buttons.appendChild(rejectButton);
-				friend.appendChild(avatar);
-				friend.appendChild(name);
-				friends.appendChild(friend);
-				friends.appendChild(buttons);
-				wrapper.appendChild(friends);
-		  });
+		currentUser.friendRequests.forEach((f) => {
+			const friends = Wrapper({
+				classes: [
+					'flex',
+					'p-2',
+					'items-center',
+					'justify-between',
+					'gap-2',
+					'rounded',
+					'hover:bg-background/25',
+				],
+			});
+			const friend = Wrapper({
+				classes: ['flex', 'items-center', 'gap-4'],
+			});
+			const avatar = Img({
+				src: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
+				alt: f.senderUsername,
+				width: 35,
+				height: 35,
+				classes: ['rounded-full', 'border', 'border-accent'],
+			});
+			const name = Text({
+				element: 'span',
+				content: f.senderUsername,
+				classes: ['text-sm'],
+			});
+			const buttons = Wrapper({ classes: ['flex', 'gap-4'] });
+			const addButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-green-400'],
+			});
+			const rejectButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-red-400'],
+			});
+
+			addButton.addEventListener('click', () => {
+				acceptFriendRequest(f.id);
+				// Immediately remove the request from UI
+				wrapper.removeChild(friends);
+				// Show no requests message if list is empty
+				if (wrapper.childElementCount === 0) {
+					wrapper.appendChild(noFriendsMessage);
+				}
+			});
+			rejectButton.addEventListener('click', () => {
+				rejectFriendRequest(f.id);
+				// Immediately remove the request from UI
+				wrapper.removeChild(friends);
+				// Show no requests message if list is empty
+				if (wrapper.childElementCount === 0) {
+					wrapper.appendChild(noFriendsMessage);
+				}
+			});
+
+			addButton.appendChild(Icon({ icon: UserPlus }));
+			rejectButton.appendChild(Icon({ icon: UserX }));
+			buttons.appendChild(addButton);
+			buttons.appendChild(rejectButton);
+			friend.appendChild(avatar);
+			friend.appendChild(name);
+			friends.appendChild(friend);
+			friends.appendChild(buttons);
+			wrapper.appendChild(friends);
+		});
+	}
+
+	// Listen for friend requests updates
+	dataChangeEmitter.on('friendRequestsUpdated', renderFriendRequests);
+
+	// Initial render
+	renderFriendRequests();
+
 	tab.appendChild(wrapper);
 
 	return tab;
@@ -251,6 +269,11 @@ function AllFriendsTab(parent: HTMLElement) {
 	// });
 
 	searchInput.addEventListener('input', renderFriends);
+
+	// Listen for friends updates
+	dataChangeEmitter.on('friendsUpdated', renderFriends);
+
+	// Initial render
 	renderFriends();
 
 	tab.appendChild(searchInput);
@@ -260,8 +283,6 @@ function AllFriendsTab(parent: HTMLElement) {
 }
 
 export default function Friends() {
-	const { user } = store.getState();
-
 	const section = Card({
 		element: 'section',
 		classes: [
@@ -304,26 +325,50 @@ export default function Friends() {
 		content: 'Requests',
 		value: 'requests',
 	});
-	if (user?.friendRequests?.length) {
-		requestsTrigger.classList.add(
-			'flex',
-			'items-center',
-			'justify-center',
-			'gap-2'
-		);
-		const requestsCount = Wrapper({
-			classes: [
-				'bg-secondary',
-				'rounded-full',
-				'px-2.5',
-				'text-white',
-				'text-bold',
-				'text-xs',
-			],
-		});
-		requestsCount.textContent = user.friendRequests.length.toString();
-		requestsTrigger.appendChild(requestsCount);
+
+	function updateRequestsCount() {
+		const { user } = store.getState();
+		// Remove existing count if any
+		const existingCount = requestsTrigger.querySelector('.requests-count');
+		if (existingCount) {
+			requestsTrigger.removeChild(existingCount);
+		}
+
+		if (user?.friendRequests?.length) {
+			requestsTrigger.classList.add(
+				'flex',
+				'items-center',
+				'justify-center',
+				'gap-2'
+			);
+			const requestsCount = Wrapper({
+				classes: [
+					'bg-secondary',
+					'rounded-full',
+					'px-2.5',
+					'text-white',
+					'text-bold',
+					'text-xs',
+					'requests-count',
+				],
+			});
+			requestsCount.textContent = user.friendRequests.length.toString();
+			requestsTrigger.appendChild(requestsCount);
+		} else {
+			requestsTrigger.classList.remove(
+				'flex',
+				'items-center',
+				'justify-center',
+				'gap-2'
+			);
+		}
 	}
+
+	// Listen for friend requests updates to update the count
+	dataChangeEmitter.on('friendRequestsUpdated', updateRequestsCount);
+
+	// Initial count update
+	updateRequestsCount();
 
 	heading.prepend(
 		Icon({

@@ -7,6 +7,39 @@ export const NOTIFICATION_TYPES = {
 	CONNECTION_ESTABLISHED: 'connection_established',
 } as const;
 
+// Event system for notifying components of data changes
+type DataChangeEvent = 'friendRequestsUpdated' | 'friendsUpdated';
+
+class EventEmitter {
+	private listeners: Map<DataChangeEvent, Function[]> = new Map();
+
+	on(event: DataChangeEvent, callback: Function) {
+		if (!this.listeners.has(event)) {
+			this.listeners.set(event, []);
+		}
+		this.listeners.get(event)!.push(callback);
+	}
+
+	off(event: DataChangeEvent, callback: Function) {
+		const eventListeners = this.listeners.get(event);
+		if (eventListeners) {
+			const index = eventListeners.indexOf(callback);
+			if (index > -1) {
+				eventListeners.splice(index, 1);
+			}
+		}
+	}
+
+	emit(event: DataChangeEvent, data?: any) {
+		const eventListeners = this.listeners.get(event);
+		if (eventListeners) {
+			eventListeners.forEach((callback) => callback(data));
+		}
+	}
+}
+
+export const dataChangeEmitter = new EventEmitter();
+
 type NotificationData = {
 	type: string;
 	data: any;
@@ -90,6 +123,7 @@ class NotificationService {
 			}, this.reconnectDelay * this.reconnectAttempts);
 		} else {
 			console.log('Max reconnection attempts reached');
+			Toaster('Failed to connect to notifications. Try again later.');
 		}
 	}
 
@@ -140,6 +174,7 @@ class NotificationService {
 		try {
 			const { getFriendRequests } = await import('../api/friendRequest');
 			await getFriendRequests();
+			dataChangeEmitter.emit('friendRequestsUpdated');
 		} catch (error) {
 			console.error('Failed to refresh friend requests:', error);
 		}
@@ -149,6 +184,7 @@ class NotificationService {
 		try {
 			const { getFriends } = await import('../api/friendRequest');
 			await getFriends();
+			dataChangeEmitter.emit('friendsUpdated');
 		} catch (error) {
 			console.error('Failed to refresh friends:', error);
 		}
