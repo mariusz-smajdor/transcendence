@@ -29,11 +29,19 @@ fastify.register(FastifyEnv, {
   confKey: 'config',
   schema: {
     type: 'object',
-    required: ['JWT_SECRET', 'COOKIES_SECRET'],
+    required: [
+      'PORT',
+      'JWT_SECRET',
+      'COOKIES_SECRET',
+      'GOOGLE_CLIENT_ID',
+      'GOOGLE_CLIENT_SECRET',
+    ],
     properties: {
       PORT: { type: 'number', default: 3000 },
       JWT_SECRET: { type: 'string' },
       COOKIES_SECRET: { type: 'string' },
+      GOOGLE_CLIENT_ID: { type: 'string' },
+      GOOGLE_CLIENT_SECRET: { type: 'string' },
     },
   },
   dotenv: true, // Automatically load .env file
