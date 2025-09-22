@@ -3,7 +3,6 @@ import { Wrapper } from '../components/wrapper';
 import { Container } from '../components/container';
 import { Heading } from '../components/heading';
 import { Icon } from '../components/icon';
-import { Text } from '../components/text';
 import { Img } from '../components/img';
 import {
 	DropdownItem,
@@ -115,21 +114,18 @@ function Logo() {
 		level: 1,
 		classes: ['cursor-pointer', 'select-none', 'text-xl'],
 	});
-	const logoContent1 = Text({
-		content: 'Super',
-		classes: ['text-primary', 'glow-primary-animate'],
-	});
-	const logoContent2 = Text({
-		content: 'Pong',
-		classes: ['text-secondary', 'glow-secondary-animate'],
+	const logoIcon = Img({
+		src: '/favicon.png',
+		alt: 'Logo',
+		width: 32,
+		height: 32,
 	});
 
 	logo.addEventListener('click', () => {
 		window.location.href = '/';
 	});
 
-	logo.appendChild(logoContent1);
-	logo.appendChild(logoContent2);
+	logo.appendChild(logoIcon);
 
 	return logo;
 }
