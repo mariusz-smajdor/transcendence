@@ -61,7 +61,7 @@ fastify.register(FastifyStatic, {
 });
 fastify.register(cors, {
   origin: 'http://localhost:8080',
-  methods: ['GET', 'POST', 'PUT'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 });

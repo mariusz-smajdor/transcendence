@@ -11,12 +11,14 @@ import { Button } from '../../../components/button';
 import {
 	acceptFriendRequest,
 	rejectFriendRequest,
+	removeFriend,
 	sendFriendRequest,
 } from '../../../api/friendRequest';
 // import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
 import { dataChangeEmitter } from '../../../services/notificationService';
+import { Toaster } from '../../../components/toaster';
 // import { showGameOverlay } from '../../game/game-overlay';
 
 function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
@@ -201,6 +203,14 @@ function AllFriendsTab(parent: HTMLElement) {
 			const msgIcon = Icon({
 				icon: MessageCircle,
 			});
+			const removeButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-red-400'],
+			});
+			const removeIcon = Icon({
+				icon: UserX,
+			});
 
 			msgButton.addEventListener('click', () => {
 				if (messageCard && parent.contains(messageCard)) {
@@ -213,11 +223,25 @@ function AllFriendsTab(parent: HTMLElement) {
 				parent.appendChild(messageCard);
 			});
 
+			removeButton.addEventListener('click', async () => {
+				try {
+					await removeFriend(f.id);
+				} catch (error) {
+					if (error instanceof Error) {
+						Toaster(error.message);
+					} else {
+						Toaster('Failed to remove friend.');
+					}
+				}
+			});
+
 			msgButton.appendChild(msgIcon);
+			removeButton.appendChild(removeIcon);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
 			friends.appendChild(friend);
 			friends.appendChild(msgButton);
+			friends.appendChild(removeButton);
 			wrapper.appendChild(friends);
 		});
 	}
