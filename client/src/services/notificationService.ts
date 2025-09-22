@@ -199,10 +199,18 @@ class NotificationService {
 		const senderMessageIcon = document.querySelector(
 			`[data-chatter-id="${notification.data.senderId}"]`
 		);
-		if (senderMessageIcon) {
+		const senderMessageCard = document.querySelector(
+			`[data-chatter="${notification.data.senderId}"]`
+		);
+
+		// Only change button color if the chat is not currently open
+		if (senderMessageIcon && !senderMessageCard) {
 			// Remove white color and add glow effect to indicate unread message
 			senderMessageIcon.classList.remove('text-white');
 			senderMessageIcon.classList.add('glow-secondary-animate');
+		} else if (senderMessageCard) {
+			// Chat is open, don't change button color but still update messages
+			console.log('Chat is open with sender, not changing button color');
 		} else {
 			console.log(
 				'Message button not found for senderId:',

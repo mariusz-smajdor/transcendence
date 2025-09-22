@@ -41,6 +41,7 @@ export function MessageCard(friend: User | null) {
 			'z-50',
 		],
 	});
+	card.setAttribute('message-card', 'closed');
 	card.dataset.chatter = friend.id.toString();
 	card.classList.remove('lg:p-6');
 	const menu = Wrapper({
@@ -119,6 +120,7 @@ export function MessageCard(friend: User | null) {
 	}
 
 	closeTrigger.addEventListener('click', () => {
+		card.setAttribute('message-card', 'closed');
 		card.remove();
 	});
 
