@@ -15,9 +15,8 @@ const activeConnections = new Map();
 export const addConnection = (userId, ws) => {
   activeConnections.set(userId, ws);
   console.log(
-    `✅ User ${userId} connected. Total connections: ${activeConnections.size}`,
+    `User ${userId} connected. Total connections: ${activeConnections.size}`,
   );
-  console.log(`📊 All connected users:`, Array.from(activeConnections.keys()));
 };
 
 export const removeConnection = (userId) => {
@@ -28,30 +27,21 @@ export const removeConnection = (userId) => {
 };
 
 export const sendNotification = (userId, notification) => {
-  console.log(
-    `🔔 Attempting to send notification to user ${userId}:`,
-    notification.type,
-  );
-  console.log(`📊 Active connections:`, Array.from(activeConnections.keys()));
-
   const connection = activeConnections.get(userId);
 
   if (connection && connection.readyState === 1) {
     // WebSocket.OPEN
     try {
       connection.send(JSON.stringify(notification));
-      console.log(`✅ Notification sent to user ${userId}:`, notification.type);
+      console.log(`Notification sent to user ${userId}:`, notification.type);
       return true;
     } catch (error) {
-      console.error(`❌ Failed to send notification to user ${userId}:`, error);
+      console.error(`Failed to send notification to user ${userId}:`, error);
       removeConnection(userId);
       return false;
     }
   } else {
-    console.log(
-      `❌ User ${userId} is not connected. Connection state:`,
-      connection?.readyState,
-    );
+    console.log(`User ${userId} is not connected`);
     return false;
   }
 };

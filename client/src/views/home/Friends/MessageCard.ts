@@ -104,9 +104,7 @@ export function MessageCard(friend: User | null) {
 
 	async function loadMessages() {
 		try {
-			console.log('Loading messages for friend:', friend.id);
 			messages = await getMessages(friend.id);
-			console.log('Loaded messages:', messages);
 			renderMessages(chat, friend.id, messages);
 		} catch (error) {
 			console.error('Failed to load messages:', error);

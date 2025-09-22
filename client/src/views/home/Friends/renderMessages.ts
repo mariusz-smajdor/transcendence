@@ -9,11 +9,9 @@ export function renderMessages(
 ) {
 	const { user } = store.getState();
 
-	console.log('renderMessages called with:', { messages, user: user?.id });
 	chat.innerHTML = '';
 
 	if (messages.length === 0) {
-		console.log('No messages, showing empty state');
 		const noMessages = Text({
 			content: 'No messages yet. Start the conversation!',
 			classes: ['text-muted', 'text-center', 'py-8'],
@@ -22,8 +20,7 @@ export function renderMessages(
 		return;
 	}
 
-	messages.forEach((message, index) => {
-		console.log(`Rendering message ${index}:`, message);
+	messages.forEach((message) => {
 		const isOwnMessage = message.sender === user?.id;
 		const styles = isOwnMessage
 			? ['bg-primary/50', 'ml-auto']
@@ -50,7 +47,6 @@ export function renderMessages(
 
 		messageEl.appendChild(messageContent);
 		chat.appendChild(messageEl);
-		console.log('Message element added to chat');
 	});
 
 	// Scroll to bottom

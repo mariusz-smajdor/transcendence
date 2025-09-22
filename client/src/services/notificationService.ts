@@ -84,7 +84,6 @@ class NotificationService {
 			this.ws = new WebSocket(wsUrl);
 
 			this.ws.onopen = () => {
-				console.log('✅ WebSocket connected successfully');
 				this.isConnecting = false;
 				this.reconnectAttempts = 0;
 			};
@@ -92,7 +91,6 @@ class NotificationService {
 			this.ws.onmessage = (event) => {
 				try {
 					const notification: NotificationData = JSON.parse(event.data);
-					console.log('📨 Received notification:', notification);
 					this.handleNotification(notification);
 				} catch (error) {
 					console.error('Error parsing notification:', error);
@@ -165,7 +163,6 @@ class NotificationService {
 	}
 
 	private handleFriendRequest(notification: NotificationData) {
-		console.log('🔔 Handling friend request notification:', notification);
 		// Show toast notification
 		Toaster(notification.message);
 
@@ -204,11 +201,9 @@ class NotificationService {
 
 	private async refreshFriendRequests() {
 		try {
-			console.log('🔄 Refreshing friend requests...');
 			const { getFriendRequests } = await import('../api/friendRequest');
 			await getFriendRequests();
 			dataChangeEmitter.emit('friendRequestsUpdated');
-			console.log('✅ Friend requests refreshed');
 		} catch (error) {
 			console.error('Failed to refresh friend requests:', error);
 		}
