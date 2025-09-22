@@ -1,15 +1,16 @@
 import { KeyRound } from 'lucide';
-import { Card } from '../../components/card';
-import { Tabs, Trigger } from '../../components/tabs';
-import { Heading } from '../../components/heading';
-import { Icon } from '../../components/icon';
-import { Button } from '../../components/button';
-import { Img } from '../../components/img';
-import { Separator } from '../../components/separator';
-import Login from './login';
-import Register from './register';
+import { Card } from '../../../components/card';
+import { Tabs, Trigger } from '../../../components/tabs';
+import { Heading } from '../../../components/heading';
+import { Icon } from '../../../components/icon';
+import { Button } from '../../../components/button';
+import { Img } from '../../../components/img';
+import { Separator } from '../../../components/separator';
+import Login from './Login';
+import Register from './Register';
+import { store } from '../../../store';
 
-export default function AuthSection() {
+export default function Auth() {
 	const section = Card({
 		element: 'section',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-2', 'lg:gap-6'],
@@ -37,6 +38,10 @@ export default function AuthSection() {
 		height: 18,
 	});
 	googleButton.appendChild(googleLogo);
+	googleButton.addEventListener('click', () => {
+		const api_url = store.getState().api_url;
+		window.location.href = `${api_url}/login/google`;
+	});
 
 	heading.prepend(
 		Icon({
@@ -49,7 +54,7 @@ export default function AuthSection() {
 
 	section.appendChild(
 		Tabs({
-			defaultValue: 'register',
+			defaultValue: 'login',
 			triggers: [
 				Trigger({ content: 'Login', value: 'login' }),
 				Trigger({ content: 'Register', value: 'register' }),

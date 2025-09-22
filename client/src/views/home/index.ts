@@ -1,7 +1,8 @@
 import GameSection from './game-section';
-import AuthSection from './auth-section';
+import Auth from './AuthSection';
 import { Container } from '../../components/container';
-import { Card } from '../../components/card';
+import { store } from '../../store';
+import Friends from './Friends';
 
 export default function Home() {
 	const container = Container({
@@ -18,13 +19,10 @@ export default function Home() {
 			'lg:min-h-[calc(100vh-6.5rem)]',
 		],
 	});
-	const historySection = Card({
-		element: 'section',
-		classes: ['hidden'],
-	});
+
+	const user = store.getState().user;
 
 	container.appendChild(GameSection());
-	container.appendChild(AuthSection());
-	container.appendChild(historySection);
+	container.appendChild(user ? Friends() : Auth());
 	return container;
 }

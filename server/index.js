@@ -4,8 +4,6 @@ import fCookie from '@fastify/cookie';
 import dbConnector from './src/models/database.js';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
-import gameChatRoutes from './src/routes/gameChat.js';
-import privateChatRoutes from './src/routes/privateChat.js';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
@@ -85,8 +83,6 @@ fastify.addHook('onRequest', async (req, res) => {
 fastify.register(dbConnector);
 
 fastify.register(userAuthenticationRoutes); // /register /login /logout
-fastify.register(gameChatRoutes); // /gameChat/gameId
-fastify.register(privateChatRoutes); // /privateChat/userId
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

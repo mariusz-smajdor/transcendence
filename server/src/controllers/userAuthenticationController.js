@@ -49,12 +49,15 @@ export const loginHandler = async (req, res) => {
 export const logoutHandler = async (req, res) => {
   const db = req.context.config.db;
   const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
 
-  if (!authHeader) {
-    return res.status(400).send({ error: 'No Authorization header' });
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
   }
 
-  const token = authHeader.split(' ')[1]; // "Bearer <token>"
+  if (!token) {
+    return res.status(400).send({ error: 'No token provided' });
+  }
 
   try {
     const decoded = req.server.jwt.decode(token);
@@ -84,4 +87,41 @@ export const logoutHandler = async (req, res) => {
       .status(500)
       .send({ success: false, message: 'Logged out successfully' });
   }
+};
+
+export const meHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
+
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+
+  if (!token) {
+    return res.status(400).send({ message: 'No token provided' });
+  }
+
+  let decoded;
+  try {
+    decoded = req.server.jwt.verify(token);
+  } catch (err) {
+    return res.status(400).send({ message: 'Invalid token' });
+  }
+
+  const userId = decoded.userId;
+  const db = req.context.config.db;
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+
+  if (!user) {
+    return res.status(400).send({ message: 'User not found' });
+  }
+
+  const payload = {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    avatar: user.avatar,
+  };
+
+  return res.status(200).send({ payload });
 };

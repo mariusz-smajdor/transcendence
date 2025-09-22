@@ -1,20 +1,111 @@
-import { Languages } from 'lucide';
+import { Languages, LogOut, User } from 'lucide';
 import { Wrapper } from '../components/wrapper';
 import { Container } from '../components/container';
 import { Heading } from '../components/heading';
 import { Icon } from '../components/icon';
-import { Button } from '../components/button';
 import { Text } from '../components/text';
+import { Img } from '../components/img';
+import {
+	DropdownItem,
+	DropdownMenu,
+	DropdownSeparator,
+	DropdownTitle,
+} from '../components/dropdown-menu';
+import { store } from '../store';
+import Profile from '../views/profile';
 
 function Menu() {
-	const menu = Wrapper({});
-	const languagesButton = Button({
-		variant: 'ghost',
-	});
-	const languagesIcon = Icon({ icon: Languages });
+	const user = store.getState().user;
 
-	languagesButton.appendChild(languagesIcon);
-	menu.appendChild(languagesButton);
+	const menu = Wrapper({
+		classes: ['flex', 'gap-4', 'lg:gap-6', 'items-center'],
+	});
+	const languagesIcon = Icon({
+		icon: Languages,
+		classes: [
+			'cursor-pointer',
+			'transition-colors',
+			'duration-300',
+			'hover:text-secondary',
+		],
+	});
+	menu.appendChild(languagesIcon);
+
+	if (user) {
+		const avatar = Img({
+			src:
+				user.avatar ||
+				`https://ui-avatars.com/api/?length=1&name=${user?.username}&background=random`,
+			alt: 'User Avatar',
+			loading: 'lazy',
+			classes: [
+				'w-10',
+				'h-10',
+				'rounded-full',
+				'border-2',
+				'border-primary',
+				'transition-colors',
+				'duration-300',
+				'cursor-pointer',
+				'hover:border-secondary',
+			],
+		});
+		const dropdownMenu = DropdownMenu({
+			dropdownTrigger: avatar,
+			classes: ['top-16', 'right-12'],
+		});
+		const dropdownTitle = DropdownTitle({
+			content: user.username,
+			classes: ['glow-primary-animate'],
+		});
+		const profileIcon = Icon({
+			icon: User,
+			size: 'sm',
+		});
+		const dropdownProfile = DropdownItem({
+			content: 'Profile',
+		});
+		const logoutIcon = Icon({
+			icon: LogOut,
+			size: 'sm',
+		});
+		const dropdownLogout = DropdownItem({
+			content: 'Logout',
+		});
+
+		dropdownLogout.addEventListener('click', async (e) => {
+			e.preventDefault();
+
+			try {
+				const res = await fetch('http://localhost:3000/logout', {
+					method: 'POST',
+					credentials: 'include',
+				});
+
+				if (res.ok) {
+					store.setState({ user: null });
+					window.location.href = '/';
+				} else {
+					console.error('Logout failed:', await res.text());
+				}
+			} catch (error) {
+				console.error('Error during logout:', error);
+			}
+		});
+
+		dropdownProfile.addEventListener('click', () => {
+			document.body.appendChild(Profile());
+		});
+
+		dropdownProfile.appendChild(profileIcon);
+		dropdownLogout.appendChild(logoutIcon);
+		dropdownMenu.appendChild(dropdownTitle);
+		dropdownMenu.appendChild(DropdownSeparator());
+		dropdownMenu.appendChild(dropdownProfile);
+		dropdownMenu.appendChild(dropdownLogout);
+		menu.appendChild(avatar);
+		menu.appendChild(dropdownMenu);
+	}
 
 	return menu;
 }
