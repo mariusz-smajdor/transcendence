@@ -8,11 +8,11 @@ import { Input } from '../../../components/input';
 import { Img } from '../../../components/img';
 import { Text } from '../../../components/text';
 import { Button } from '../../../components/button';
-// import {
-// 	acceptFriendRequest,
-// 	rejectFriendRequest,
-// 	sendFriendRequest,
-// } from '../../../api/friendRequest';
+import {
+	acceptFriendRequest,
+	rejectFriendRequest,
+	sendFriendRequest,
+} from '../../../api/friendRequest';
 // import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
@@ -28,7 +28,7 @@ function addFriendHandler(e: Event, friendInput: HTMLInputElement) {
 		return;
 	}
 
-	// sendFriendRequest(friendUsername);
+	sendFriendRequest(friendUsername);
 }
 
 function FriendRequestTab() {
@@ -62,11 +62,10 @@ function FriendRequestTab() {
 					classes: ['flex', 'items-center', 'gap-4'],
 				});
 				const avatar = Img({
-					src: f.senderAvatar || 'https://i.pravatar.cc/300',
+					src: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
 					alt: f.senderUsername,
 					width: 35,
 					height: 35,
-					loading: 'lazy',
 					classes: ['rounded-full', 'border', 'border-accent'],
 				});
 				const name = Text({
@@ -87,14 +86,14 @@ function FriendRequestTab() {
 				});
 
 				addButton.addEventListener('click', () => {
-					// acceptFriendRequest(f.senderId);
+					acceptFriendRequest(f.id);
 					wrapper.removeChild(friends);
 					if (wrapper.childElementCount === 0) {
 						wrapper.appendChild(noFriendsMessage);
 					}
 				});
 				rejectButton.addEventListener('click', () => {
-					// rejectFriendRequest(f.senderId);
+					rejectFriendRequest(f.id);
 					wrapper.removeChild(friends);
 					if (wrapper.childElementCount === 0) {
 						wrapper.appendChild(noFriendsMessage);
@@ -161,11 +160,10 @@ function AllFriendsTab(parent: HTMLElement) {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: f.avatar || `https://i.pravatar.cc/30${f.id}`,
+				src: `https://ui-avatars.com/api/?length=1&name=${f.username}&background=random`,
 				alt: f.username,
 				width: 35,
 				height: 35,
-				loading: 'lazy',
 				classes: ['rounded-full', 'border', 'border-accent'],
 			});
 			const name = Text({

@@ -5,6 +5,7 @@ import dbConnector from './src/models/database.js';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
+import friendsRoutes from './src/routes/friendsRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import {
@@ -83,6 +84,7 @@ fastify.addHook('onRequest', async (req, res) => {
 fastify.register(dbConnector);
 
 fastify.register(userAuthenticationRoutes); // /register /login /logout
+fastify.register(friendsRoutes); // /friends, /friends/request, /friends/requests, /friends/accept, /friends/reject
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

@@ -23,6 +23,24 @@ const dbConnector = async (fastify, options) => {
       token TEXT PRIMARY KEY,
       expires_at INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS friends (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id_1 INTEGER NOT NULL,
+      user_id_2 INTEGER NOT NULL,
+      FOREIGN KEY (user_id_1) REFERENCES users (id),
+      FOREIGN KEY (user_id_2) REFERENCES users (id)
+      UNIQUE (user_id_1, user_id_2)
+    );
+    
+    CREATE TABLE IF NOT EXISTS friend_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id INTEGER NOT NULL,
+      receiver_id INTEGER NOT NULL,
+      FOREIGN KEY (sender_id) REFERENCES users (id),
+      FOREIGN KEY (receiver_id) REFERENCES users (id)
+      UNIQUE (sender_id, receiver_id)
+    );
   `);
 
   fastify.decorate('db', db);

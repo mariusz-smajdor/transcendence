@@ -1,17 +1,17 @@
 export type UserData = {
 	id: number;
 	username: string;
-	avatar: string;
 	email: string;
 	friendRequests?: {
+		id: number;
 		senderId: number;
 		senderUsername: string;
-		senderAvatar: string;
+		senderEmail: string;
 	}[];
 	friends?: {
 		id: number;
 		username: string;
-		avatar: string;
+		email: string;
 	}[];
 };
 
