@@ -8,7 +8,7 @@ import {
 export const getFriendsList = async (db, userId) => {
   try {
     const friendsQuery = `
-      SELECT u.id, u.username, u.email
+      SELECT u.id, u.username, u.email, u.avatar
       FROM users u
       INNER JOIN friends f ON (
         (f.user_id_1 = ? AND f.user_id_2 = u.id) OR
@@ -125,7 +125,7 @@ export const sendFriendRequest = async (db, senderId, receiverUsername) => {
 export const getFriendRequests = async (db, userId) => {
   try {
     const requestsQuery = `
-      SELECT fr.id, fr.sender_id, u.username, u.email
+      SELECT fr.id, fr.sender_id, u.username, u.email, u.avatar
       FROM friend_requests fr
       INNER JOIN users u ON fr.sender_id = u.id
       WHERE fr.receiver_id = ?

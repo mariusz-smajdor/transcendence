@@ -14,7 +14,12 @@ export async function getFriends() {
 		store.setState({
 			user: {
 				...store.getState().user!,
-				friends: data.friends,
+				friends: data.friends.map((friend: any) => ({
+					id: friend.id,
+					username: friend.username,
+					email: friend.email,
+					avatar: friend.avatar,
+				})),
 			},
 		});
 	} catch (error) {
@@ -67,6 +72,7 @@ export async function getFriendRequests() {
 						senderId: f.sender_id,
 						senderUsername: f.username,
 						senderEmail: f.email,
+						senderAvatar: f.avatar,
 					})),
 				},
 			});

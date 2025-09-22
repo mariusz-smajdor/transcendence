@@ -68,7 +68,9 @@ function FriendRequestTab() {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
+				src: f.senderAvatar
+					? `http://localhost:3000${f.senderAvatar}`
+					: `https://ui-avatars.com/api/?length=1&name=${f.senderUsername}&background=random`,
 				alt: f.senderUsername,
 				width: 35,
 				height: 35,
@@ -178,7 +180,9 @@ function AllFriendsTab(parent: HTMLElement) {
 				classes: ['flex', 'items-center', 'gap-4'],
 			});
 			const avatar = Img({
-				src: `https://ui-avatars.com/api/?length=1&name=${f.username}&background=random`,
+				src: f.avatar
+					? `http://localhost:3000${f.avatar}`
+					: `https://ui-avatars.com/api/?length=1&name=${f.username}&background=random`,
 				alt: f.username,
 				width: 35,
 				height: 35,

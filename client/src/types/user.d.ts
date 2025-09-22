@@ -8,11 +8,13 @@ export type UserData = {
 		senderId: number;
 		senderUsername: string;
 		senderEmail: string;
+		senderAvatar?: string;
 	}[];
 	friends?: {
 		id: number;
 		username: string;
 		email: string;
+		avatar?: string;
 	}[];
 };
 
