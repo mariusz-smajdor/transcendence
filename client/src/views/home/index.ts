@@ -5,11 +5,6 @@ import { store } from '../../store';
 import Friends from './Friends';
 import History from './History';
 
-const USER = {
-	name: 'John Doe',
-	avatar: 'https://i.pravatar.cc/300',
-};
-
 export default function Home() {
 	const container = Container({
 		classes: [
@@ -27,6 +22,6 @@ export default function Home() {
 
 	container.appendChild(GameSection());
 	container.appendChild(user ? Friends() : Auth());
-	user && container.appendChild(History(USER));
+	user && container.appendChild(History(user));
 	return container;
 }
