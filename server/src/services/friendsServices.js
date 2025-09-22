@@ -1,3 +1,10 @@
+import {
+  sendNotification,
+  createFriendRequestNotification,
+  createFriendRequestAcceptedNotification,
+  createFriendRequestRejectedNotification,
+} from './notificationService.js';
+
 export const getFriendsList = async (db, userId) => {
   try {
     const friendsQuery = `
@@ -93,6 +100,18 @@ export const sendFriendRequest = async (db, senderId, receiverUsername) => {
     const result = stmt.run(senderId, receiverId);
 
     if (result.changes > 0) {
+      // Get sender username for notification
+      const sender = db
+        .prepare('SELECT username FROM users WHERE id = ?')
+        .get(senderId);
+
+      // Send notification to receiver
+      const notification = createFriendRequestNotification(
+        sender.username,
+        receiverId,
+      );
+      sendNotification(receiverId, notification);
+
       return { success: true, message: 'Friend request sent successfully' };
     } else {
       return { success: false, message: 'Failed to send friend request' };
@@ -158,6 +177,18 @@ export const acceptFriendRequest = async (db, requestId, userId) => {
 
     transaction();
 
+    // Get accepter username for notification
+    const accepter = db
+      .prepare('SELECT username FROM users WHERE id = ?')
+      .get(userId);
+
+    // Send notification to original sender
+    const notification = createFriendRequestAcceptedNotification(
+      accepter.username,
+      request.sender_id,
+    );
+    sendNotification(request.sender_id, notification);
+
     return { success: true, message: 'Friend request accepted successfully' };
   } catch (error) {
     console.error('Error accepting friend request:', error);
@@ -167,6 +198,23 @@ export const acceptFriendRequest = async (db, requestId, userId) => {
 
 export const rejectFriendRequest = async (db, requestId, userId) => {
   try {
+    // First get the request details to find the sender
+    const request = db
+      .prepare(
+        `
+      SELECT sender_id FROM friend_requests 
+      WHERE id = ? AND receiver_id = ?
+    `,
+      )
+      .get(requestId, userId);
+
+    if (!request) {
+      return {
+        success: false,
+        message: 'Friend request not found or unauthorized',
+      };
+    }
+
     const stmt = db.prepare(`
       DELETE FROM friend_requests 
       WHERE id = ? AND receiver_id = ?
@@ -175,6 +223,18 @@ export const rejectFriendRequest = async (db, requestId, userId) => {
     const result = stmt.run(requestId, userId);
 
     if (result.changes > 0) {
+      // Get rejecter username for notification
+      const rejecter = db
+        .prepare('SELECT username FROM users WHERE id = ?')
+        .get(userId);
+
+      // Send notification to original sender
+      const notification = createFriendRequestRejectedNotification(
+        rejecter.username,
+        request.sender_id,
+      );
+      sendNotification(request.sender_id, notification);
+
       return { success: true, message: 'Friend request rejected successfully' };
     } else {
       return {

@@ -6,6 +6,7 @@ import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import friendsRoutes from './src/routes/friendsRoutes.js';
+import notificationRoutes from './src/routes/notifications.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import {
@@ -58,11 +59,6 @@ fastify.register(cors, {
   credentials: true,
 });
 
-// Register websockets
-fastify.register(FastifyWebSocket, {
-  options: { clientTracking: true },
-});
-
 fastify.addHook('preHandler', (req, res, next) => {
   req.context = req.context || {};
   req.jwt = fastify.jwt;
@@ -70,6 +66,11 @@ fastify.addHook('preHandler', (req, res, next) => {
 });
 
 fastify.addHook('onRequest', async (req, res) => {
+  // Skip WebSocket connections
+  if (req.headers.upgrade === 'websocket') {
+    return;
+  }
+
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(' ')[1];
 
@@ -83,8 +84,29 @@ fastify.addHook('onRequest', async (req, res) => {
 // Register database
 fastify.register(dbConnector);
 
+// Register websockets after database
+fastify.register(FastifyWebSocket, {
+  options: { clientTracking: true },
+});
+
 fastify.register(userAuthenticationRoutes); // /register /login /logout
 fastify.register(friendsRoutes); // /friends, /friends/request, /friends/requests, /friends/accept, /friends/reject
+fastify.register(notificationRoutes); // /notifications (WebSocket)
+
+// Test WebSocket route
+fastify.get('/test-ws', { websocket: true }, (connection, req) => {
+  console.log('Test WebSocket connection received');
+  console.log('Test connection object keys:', Object.keys(connection));
+
+  connection.on('message', (message) => {
+    console.log('Received message:', message.toString());
+    connection.send('Echo: ' + message.toString());
+  });
+  connection.on('close', () => {
+    console.log('Test WebSocket closed');
+  });
+  connection.send('Test WebSocket connected');
+});
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({
