@@ -4,6 +4,7 @@ export const NOTIFICATION_TYPES = {
 	FRIEND_REQUEST: 'friend_request',
 	FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
 	FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
+	FRIEND_REMOVED: 'friend_removed',
 	CONNECTION_ESTABLISHED: 'connection_established',
 } as const;
 
@@ -144,6 +145,10 @@ class NotificationService {
 				this.handleFriendRequestRejected(notification);
 				break;
 
+			case NOTIFICATION_TYPES.FRIEND_REMOVED:
+				this.handleFriendRemoved(notification);
+				break;
+
 			default:
 				console.log('Unknown notification type:', notification.type);
 		}
@@ -168,6 +173,14 @@ class NotificationService {
 	private handleFriendRequestRejected(notification: NotificationData) {
 		// Show toast notification
 		Toaster(notification.message);
+	}
+
+	private handleFriendRemoved(notification: NotificationData) {
+		// Show toast notification
+		Toaster(notification.message);
+
+		// Refresh friends list
+		this.refreshFriends();
 	}
 
 	private async refreshFriendRequests() {

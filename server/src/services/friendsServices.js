@@ -3,6 +3,7 @@ import {
   createFriendRequestNotification,
   createFriendRequestAcceptedNotification,
   createFriendRequestRejectedNotification,
+  createFriendRemovedNotification,
 } from './notificationService.js';
 
 export const getFriendsList = async (db, userId) => {
@@ -265,6 +266,28 @@ export const removeFriend = async (db, userId, friendId) => {
     const result = stmt.run(userId, friendId, friendId, userId);
 
     if (result.changes > 0) {
+      // Get usernames for notifications
+      const remover = db
+        .prepare('SELECT username FROM users WHERE id = ?')
+        .get(userId);
+      const removed = db
+        .prepare('SELECT username FROM users WHERE id = ?')
+        .get(friendId);
+
+      // Send notification to the removed user
+      const removedNotification = createFriendRemovedNotification(
+        remover.username,
+        friendId,
+      );
+      sendNotification(friendId, removedNotification);
+
+      // Send notification to the remover (to refresh their friends list)
+      const removerNotification = createFriendRemovedNotification(
+        remover.username,
+        userId,
+      );
+      sendNotification(userId, removerNotification);
+
       return { success: true, message: 'Friend removed successfully' };
     } else {
       return { success: false, message: 'Friendship not found' };

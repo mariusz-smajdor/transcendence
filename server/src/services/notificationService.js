@@ -3,6 +3,7 @@ export const NOTIFICATION_TYPES = {
   FRIEND_REQUEST: 'friend_request',
   FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
   FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
+  FRIEND_REMOVED: 'friend_removed',
   // Future notification types can be added here
   // MESSAGE: 'message',
   // GAME_INVITATION: 'game_invitation',
@@ -82,5 +83,19 @@ export const createFriendRequestRejectedNotification = (
       timestamp: Date.now(),
     },
     message: `${rejecterUsername} rejected your friend request`,
+  };
+};
+
+export const createFriendRemovedNotification = (
+  removerUsername,
+  removedUserId,
+) => {
+  return {
+    type: NOTIFICATION_TYPES.FRIEND_REMOVED,
+    data: {
+      removerUsername,
+      timestamp: Date.now(),
+    },
+    message: `${removerUsername} removed you from their friends list`,
   };
 };
