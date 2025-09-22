@@ -42,6 +42,16 @@ const dbConnector = async (fastify, options) => {
       FOREIGN KEY (receiver_id) REFERENCES users (id)
       UNIQUE (sender_id, receiver_id)
     );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender INTEGER NOT NULL,
+      receiver INTEGER NOT NULL,
+      message TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sender) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (receiver) REFERENCES users(id) ON DELETE CASCADE
+    );
   `);
 
   fastify.decorate('db', db);

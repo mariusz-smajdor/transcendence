@@ -5,11 +5,15 @@ export const NOTIFICATION_TYPES = {
 	FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
 	FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
 	FRIEND_REMOVED: 'friend_removed',
+	MESSAGE: 'message',
 	CONNECTION_ESTABLISHED: 'connection_established',
 } as const;
 
 // Event system for notifying components of data changes
-type DataChangeEvent = 'friendRequestsUpdated' | 'friendsUpdated';
+type DataChangeEvent =
+	| 'friendRequestsUpdated'
+	| 'friendsUpdated'
+	| 'messagesUpdated';
 
 class EventEmitter {
 	private listeners: Map<DataChangeEvent, Function[]> = new Map();
@@ -80,6 +84,7 @@ class NotificationService {
 			this.ws = new WebSocket(wsUrl);
 
 			this.ws.onopen = () => {
+				console.log('✅ WebSocket connected successfully');
 				this.isConnecting = false;
 				this.reconnectAttempts = 0;
 			};
@@ -87,6 +92,7 @@ class NotificationService {
 			this.ws.onmessage = (event) => {
 				try {
 					const notification: NotificationData = JSON.parse(event.data);
+					console.log('📨 Received notification:', notification);
 					this.handleNotification(notification);
 				} catch (error) {
 					console.error('Error parsing notification:', error);
@@ -149,12 +155,17 @@ class NotificationService {
 				this.handleFriendRemoved(notification);
 				break;
 
+			case NOTIFICATION_TYPES.MESSAGE:
+				this.handleMessage(notification);
+				break;
+
 			default:
 				console.log('Unknown notification type:', notification.type);
 		}
 	}
 
 	private handleFriendRequest(notification: NotificationData) {
+		console.log('🔔 Handling friend request notification:', notification);
 		// Show toast notification
 		Toaster(notification.message);
 
@@ -183,11 +194,21 @@ class NotificationService {
 		this.refreshFriends();
 	}
 
+	private handleMessage(notification: NotificationData) {
+		// Show toast notification
+		Toaster(notification.message);
+
+		// Emit event to update messages UI
+		dataChangeEmitter.emit('messagesUpdated');
+	}
+
 	private async refreshFriendRequests() {
 		try {
+			console.log('🔄 Refreshing friend requests...');
 			const { getFriendRequests } = await import('../api/friendRequest');
 			await getFriendRequests();
 			dataChangeEmitter.emit('friendRequestsUpdated');
+			console.log('✅ Friend requests refreshed');
 		} catch (error) {
 			console.error('Failed to refresh friend requests:', error);
 		}

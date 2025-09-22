@@ -137,7 +137,7 @@ function FriendRequestTab() {
 	return tab;
 }
 
-function AllFriendsTab(parent: HTMLElement) {
+function AllFriendsTab() {
 	const tab = Tab({
 		value: 'all-friends',
 		classes: ['flex', 'flex-col', 'gap-4'],
@@ -162,7 +162,6 @@ function AllFriendsTab(parent: HTMLElement) {
 			if (!value) return true;
 			return f.username.toLowerCase().includes(value);
 		});
-		let messageCard: HTMLElement | null = null;
 
 		filteredFriends.forEach((f) => {
 			const friends = Wrapper({
@@ -195,10 +194,13 @@ function AllFriendsTab(parent: HTMLElement) {
 				content: f.username,
 				classes: ['text-sm'],
 			});
+			const buttonsContainer = Wrapper({
+				classes: ['flex', 'gap-2', 'ml-auto'],
+			});
 			const msgButton = Button({
 				type: 'button',
 				variant: 'ghost',
-				classes: ['ml-auto'],
+				classes: ['text-green-400'],
 			});
 			const msgIcon = Icon({
 				icon: MessageCircle,
@@ -213,14 +215,17 @@ function AllFriendsTab(parent: HTMLElement) {
 			});
 
 			msgButton.addEventListener('click', () => {
-				if (messageCard && parent.contains(messageCard)) {
-					parent.removeChild(messageCard);
-					messageCard = MessageCard(f);
-				} else {
-					messageCard = MessageCard(f);
+				// Remove existing message card if any
+				const existingCard = document.querySelector('[data-chatter]');
+				if (existingCard) {
+					existingCard.remove();
 				}
-				msgIcon.classList.remove('glow-secondary-animate');
-				parent.appendChild(messageCard);
+
+				// Create new message card
+				const messageCard = MessageCard(f);
+				if (messageCard) {
+					document.body.appendChild(messageCard);
+				}
 			});
 
 			removeButton.addEventListener('click', async () => {
@@ -237,11 +242,12 @@ function AllFriendsTab(parent: HTMLElement) {
 
 			msgButton.appendChild(msgIcon);
 			removeButton.appendChild(removeIcon);
+			buttonsContainer.appendChild(msgButton);
+			buttonsContainer.appendChild(removeButton);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
 			friends.appendChild(friend);
-			friends.appendChild(msgButton);
-			friends.appendChild(removeButton);
+			friends.appendChild(buttonsContainer);
 			wrapper.appendChild(friends);
 		});
 	}
@@ -413,7 +419,7 @@ export default function Friends() {
 				Trigger({ content: 'All Friends', value: 'all-friends' }),
 				requestsTrigger,
 			],
-			tabs: [AllFriendsTab(section), FriendRequestTab()],
+			tabs: [AllFriendsTab(), FriendRequestTab()],
 		})
 	);
 	addFriend.prepend(addIcon);

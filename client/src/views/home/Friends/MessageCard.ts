@@ -6,17 +6,19 @@ import { Img } from '../../../components/img';
 import { Icon } from '../../../components/icon';
 import { Input } from '../../../components/input';
 import { Button } from '../../../components/button';
-// import { sendMessage } from '../../../socket';
+import { sendMessage, getMessages } from '../../../api/messages';
 import { type User } from '../../../types/user';
-import { store } from '../../../store';
 import { renderMessages } from './renderMessages';
+import { dataChangeEmitter } from '../../../services/notificationService';
 
 export const chat = Wrapper({
 	classes: ['flex', 'flex-col', 'gap-2', 'h-72', 'overflow-y-auto'],
 });
 
 export function MessageCard(friend: User | null) {
-	const { messages, user } = store.getState();
+	if (!friend) return null;
+
+	let messages: any[] = [];
 
 	const card = Card({
 		classes: [
@@ -35,7 +37,7 @@ export function MessageCard(friend: User | null) {
 			'z-50',
 		],
 	});
-	card.dataset.chatter = friend?.id.toString();
+	card.dataset.chatter = friend.id.toString();
 	card.classList.remove('lg:p-6');
 	const menu = Wrapper({
 		classes: [
@@ -52,10 +54,11 @@ export function MessageCard(friend: User | null) {
 		classes: ['flex', 'items-center', 'gap-4'],
 	});
 	const img = Img({
-		src: friend.profilePicture || 'https://i.pravatar.cc/300',
+		src: friend.avatar
+			? `http://localhost:3000${friend.avatar}`
+			: `https://ui-avatars.com/api/?length=1&name=${friend.username}&background=random`,
 		alt: 'friend',
 		classes: ['w-8', 'h-8', 'rounded-full'],
-		// loading: 'lazy',
 	});
 	const name = Text({
 		content: friend.username,
@@ -71,7 +74,7 @@ export function MessageCard(friend: User | null) {
 			'cursor-pointer',
 		],
 	});
-	renderMessages(chat, friend.id);
+
 	const messageForm = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -99,31 +102,39 @@ export function MessageCard(friend: User | null) {
 	});
 	sendButton.classList.remove('px-3', 'py-2');
 
+	async function loadMessages() {
+		try {
+			console.log('Loading messages for friend:', friend.id);
+			messages = await getMessages(friend.id);
+			console.log('Loaded messages:', messages);
+			renderMessages(chat, friend.id, messages);
+		} catch (error) {
+			console.error('Failed to load messages:', error);
+		}
+	}
+
 	closeTrigger.addEventListener('click', () => {
 		card.remove();
 	});
 
-	messageForm.addEventListener('submit', (e) => {
+	messageForm.addEventListener('submit', async (e) => {
 		e.preventDefault();
 
 		const message = input.value.trim();
 		if (!message || !friend) return;
 
-		// sendMessage({
-		// 	toUserId: friend.id,
-		// 	message: message,
-		// });
-		const newMessage = {
-			sender: user?.id as number,
-			receiver: friend.id,
-			message: message,
-			read: false,
-		};
-		messages.push(newMessage);
-		renderMessages(chat, friend.id);
-
-		input.value = '';
+		try {
+			await sendMessage(friend.id, message);
+			// Reload messages to show the new one
+			await loadMessages();
+			input.value = '';
+		} catch (error) {
+			console.error('Failed to send message:', error);
+		}
 	});
+
+	// Listen for message updates
+	dataChangeEmitter.on('messagesUpdated', loadMessages);
 
 	friendEl.appendChild(img);
 	friendEl.appendChild(name);
@@ -134,6 +145,9 @@ export function MessageCard(friend: User | null) {
 	card.appendChild(menu);
 	card.appendChild(chat);
 	card.appendChild(messageForm);
+
+	// Load messages after the chat element is added to the DOM
+	loadMessages();
 
 	return card;
 }

@@ -9,6 +9,7 @@ import multipart from '@fastify/multipart';
 import userAuthenticationRoutes from './src/routes/userAuthentication.js';
 import friendsRoutes from './src/routes/friendsRoutes.js';
 import notificationRoutes from './src/routes/notifications.js';
+import messagesRoutes from './src/routes/messagesRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import FastifyStatic from '@fastify/static';
@@ -99,6 +100,7 @@ fastify.register(FastifyWebSocket, {
 fastify.register(userAuthenticationRoutes); // /register /login /logout
 fastify.register(friendsRoutes); // /friends, /friends/request, /friends/requests, /friends/accept, /friends/reject
 fastify.register(notificationRoutes); // /notifications (WebSocket)
+fastify.register(messagesRoutes); // /messages, /conversations
 
 // Test WebSocket route
 fastify.get('/test-ws', { websocket: true }, (connection, req) => {

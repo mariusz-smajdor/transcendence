@@ -2,22 +2,32 @@ import { Wrapper } from '../../../components/wrapper';
 import { Text } from '../../../components/text';
 import { store } from '../../../store';
 
-export function renderMessages(chat: HTMLElement, friendId: number) {
-	const { user, messages } = store.getState();
+export function renderMessages(
+	chat: HTMLElement,
+	_friendId: number,
+	messages: any[] = []
+) {
+	const { user } = store.getState();
 
+	console.log('renderMessages called with:', { messages, user: user?.id });
 	chat.innerHTML = '';
 
-	const friendMessages = messages.filter(
-		(message) =>
-			(message.sender === user?.id && message.receiver === friendId) ||
-			(message.sender === friendId && message.receiver === user?.id)
-	);
+	if (messages.length === 0) {
+		console.log('No messages, showing empty state');
+		const noMessages = Text({
+			content: 'No messages yet. Start the conversation!',
+			classes: ['text-muted', 'text-center', 'py-8'],
+		});
+		chat.appendChild(noMessages);
+		return;
+	}
 
-	friendMessages.forEach((message) => {
-		const styles =
-			message.sender === user?.id
-				? ['bg-primary/50', 'ml-auto']
-				: ['bg-accent/50'];
+	messages.forEach((message, index) => {
+		console.log(`Rendering message ${index}:`, message);
+		const isOwnMessage = message.sender === user?.id;
+		const styles = isOwnMessage
+			? ['bg-primary/50', 'ml-auto']
+			: ['bg-accent/50'];
 
 		const messageEl = Wrapper({
 			classes: [
@@ -28,17 +38,21 @@ export function renderMessages(chat: HTMLElement, friendId: number) {
 				'px-3',
 				'rounded',
 				'w-fit',
+				'max-w-xs',
 				...styles,
 			],
 		});
 
 		const messageContent = Text({
 			content: message.message,
-			classes: ['text-sm'],
+			classes: ['text-sm', 'break-words'],
 		});
-		chat.scrollTop = chat.scrollHeight;
 
 		messageEl.appendChild(messageContent);
 		chat.appendChild(messageEl);
+		console.log('Message element added to chat');
 	});
+
+	// Scroll to bottom
+	chat.scrollTop = chat.scrollHeight;
 }
