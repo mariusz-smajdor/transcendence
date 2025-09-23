@@ -19,6 +19,7 @@ import {
   cleanExpiredTokens,
   isTokenBlacklisted,
 } from './src/services/userAuthenticationServices.js';
+import { invitations } from './src/routes/invitations.js';
 
 const fastify = Fastify();
 
@@ -113,6 +114,7 @@ fastify.register(notificationRoutes); // /notifications (WebSocket)
 fastify.register(messagesRoutes); // /messages, /conversations
 fastify.register(oauthRoutes); // /login/google, /auth/google/callback
 fastify.register(gameRoutes);
+fastify.register(invitations);
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

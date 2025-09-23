@@ -7,6 +7,7 @@ type WebSocketDeps = {
 	ui: UIElements;
 	gameState: GameState;
 	actions: UIActions;
+	roomId: string | null;
 }
 
 type GameMessage = {
@@ -15,8 +16,8 @@ type GameMessage = {
 	player: string;
 }
 
-export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: WebSocketDeps): WebSocket {
-	const ws: WebSocket = new WebSocket(
+export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomId }: WebSocketDeps): WebSocket {
+	const ws: WebSocket = new WebSocket( roomId ? `ws://localhost:3000/tournament/match?gameId=${gameId}&roomId=${roomId}` :
 		`${setWebsocketURL(gameType)}${gameId}`);
 
 	ws.onmessage = (event: MessageEvent) => {
@@ -70,7 +71,8 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions }: Web
 
 	ws.onopen = () => {
 		const token = getCookie('access_token');
-		ws.send(JSON.stringify({ type:'auth', token: token}));
+		const sessionId = getCookie('sessionId')
+		ws.send(JSON.stringify({ type:'auth', token: token, sessionId}));
 		if (gameType === 'network')
 			ui.text.textContent = 'Connected to server. Waiting for role assignment...';
 		else
@@ -155,7 +157,16 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 			break;
 		case 'left':
 			ui.text.textContent = 'The oponent left the game';
-			break; 
+			break;
+		case 'match_finished':
+			ui.text.textContent = 'Result saved! Back to tournament';
+			break;
+		case 'left_error':
+			ui.text.textContent = 'Walkover! Left player left the game';
+			break;
+		case 'right_error':
+			ui.text.textContent = 'Walkover! Right player left the game';
+			break;
 		default:
 			ui.text.textContent = data.message;
 			console.warn('Displayed unknown message: ', data.message);
@@ -171,5 +182,7 @@ function setWebsocketURL(gameType: GameType)
 			return "ws://localhost:3000/localgame?gameId=";
 		case 'ai':
 			return "ws://localhost:3000/aigame?gameId=";
+		case 'tournament':
+			return "ws://localhost:3000/tournament/match?gameId=";
 	}
 }

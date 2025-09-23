@@ -9,7 +9,6 @@ export function authenticateToken(game, connection, fastify, msg){
 			try {
 				payload = fastify.jwt.verify(msg.token);
 				game.needAuthentication = 2;
-				//console.log(payload);
 			} catch (err) {
 				if (game.needAuthentication === 2){
 					console.log(err.message);
@@ -34,7 +33,7 @@ export function authenticateToken(game, connection, fastify, msg){
 	setPlayerStats(game,connection,msg,payload);
 }
 
-function setPlayerStats(game,connection,msg,payload){
+export function setPlayerStats(game,connection,msg,payload){
 	try{
 		//game.playersManager.checkActiveRoles(payload);
 		game.playersManager.authenticated.set(connection, msg.token);

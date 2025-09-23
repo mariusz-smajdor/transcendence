@@ -3,9 +3,9 @@ import { Text } from '../../components/text';
 import Game from './game';
 import { GameType } from '../../types/game';
 
-export function showGameOverlay(gameId: string, gameType: GameType) {
+export function showGameOverlay(gameId: string, gameType: GameType, roomId: string | null = null) {
 	
-	const gameComponentResult = Game(gameId, gameType);
+	const gameComponentResult = Game(gameId, gameType, roomId);
 	if (!gameComponentResult?.game || !gameComponentResult?.ws) {
 		console.error("Failed to initialize game");
 		return;

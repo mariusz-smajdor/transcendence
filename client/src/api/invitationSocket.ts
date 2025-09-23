@@ -1,4 +1,5 @@
 import { getCookie } from '../views/game/game-cookies';
+import { showPopupMessage } from '../views/home/Game/tournament';
 
 type InvitationHandler = (data: any) => void;
 
@@ -12,12 +13,24 @@ export function connectInvitationSocket() {
 
 	socket.onopen = () => {
 		const token = getCookie('access_token');
-		socket?.send(JSON.stringify({ type: 'auth', token: token }));
+		const sessionId = getCookie('sessionId');
+		//console.log(token,sessionId);
+		socket?.send(JSON.stringify({ type: 'auth', token, sessionId }));
 		console.log('Invitation WebSocket opened');
 	};
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
+		console.log(data);
+		if (data.type === 'cookies') {
+			if (data.token) {
+				document.cookie = `sessionId=; path=/;`;
+			} else {
+				document.cookie = `sessionId=${data.sessionId}; path=/;`;
+				document.cookie = 'token=; path=/;';
+			}
+			return;
+		} else if (data.type === 'message') showPopupMessage(data.message);
 		handlers.forEach((handler) => handler(data));
 	};
 
@@ -28,6 +41,7 @@ export function connectInvitationSocket() {
 
 	socket.onerror = (err) => {
 		console.error('Invitation WebSocket error:', err);
+		socket = null;
 	};
 }
 

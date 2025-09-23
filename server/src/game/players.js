@@ -23,6 +23,20 @@ export class PlayersManager {
 		this.roles.set(connection, role);
 	}
 
+	setRole(connection,role = 'spectator'){
+		if(role === 'left'){
+			this.leftPlayer = connection;
+			role = 'left';
+		}
+		else if (role === 'right'){
+			this.rightPlayer = connection;
+			role = 'right';
+		}
+		else
+			this.spectators.add(connection)
+		this.roles.set(connection, role);
+	}
+
 	getRole(connection) {
 		return this.roles.get(connection);
 	}
@@ -31,6 +45,36 @@ export class PlayersManager {
 		if (this.leftPlayer && this.rightPlayer)
 			return true;
 		return false;
+	}
+
+	removeRole(connection) {
+		const role = this.roles.get(connection);
+		if (role == 'left') {
+			this.leftPlayer = null;
+			this.roles.delete(connection)
+			console.log('Left player left the game');
+		} else if (role == 'right') {
+			this.rightPlayer = null;
+			this.roles.delete(connection)
+			console.log('Right player left the game');
+		} else {
+			this.spectators.delete(connection);
+			this.roles.delete(connection);
+		}
+	}
+
+	removeTournamentRole(connection) {
+		const role = this.roles.get(connection);
+		if (role == 'left') {
+			this.roles.delete(connection)
+			console.log('Left player left the game');
+		} else if (role == 'right') {
+			this.roles.delete(connection)
+			console.log('Right player left the game');
+		} else {
+			this.spectators.delete(connection);
+			this.roles.delete(connection);
+		}
 	}
 
 	removeRole(connection) {
