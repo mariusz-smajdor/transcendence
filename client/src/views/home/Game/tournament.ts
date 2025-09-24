@@ -19,6 +19,7 @@ import { TournamentBracket } from '../../../components/tournament-bracket';
 import { getCookie } from '../../game/game-cookies.js';
 import { showGameOverlay } from '../../game/game-overlay.js';
 import { store } from '../../../store.js';
+import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 
 let currentRoomId: string | null = null;
 
@@ -158,7 +159,7 @@ export function TournamentTab() {
 				});
 				creatorCell.prepend(
 					Img({
-						src: room.avatar ?? 'https://i.pravatar.cc/300?u=9',
+						src: getAvatarUrl(room.avatar, room.creator),
 						classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
 						alt: 'Creator avatar',
 						loading: 'lazy',

@@ -39,7 +39,7 @@ export async function tournamentRoutes(fastify) {
     }
   });
 
-  //creat tournament room
+  //create tournament room
   fastify.post('/tournament/create', async (req, res) => {
     const { creator, token, sessionId, numberOfPlayers } = req.body;
     const connection = getWs(fastify, sessionId, token, res);
