@@ -206,6 +206,7 @@ export function TournamentTab() {
 					const data = await response.json();
 					console.log(data);
 					if (response.ok) {
+						currentRoomId = data.id;
 						card.innerHTML = '';
 						const players = data.positions ?? [];
 
@@ -371,6 +372,7 @@ export function TournamentTab() {
 				console.log(response);
 			}
 			const responseData = await response.json();
+			currentRoomId = responseData.id;
 			card.innerHTML = '';
 			const players = responseData.positions ?? [];
 
@@ -440,5 +442,11 @@ async function leaveRoom(
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ roomId, token, sessionId }),
 	});
+
+	if (!response.ok) {
+		const errorData = await response.json();
+		console.error('Leave room error:', errorData);
+	}
+
 	return response.ok;
 }
