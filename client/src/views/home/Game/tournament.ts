@@ -147,7 +147,7 @@ export function TournamentTab() {
 								method: 'POST',
 								headers: { 'Content-Type': 'application/json' },
 								body: JSON.stringify({
-									name: 'Player',
+									name: 'Player', // Server will fetch actual username
 									token,
 									sessionId,
 									roomId: room.id,
@@ -277,6 +277,7 @@ export function TournamentTab() {
 					}
 					creator = nickname;
 				}
+				// Server will handle username fetching for authenticated users
 
 				const numberOfPlayers = parseInt(select.value, 10);
 				const response = await fetch(
@@ -316,6 +317,7 @@ export function TournamentTab() {
 	) {
 		//console.log(response)
 		const players = response.positions ?? null;
+		const matches = response.matches ?? [];
 		card.innerHTML = '';
 		const wrapper = document.createElement('div');
 		wrapper.classList.add(
@@ -327,124 +329,324 @@ export function TournamentTab() {
 			'py-8'
 		);
 
+		const titleContainer = document.createElement('div');
+		titleContainer.classList.add(
+			'flex',
+			'justify-between',
+			'items-center',
+			'mb-4'
+		);
+
 		const title = document.createElement('div');
 		title.textContent = `Tournament bracket (${playersIn}/${numberOfPlayers} players)`;
-		title.classList.add('font-bold', 'mb-4', 'text-lg');
-		wrapper.appendChild(title);
+		title.classList.add('font-bold', 'text-lg');
 
-		const canvas = document.createElement('canvas');
-		if (numberOfPlayers === 4) {
-			canvas.width = 500;
-			canvas.height = 300;
-		} else if (numberOfPlayers === 8) {
-			canvas.width = 700;
-			canvas.height = 400;
-		} else {
-			canvas.width = 400;
-			canvas.height = 200;
+		const refreshBtn = document.createElement('button');
+		refreshBtn.textContent = '🔄 Refresh';
+		refreshBtn.classList.add('btn', 'btn-outline', 'px-3', 'py-1', 'text-sm');
+		refreshBtn.onclick = async () => {
+			try {
+				const token = getCookie('access_token') ?? null;
+				const sessionId = getCookie('sessionId') ?? null;
+
+				const response = await fetch(
+					'http://localhost:3000/tournament/status',
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							roomId: currentRoomId,
+							token,
+							sessionId,
+						}),
+					}
+				);
+
+				if (response.ok) {
+					const data = await response.json();
+					// Update bracket with latest match data
+					if (data.matches) {
+						updateBracketMatches(data.matches);
+					}
+				}
+			} catch (error) {
+				console.error('Error refreshing bracket:', error);
+			}
+		};
+
+		titleContainer.appendChild(title);
+		titleContainer.appendChild(refreshBtn);
+		wrapper.appendChild(titleContainer);
+
+		// Create a better bracket visualization using HTML/CSS instead of canvas
+		const bracketContainer = document.createElement('div');
+		bracketContainer.classList.add(
+			'tournament-bracket',
+			'w-full',
+			'max-w-4xl',
+			'mx-auto'
+		);
+
+		// Add CSS styles for the bracket (only once)
+		if (!document.getElementById('tournament-bracket-styles')) {
+			const style = document.createElement('style');
+			style.id = 'tournament-bracket-styles';
+			style.textContent = `
+				.tournament-bracket {
+					font-family: 'Inter', sans-serif;
+				}
+				.bracket-round {
+					display: flex;
+					flex-direction: column;
+					gap: 20px;
+					min-width: 200px;
+				}
+				.bracket-match {
+					background: #1a1a1a;
+					border: 2px solid #333;
+					border-radius: 8px;
+					padding: 12px;
+					min-height: 60px;
+					position: relative;
+				}
+				.bracket-match.winner {
+					border-color: #4ade80;
+					background: #0f1f0f;
+				}
+				.match-player {
+					display: flex;
+					justify-content: space-between;
+					align-items: center;
+					padding: 4px 0;
+					font-size: 14px;
+				}
+				.match-player.winner {
+					color: #4ade80;
+					font-weight: bold;
+				}
+				.player-name {
+					flex: 1;
+				}
+				.player-score {
+					font-weight: bold;
+					margin-left: 10px;
+				}
+			`;
+			document.head.appendChild(style);
 		}
-		canvas.style.background = '#18181b';
-		canvas.style.borderRadius = '8px';
-		canvas.style.border = '1px solid #444';
 
-		const ctx = canvas.getContext('2d')!;
-		ctx.font = '16px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.strokeStyle = '#888';
-		ctx.fillStyle = '#fff';
+		// Helper function to create a match element
+		function createMatchElement(
+			leftPlayer: string,
+			rightPlayer: string,
+			leftScore?: number,
+			rightScore?: number,
+			winner?: boolean
+		) {
+			const matchDiv = document.createElement('div');
+			matchDiv.classList.add('bracket-match');
+			if (winner) matchDiv.classList.add('winner');
+
+			const leftPlayerDiv = document.createElement('div');
+			leftPlayerDiv.classList.add('match-player');
+			if (
+				winner &&
+				leftScore !== undefined &&
+				rightScore !== undefined &&
+				leftScore > rightScore
+			) {
+				leftPlayerDiv.classList.add('winner');
+			}
+			leftPlayerDiv.innerHTML = `
+				<span class="player-name">${leftPlayer || 'TBD'}</span>
+				<span class="player-score">${leftScore !== undefined ? leftScore : ''}</span>
+			`;
+
+			const rightPlayerDiv = document.createElement('div');
+			rightPlayerDiv.classList.add('match-player');
+			if (
+				winner &&
+				leftScore !== undefined &&
+				rightScore !== undefined &&
+				rightScore > leftScore
+			) {
+				rightPlayerDiv.classList.add('winner');
+			}
+			rightPlayerDiv.innerHTML = `
+				<span class="player-name">${rightPlayer || 'TBD'}</span>
+				<span class="player-score">${rightScore !== undefined ? rightScore : ''}</span>
+			`;
+
+			matchDiv.appendChild(leftPlayerDiv);
+			matchDiv.appendChild(rightPlayerDiv);
+			return matchDiv;
+		}
+
+		// Helper function to update bracket matches
+		function updateBracketMatches(newMatches: any[]) {
+			const matchElements = bracketContainer.querySelectorAll('.bracket-match');
+			matchElements.forEach((matchEl, index) => {
+				const match = newMatches[index];
+				if (match) {
+					const leftPlayer = matchEl.querySelector('.match-player:first-child');
+					const rightPlayer = matchEl.querySelector('.match-player:last-child');
+
+					if (leftPlayer && rightPlayer) {
+						leftPlayer.innerHTML = `
+							<span class="player-name">${match.leftPlayer || 'TBD'}</span>
+							<span class="player-score">${
+								match.leftScore !== undefined ? match.leftScore : ''
+							}</span>
+						`;
+						rightPlayer.innerHTML = `
+							<span class="player-name">${match.rightPlayer || 'TBD'}</span>
+							<span class="player-score">${
+								match.rightScore !== undefined ? match.rightScore : ''
+							}</span>
+						`;
+
+						// Update winner styling
+						if (match.winner) {
+							matchEl.classList.add('winner');
+							if (match.leftScore > match.rightScore) {
+								leftPlayer.classList.add('winner');
+								rightPlayer.classList.remove('winner');
+							} else {
+								rightPlayer.classList.add('winner');
+								leftPlayer.classList.remove('winner');
+							}
+						}
+					}
+				}
+			});
+		}
+
+		// Create bracket rounds
+		const roundsContainer = document.createElement('div');
+		roundsContainer.classList.add(
+			'flex',
+			'gap-8',
+			'justify-center',
+			'items-start'
+		);
 
 		if (numberOfPlayers === 4) {
-			ctx.strokeRect(30, 40, 100, 40);
-			ctx.strokeRect(30, 160, 100, 40);
-			ctx.fillText(players[0] ?? 'Player 1', 80, 60);
-			ctx.fillText(players[1] ?? 'Player 2', 80, 180);
+			// Quarter-finals (First Round for 4 players)
+			const firstRound = document.createElement('div');
+			firstRound.classList.add('bracket-round');
+			firstRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">Quarter-finals</h3>';
 
-			ctx.strokeRect(30, 220, 100, 40);
-			ctx.strokeRect(30, 100, 100, 40);
-			ctx.fillText(players[2] ?? 'Player 3', 80, 240);
-			ctx.fillText(players[3] ?? 'Player 4', 80, 120);
-
-			ctx.strokeRect(180, 90, 100, 40);
-			ctx.fillText('Winner SF1', 230, 110);
-
-			ctx.strokeRect(180, 150, 100, 40);
-			ctx.fillText('Winner SF2', 230, 170);
-
-			ctx.beginPath();
-			ctx.moveTo(130, 60);
-			ctx.lineTo(180, 110);
-			ctx.stroke();
-			ctx.moveTo(130, 180);
-			ctx.lineTo(180, 110);
-			ctx.stroke();
-			ctx.moveTo(130, 120);
-			ctx.lineTo(180, 170);
-			ctx.stroke();
-			ctx.moveTo(130, 240);
-			ctx.lineTo(180, 170);
-			ctx.stroke();
-
-			ctx.beginPath();
-			ctx.moveTo(280, 110);
-			ctx.lineTo(350, 170);
-			ctx.stroke();
-			ctx.moveTo(280, 170);
-			ctx.lineTo(350, 170);
-			ctx.stroke();
-
-			ctx.strokeRect(350, 150, 100, 40);
-			ctx.fillText('Winner', 400, 170);
-		} else if (numberOfPlayers === 8) {
-			for (let i = 0; i < 8; i++) {
-				ctx.strokeRect(30, 30 + i * 45, 100, 40);
-				ctx.fillText(players[i] ?? `Player ${i + 1}`, 80, 50 + i * 45);
-			}
-			for (let i = 0; i < 4; i++) {
-				ctx.beginPath();
-				ctx.moveTo(130, 50 + i * 90);
-				ctx.lineTo(180, 70 + i * 90);
-				ctx.stroke();
-				ctx.moveTo(130, 95 + i * 90);
-				ctx.lineTo(180, 70 + i * 90);
-				ctx.stroke();
-			}
-			for (let i = 0; i < 4; i++) {
-				ctx.strokeRect(180, 70 + i * 90, 100, 40);
-				ctx.fillText(`QF${i + 1} Winner`, 230, 90 + i * 90);
-			}
-			for (let i = 0; i < 2; i++) {
-				ctx.beginPath();
-				ctx.moveTo(280, 90 + i * 180);
-				ctx.lineTo(350, 130 + i * 180);
-				ctx.stroke();
-				ctx.moveTo(280, 180 + i * 180);
-				ctx.lineTo(350, 130 + i * 180);
-				ctx.stroke();
-			}
-			for (let i = 0; i < 2; i++) {
-				ctx.strokeRect(350, 130 + i * 180, 100, 40);
-				ctx.fillText(`SF${i + 1} Winner`, 400, 150 + i * 180);
-			}
-			ctx.beginPath();
-			ctx.moveTo(450, 150);
-			ctx.lineTo(520, 210);
-			ctx.stroke();
-			ctx.moveTo(450, 330);
-			ctx.lineTo(520, 210);
-			ctx.stroke();
-
-			ctx.strokeRect(520, 210, 100, 40);
-			ctx.fillText('Winner', 570, 230);
-		} else {
-			ctx.fillText(
-				'Bracket for this number of players is not supported.',
-				canvas.width / 2,
-				canvas.height / 2
+			firstRound.appendChild(
+				createMatchElement(players[0] ?? 'Player 1', players[1] ?? 'Player 2')
 			);
+			firstRound.appendChild(
+				createMatchElement(players[2] ?? 'Player 3', players[3] ?? 'Player 4')
+			);
+
+			// Final (no semi-finals for 4 players)
+			const finalRound = document.createElement('div');
+			finalRound.classList.add('bracket-round');
+			finalRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">Final</h3>';
+
+			const finalMatch = matches.find((m: any) => m.currentRound === 1);
+			finalRound.appendChild(
+				createMatchElement(
+					finalMatch?.leftPlayer ?? 'TBD',
+					finalMatch?.rightPlayer ?? 'TBD',
+					finalMatch?.leftScore,
+					finalMatch?.rightScore,
+					finalMatch?.winner
+				)
+			);
+
+			roundsContainer.appendChild(firstRound);
+			roundsContainer.appendChild(finalRound);
+		} else if (numberOfPlayers === 8) {
+			// First Round
+			const firstRound = document.createElement('div');
+			firstRound.classList.add('bracket-round');
+			firstRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">First Round</h3>';
+
+			for (let i = 0; i < 8; i++) {
+				firstRound.appendChild(
+					createMatchElement(players[i] ?? `Player ${i + 1}`, 'TBD')
+				);
+			}
+
+			// Quarter-finals
+			const quarterRound = document.createElement('div');
+			quarterRound.classList.add('bracket-round');
+			quarterRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">Quarter-finals</h3>';
+
+			const qfMatches = matches.filter((m: any) => m.currentRound === 1);
+			for (let i = 0; i < 4; i++) {
+				const qfMatch = qfMatches[i];
+				quarterRound.appendChild(
+					createMatchElement(
+						qfMatch?.leftPlayer ?? 'TBD',
+						qfMatch?.rightPlayer ?? 'TBD',
+						qfMatch?.leftScore,
+						qfMatch?.rightScore,
+						qfMatch?.winner
+					)
+				);
+			}
+
+			// Semi-finals
+			const semiRound = document.createElement('div');
+			semiRound.classList.add('bracket-round');
+			semiRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">Semi-finals</h3>';
+
+			const sfMatches = matches.filter((m: any) => m.currentRound === 2);
+			for (let i = 0; i < 2; i++) {
+				const sfMatch = sfMatches[i];
+				semiRound.appendChild(
+					createMatchElement(
+						sfMatch?.leftPlayer ?? 'TBD',
+						sfMatch?.rightPlayer ?? 'TBD',
+						sfMatch?.leftScore,
+						sfMatch?.rightScore,
+						sfMatch?.winner
+					)
+				);
+			}
+
+			// Final
+			const finalRound = document.createElement('div');
+			finalRound.classList.add('bracket-round');
+			finalRound.innerHTML =
+				'<h3 class="text-center mb-4 font-bold text-sm text-gray-400">Final</h3>';
+
+			const finalMatch = matches.find((m: any) => m.currentRound === 3);
+			finalRound.appendChild(
+				createMatchElement(
+					finalMatch?.leftPlayer ?? 'TBD',
+					finalMatch?.rightPlayer ?? 'TBD',
+					finalMatch?.leftScore,
+					finalMatch?.rightScore,
+					finalMatch?.winner
+				)
+			);
+
+			roundsContainer.appendChild(firstRound);
+			roundsContainer.appendChild(quarterRound);
+			roundsContainer.appendChild(semiRound);
+			roundsContainer.appendChild(finalRound);
+		} else {
+			const unsupportedDiv = document.createElement('div');
+			unsupportedDiv.classList.add('text-center', 'text-gray-400', 'py-8');
+			unsupportedDiv.textContent =
+				'Bracket for this number of players is not supported.';
+			roundsContainer.appendChild(unsupportedDiv);
 		}
 
-		wrapper.appendChild(canvas);
+		bracketContainer.appendChild(roundsContainer);
+		wrapper.appendChild(bracketContainer);
 
 		const backBtn = document.createElement('button');
 		backBtn.textContent = 'Leave tournament';
@@ -457,49 +659,106 @@ export function TournamentTab() {
 		};
 		wrapper.appendChild(backBtn);
 		card.appendChild(wrapper);
-		const playBtn = document.createElement('button');
-		playBtn.textContent = 'Play Match';
-		playBtn.classList.add('btn', 'btn-primary', 'mt-4', 'px-4', 'py-2');
-		playBtn.onclick = async () => {
+		// Check player status and conditionally show play button
+		async function checkPlayerStatus() {
+			const token = getCookie('access_token') ?? null;
+			const sessionId = getCookie('sessionId') ?? null;
+
+			if (!token && !sessionId) return;
+
 			try {
-				const token = getCookie('access_token') ?? null;
-				const sessionId = getCookie('sessionId') ?? null;
+				const response = await fetch(
+					'http://localhost:3000/tournament/status',
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							roomId: currentRoomId,
+							token,
+							sessionId,
+						}),
+					}
+				);
 
-				// Show loading state
-				playBtn.textContent = 'Finding Match...';
-				playBtn.disabled = true;
+				if (response.ok) {
+					const data = await response.json();
 
-				const response = await fetch('http://localhost:3000/tournament/play', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						roomId: currentRoomId,
-						token,
-						sessionId,
-					}),
-				});
-				const data = await response.json();
+					// Update bracket with latest match data
+					if (data.matches) {
+						updateBracketMatches(data.matches);
+					}
 
-				// Reset button state
-				playBtn.textContent = 'Play Match';
-				playBtn.disabled = false;
+					if (data.canPlay) {
+						const playBtn = document.createElement('button');
+						playBtn.textContent = 'Play Match';
+						playBtn.classList.add('btn', 'btn-primary', 'mt-4', 'px-4', 'py-2');
+						playBtn.onclick = async () => {
+							try {
+								// Show loading state
+								playBtn.textContent = 'Finding Match...';
+								playBtn.disabled = true;
 
-				if (response.ok && data.gameId) {
-					showPopupMessage('Match found! Starting game...');
-					showGameOverlay(data.gameId, 'tournament', currentRoomId);
-				} else {
-					showPopupMessage(data.error || 'No match available yet.');
+								const playResponse = await fetch(
+									'http://localhost:3000/tournament/play',
+									{
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json' },
+										body: JSON.stringify({
+											roomId: currentRoomId,
+											token,
+											sessionId,
+										}),
+									}
+								);
+								const playData = await playResponse.json();
+
+								// Reset button state
+								playBtn.textContent = 'Play Match';
+								playBtn.disabled = false;
+
+								if (playResponse.ok && playData.gameId) {
+									showPopupMessage('Match found! Starting game...');
+									showGameOverlay(playData.gameId, 'tournament', currentRoomId);
+								} else {
+									showPopupMessage(playData.error || 'No match available yet.');
+								}
+							} catch (error) {
+								console.error('Error finding match:', error);
+								showPopupMessage('Network error. Please try again.');
+
+								// Reset button state
+								playBtn.textContent = 'Play Match';
+								playBtn.disabled = false;
+							}
+						};
+						wrapper.appendChild(playBtn);
+					} else {
+						// Player has been eliminated
+						const statusDiv = document.createElement('div');
+						statusDiv.classList.add(
+							'mt-4',
+							'p-4',
+							'bg-red-500/20',
+							'border',
+							'border-red-500',
+							'rounded',
+							'text-center'
+						);
+						statusDiv.innerHTML = `
+							<p class="text-red-400 font-bold">You have been eliminated from this tournament</p>
+							<p class="text-sm text-red-300 mt-2">Round ${
+								data.tournamentStatus?.currentRound || 1
+							} of ${data.tournamentStatus?.totalRounds || 1}</p>
+						`;
+						wrapper.appendChild(statusDiv);
+					}
 				}
 			} catch (error) {
-				console.error('Error finding match:', error);
-				showPopupMessage('Network error. Please try again.');
-
-				// Reset button state
-				playBtn.textContent = 'Play Match';
-				playBtn.disabled = false;
+				console.error('Error checking player status:', error);
 			}
-		};
-		wrapper.appendChild(playBtn);
+		}
+
+		checkPlayerStatus();
 	}
 
 	renderTournamentList();

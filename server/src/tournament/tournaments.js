@@ -171,6 +171,23 @@ export class Room {
     return result;
   }
 
+  getMatchesWithScores() {
+    let result = new Array();
+    if (!this.matches) return result;
+    this.matches.forEach((match) => {
+      result.push({
+        gameId: match.gameId,
+        leftPlayer: match.leftPlayer ? match.leftPlayer.nickname : null,
+        rightPlayer: match.rightPlayer ? match.rightPlayer.nickname : null,
+        leftScore: match.leftScore,
+        rightScore: match.rightScore,
+        winner: match.winner,
+        currentRound: this.currentRound,
+      });
+    });
+    return result;
+  }
+
   getOnlinePlayers() {
     let i = 0;
     for (const player of this.players) {

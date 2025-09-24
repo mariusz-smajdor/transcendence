@@ -50,9 +50,28 @@ export async function tournamentRoutes(fastify) {
       return;
     }
     const avatar = getAvatar(fastify, extractId(fastify, token));
+
+    // Get actual username for authenticated users
+    let actualCreator = creator;
+    if (token) {
+      try {
+        const userId = extractId(fastify, token);
+        if (userId) {
+          const user = fastify.db
+            .prepare('SELECT username FROM users WHERE id = ?')
+            .get(userId);
+          if (user && user.username) {
+            actualCreator = user.username;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
+      }
+    }
+
     let roomId = tournaments.createRoom(
       connection,
-      creator,
+      actualCreator,
       avatar,
       numberOfPlayers,
       token,
@@ -60,7 +79,7 @@ export async function tournamentRoutes(fastify) {
     );
     res.code(200).send({
       id: roomId,
-      creator: creator,
+      creator: actualCreator,
       avatar: tournaments.rooms.get(roomId).avatar,
       playersIn: 1,
       playersExpected: numberOfPlayers,
@@ -84,7 +103,32 @@ export async function tournamentRoutes(fastify) {
       res.code(400).send({ error: 'Room is full' });
       return;
     }
-    room = tournaments.joinRoom(roomId, connection, name, token, sessionId);
+
+    // Get actual username for authenticated users
+    let actualName = name;
+    if (token) {
+      try {
+        const userId = extractId(fastify, token);
+        if (userId) {
+          const user = fastify.db
+            .prepare('SELECT username FROM users WHERE id = ?')
+            .get(userId);
+          if (user && user.username) {
+            actualName = user.username;
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching username:', error);
+      }
+    }
+
+    room = tournaments.joinRoom(
+      roomId,
+      connection,
+      actualName,
+      token,
+      sessionId,
+    );
 
     if (room.players.length == room.getExpectedPlayers()) {
       res.code(200).send({
@@ -138,6 +182,44 @@ export async function tournamentRoutes(fastify) {
     res.code(200).send({ success: 'Succesfully left the room' });
   });
 
+  fastify.post('/tournament/status', async (req, res) => {
+    const { roomId, token, sessionId } = req.body;
+    if (!token && !sessionId) {
+      res.code(400).send({ error: 'Error: Missing token and sessionId' });
+      return;
+    }
+
+    const room = tournaments.getRoom(roomId);
+    if (room === undefined) {
+      res
+        .code(400)
+        .send({ error: 'Error: Cannot find tournament with this id' });
+      return;
+    }
+
+    const player = room.getPlayer(sessionId, token);
+    const canPlay = player && player.active && player.lastWin;
+    const gameId = canPlay ? room.getMatchToPlay(token, sessionId) : null;
+
+    res.code(200).send({
+      canPlay,
+      gameId,
+      playerStatus: player
+        ? {
+            active: player.active,
+            lastWin: player.lastWin,
+            nickname: player.nickname,
+          }
+        : null,
+      tournamentStatus: {
+        currentRound: room.currentRound,
+        totalRounds: room.expectedRounds(),
+        gameOn: room.gameOn,
+      },
+      matches: room.getMatchesWithScores(),
+    });
+  });
+
   fastify.post('/tournament/play', async (req, res) => {
     const { roomId, token, sessionId } = req.body;
     if (!token && !sessionId) {
@@ -152,9 +234,19 @@ export async function tournamentRoutes(fastify) {
         .send({ error: 'Error: Cannot find tournament with this id' });
       return;
     }
+
+    // Check if player is still active in the tournament
+    const player = room.getPlayer(sessionId, token);
+    if (!player || !player.active || !player.lastWin) {
+      res
+        .code(400)
+        .send({ error: 'You have been eliminated from this tournament' });
+      return;
+    }
+
     const gameId = room.getMatchToPlay(token, sessionId);
     if (!gameId) {
-      res.code(400).send({ error: 'Error: No match available yet' });
+      res.code(400).send({ error: 'No match available yet' });
       return;
     }
     res.code(200).send({ gameId: gameId });
