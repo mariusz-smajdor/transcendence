@@ -15,6 +15,7 @@ import {
 import { Img } from '../../../components/img.js';
 import { Wrapper } from '../../../components/wrapper.js';
 import { Toaster } from '../../../components/toaster.js';
+import { TournamentBracket } from '../../../components/tournament-bracket';
 import { getCookie } from '../../game/game-cookies.js';
 import { showGameOverlay } from '../../game/game-overlay.js';
 
@@ -95,7 +96,45 @@ export function TournamentTab() {
 			const rooms = await fetchTournamentRooms(token, sessionId);
 			if (rooms.found && rooms.id) {
 				currentRoomId = rooms.id;
-				renderBracketCanvas(rooms.playersExpected, rooms.playersIn, rooms);
+				card.innerHTML = '';
+				const players = rooms.positions ?? [];
+
+				const bracketComponent = TournamentBracket({
+					numberOfPlayers: rooms.playersExpected,
+					playersIn: rooms.playersIn,
+					players,
+					onLeaveTournament: async () => {
+						const token = getCookie('access_token') ?? null;
+						const sessionId = getCookie('sessionId') ?? null;
+						if (await leaveRoom(currentRoomId, token, sessionId))
+							await renderTournamentList();
+					},
+					onPlayMatch: async () => {
+						const token = getCookie('access_token') ?? null;
+						const sessionId = getCookie('sessionId') ?? null;
+						const response = await fetch(
+							'http://localhost:3000/tournament/play',
+							{
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									roomId: currentRoomId,
+									token,
+									sessionId,
+								}),
+							}
+						);
+						const data = await response.json();
+						if (response.ok && data.gameId) {
+							Toaster('Match found! Game ID: ' + data.gameId);
+							showGameOverlay(data.gameId, 'tournament', currentRoomId);
+						} else {
+							Toaster(data.error || 'No match available yet.');
+						}
+					},
+				});
+
+				card.appendChild(bracketComponent);
 				return;
 			} else currentRoomId = null;
 			const tournaments = Array.isArray(rooms) ? rooms : [rooms];
@@ -150,8 +189,47 @@ export function TournamentTab() {
 					);
 					const data = await response.json();
 					console.log(data);
-					if (response.ok)
-						renderBracketCanvas(data.playersExpected, data.playersIn, data);
+					if (response.ok) {
+						card.innerHTML = '';
+						const players = data.positions ?? [];
+
+						const bracketComponent = TournamentBracket({
+							numberOfPlayers: data.playersExpected,
+							playersIn: data.playersIn,
+							players,
+							onLeaveTournament: async () => {
+								const token = getCookie('access_token') ?? null;
+								const sessionId = getCookie('sessionId') ?? null;
+								if (await leaveRoom(currentRoomId, token, sessionId))
+									await renderTournamentList();
+							},
+							onPlayMatch: async () => {
+								const token = getCookie('access_token') ?? null;
+								const sessionId = getCookie('sessionId') ?? null;
+								const response = await fetch(
+									'http://localhost:3000/tournament/play',
+									{
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json' },
+										body: JSON.stringify({
+											roomId: currentRoomId,
+											token,
+											sessionId,
+										}),
+									}
+								);
+								const data = await response.json();
+								if (response.ok && data.gameId) {
+									Toaster('Match found! Game ID: ' + data.gameId);
+									showGameOverlay(data.gameId, 'tournament', currentRoomId);
+								} else {
+									Toaster(data.error || 'No match available yet.');
+								}
+							},
+						});
+
+						card.appendChild(bracketComponent);
+					}
 				});
 
 				const joinCell =
@@ -277,185 +355,47 @@ export function TournamentTab() {
 			if (!response.ok) {
 				console.log(response);
 			}
-			response = await response.json();
-			renderBracketCanvas(numberOfPlayers, 1, response);
-		};
-	}
+			const responseData = await response.json();
+			card.innerHTML = '';
+			const players = responseData.positions ?? [];
 
-	function renderBracketCanvas(
-		numberOfPlayers: number,
-		playersIn: number,
-		response: any
-	) {
-		//console.log(response)
-		const players = response.positions ?? [];
-		card.innerHTML = '';
-		const wrapper = document.createElement('div');
-		wrapper.classList.add(
-			'flex',
-			'flex-col',
-			'items-center',
-			'justify-center',
-			'gap-6',
-			'py-8'
-		);
-
-		const title = document.createElement('div');
-		title.textContent = `Tournament bracket (${playersIn}/${numberOfPlayers} players)`;
-		title.classList.add('font-bold', 'mb-4', 'text-lg');
-		wrapper.appendChild(title);
-
-		const canvas = document.createElement('canvas');
-		if (numberOfPlayers === 4) {
-			canvas.width = 500;
-			canvas.height = 300;
-		} else if (numberOfPlayers === 8) {
-			canvas.width = 700;
-			canvas.height = 400;
-		} else {
-			canvas.width = 400;
-			canvas.height = 200;
-		}
-		canvas.style.background = '#18181b';
-		canvas.style.borderRadius = '8px';
-		canvas.style.border = '1px solid #444';
-
-		const ctx = canvas.getContext('2d')!;
-		ctx.font = '16px sans-serif';
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.strokeStyle = '#888';
-		ctx.fillStyle = '#fff';
-
-		if (numberOfPlayers === 4) {
-			ctx.strokeRect(30, 40, 100, 40);
-			ctx.strokeRect(30, 160, 100, 40);
-			ctx.fillText(players[0] ?? 'Player 1', 80, 60);
-			ctx.fillText(players[1] ?? 'Player 2', 80, 180);
-
-			ctx.strokeRect(30, 220, 100, 40);
-			ctx.strokeRect(30, 100, 100, 40);
-			ctx.fillText(players[2] ?? 'Player 3', 80, 240);
-			ctx.fillText(players[3] ?? 'Player 4', 80, 120);
-
-			ctx.strokeRect(180, 90, 100, 40);
-			ctx.fillText('Winner SF1', 230, 110);
-
-			ctx.strokeRect(180, 150, 100, 40);
-			ctx.fillText('Winner SF2', 230, 170);
-
-			ctx.beginPath();
-			ctx.moveTo(130, 60);
-			ctx.lineTo(180, 110);
-			ctx.stroke();
-			ctx.moveTo(130, 180);
-			ctx.lineTo(180, 110);
-			ctx.stroke();
-			ctx.moveTo(130, 120);
-			ctx.lineTo(180, 170);
-			ctx.stroke();
-			ctx.moveTo(130, 240);
-			ctx.lineTo(180, 170);
-			ctx.stroke();
-
-			ctx.beginPath();
-			ctx.moveTo(280, 110);
-			ctx.lineTo(350, 170);
-			ctx.stroke();
-			ctx.moveTo(280, 170);
-			ctx.lineTo(350, 170);
-			ctx.stroke();
-
-			ctx.strokeRect(350, 150, 100, 40);
-			ctx.fillText('Winner', 400, 170);
-		} else if (numberOfPlayers === 8) {
-			for (let i = 0; i < 8; i++) {
-				ctx.strokeRect(30, 30 + i * 45, 100, 40);
-				ctx.fillText(`P${i + 1}`, 80, 50 + i * 45);
-			}
-			for (let i = 0; i < 4; i++) {
-				ctx.beginPath();
-				ctx.moveTo(130, 50 + i * 90);
-				ctx.lineTo(180, 70 + i * 90);
-				ctx.stroke();
-				ctx.moveTo(130, 95 + i * 90);
-				ctx.lineTo(180, 70 + i * 90);
-				ctx.stroke();
-			}
-			for (let i = 0; i < 4; i++) {
-				ctx.strokeRect(180, 70 + i * 90, 100, 40);
-				ctx.fillText(`QF${i + 1} Winner`, 230, 90 + i * 90);
-			}
-			for (let i = 0; i < 2; i++) {
-				ctx.beginPath();
-				ctx.moveTo(280, 90 + i * 180);
-				ctx.lineTo(350, 130 + i * 180);
-				ctx.stroke();
-				ctx.moveTo(280, 180 + i * 180);
-				ctx.lineTo(350, 130 + i * 180);
-				ctx.stroke();
-			}
-			for (let i = 0; i < 2; i++) {
-				ctx.strokeRect(350, 130 + i * 180, 100, 40);
-				ctx.fillText(`SF${i + 1} Winner`, 400, 150 + i * 180);
-			}
-			ctx.beginPath();
-			ctx.moveTo(450, 150);
-			ctx.lineTo(520, 210);
-			ctx.stroke();
-			ctx.moveTo(450, 330);
-			ctx.lineTo(520, 210);
-			ctx.stroke();
-
-			ctx.strokeRect(520, 210, 100, 40);
-			ctx.fillText('Winner', 570, 230);
-		} else {
-			ctx.fillText(
-				'Bracket for this number of players is not supported.',
-				canvas.width / 2,
-				canvas.height / 2
-			);
-		}
-
-		wrapper.appendChild(canvas);
-
-		const backBtn = document.createElement('button');
-		backBtn.textContent = 'Leave tournament';
-		backBtn.classList.add('btn', 'btn-secondary', 'mt-8', 'px-4', 'py-2');
-		backBtn.onclick = async () => {
-			const token = getCookie('access_token') ?? null;
-			const sessionId = getCookie('sessionId') ?? null;
-			if (await leaveRoom(currentRoomId, token, sessionId))
-				await renderTournamentList();
-		};
-		wrapper.appendChild(backBtn);
-		card.appendChild(wrapper);
-		const playBtn = document.createElement('button');
-		playBtn.textContent = 'Play Match';
-		playBtn.classList.add('btn', 'btn-primary', 'mt-4', 'px-4', 'py-2');
-		playBtn.onclick = async () => {
-			const token = getCookie('access_token') ?? null;
-			const sessionId = getCookie('sessionId') ?? null;
-			// console.log(sessionId)
-			// console.log(token)
-			const response = await fetch('http://localhost:3000/tournament/play', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					roomId: currentRoomId,
-					token,
-					sessionId,
-				}),
+			const bracketComponent = TournamentBracket({
+				numberOfPlayers,
+				playersIn: 1, // This should be passed from the response data
+				players,
+				onLeaveTournament: async () => {
+					const token = getCookie('access_token') ?? null;
+					const sessionId = getCookie('sessionId') ?? null;
+					if (await leaveRoom(currentRoomId, token, sessionId))
+						await renderTournamentList();
+				},
+				onPlayMatch: async () => {
+					const token = getCookie('access_token') ?? null;
+					const sessionId = getCookie('sessionId') ?? null;
+					const response = await fetch(
+						'http://localhost:3000/tournament/play',
+						{
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								roomId: currentRoomId,
+								token,
+								sessionId,
+							}),
+						}
+					);
+					const data = await response.json();
+					if (response.ok && data.gameId) {
+						Toaster('Match found! Game ID: ' + data.gameId);
+						showGameOverlay(data.gameId, 'tournament', currentRoomId);
+					} else {
+						Toaster(data.error || 'No match available yet.');
+					}
+				},
 			});
-			const data = await response.json();
-			if (response.ok && data.gameId) {
-				Toaster('Match found! Game ID: ' + data.gameId);
-				showGameOverlay(data.gameId, 'tournament', currentRoomId);
-			} else {
-				Toaster(data.error || 'No match available yet.');
-			}
+
+			card.appendChild(bracketComponent);
 		};
-		wrapper.appendChild(playBtn);
 	}
 
 	renderTournamentList();
