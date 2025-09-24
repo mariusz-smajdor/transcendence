@@ -61,56 +61,72 @@ export async function invitations(fastify) {
 
       if (data.type === 'invite' && data.toUserId) {
         const target = clients.get(data.toUserId);
-        if (target) {
-          target.send(
-            JSON.stringify({
-              type: 'invite',
-              fromUserId: userId,
-              message: data.message,
-            }),
-          );
+        if (target && target.send) {
+          try {
+            target.send(
+              JSON.stringify({
+                type: 'invite',
+                fromUserId: userId,
+                message: data.message,
+              }),
+            );
+          } catch (error) {
+            console.error('Error sending invite:', error);
+          }
         }
       }
 
       if (data.type === 'uninvite' && data.toUserId) {
         const target = clients.get(data.toUserId);
-        if (target) {
-          target.send(
-            JSON.stringify({
-              type: 'uninvite',
-              fromUserId: userId,
-              message: data.message,
-            }),
-          );
+        if (target && target.send) {
+          try {
+            target.send(
+              JSON.stringify({
+                type: 'uninvite',
+                fromUserId: userId,
+                message: data.message,
+              }),
+            );
+          } catch (error) {
+            console.error('Error sending uninvite:', error);
+          }
         }
       }
 
       if (data.type === 'accept' && data.toUserId) {
         const target = clients.get(data.toUserId);
-        if (target) {
-          target.send(
-            JSON.stringify({
-              type: 'game_start',
-              fromUserId: userId,
-              message: data.message,
-            }),
-          );
+        if (target && target.send) {
+          try {
+            target.send(
+              JSON.stringify({
+                type: 'game_start',
+                fromUserId: userId,
+                message: data.message,
+              }),
+            );
+          } catch (error) {
+            console.error('Error sending game_start:', error);
+          }
         }
       }
 
       if (data.type === 'game_start') {
         console.log('Received game_start');
         const target = clients.get(data.toUserId);
-        if (target) {
-          target.send(
-            JSON.stringify({
-              type: 'game_start_with_id',
-              fromUserId: userId,
-              message: data.message,
-              gameId: data.gameId,
-            }),
-          );
-          console.log('Sent task to open an overlay with game');
+        if (target && target.send) {
+          try {
+            target.send(
+              JSON.stringify({
+                type: 'game_start_with_id',
+                fromUserId: userId,
+                message: data.message,
+                gameId: data.gameId,
+              }),
+            );
+            console.log('Sent task to open an overlay with game');
+          } catch (error) {
+            console.error('Error sending game_start_with_id:', error);
+          }
         }
       }
     });
@@ -158,23 +174,35 @@ function scanWs(key) {
 export function closeOldWs(key) {
   let oldWs = clients.get(key);
   if (!oldWs) oldWs = notAuthenticated.get(key);
-  wsMessage(
-    'Connection closed! Please close this tab and continue in your new one.',
-    oldWs,
-  );
-  oldWs.close();
+  if (oldWs) {
+    wsMessage(
+      'Connection closed! Please close this tab and continue in your new one.',
+      oldWs,
+    );
+    oldWs.close();
+  }
 }
 
 export function closeCurrentWs(connection) {
-  wsMessage(
-    'Connection closed! Please close this tab and continue in previous one.',
-    connection,
-  );
-  connection.close();
+  if (connection) {
+    wsMessage(
+      'Connection closed! Please close this tab and continue in previous one.',
+      connection,
+    );
+    connection.close();
+  }
 }
 
 export function wsMessage(message, connection) {
-  connection.send(JSON.stringify({ type: 'message', message }));
+  if (connection && connection.send) {
+    try {
+      connection.send(JSON.stringify({ type: 'message', message }));
+    } catch (error) {
+      console.error('Error sending WebSocket message:', error);
+    }
+  } else {
+    console.warn('Cannot send message: connection is null or undefined');
+  }
 }
 
 export function addNewConnection(sessionId, userId, connection) {

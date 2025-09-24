@@ -1,4 +1,4 @@
-import { Gamepad2, Users, Bot, Trophy } from 'lucide';
+import { Gamepad2, Users, Bot } from 'lucide';
 import { Tabs, Trigger, Tab } from '../../../components/tabs';
 import { Wrapper } from '../../../components/wrapper';
 import { Card } from '../../../components/card';
@@ -8,6 +8,7 @@ import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
 import { showLobbyOverlay } from '../../game//lobby-overlay';
 import { fetchMe } from '../../../api/me';
+import { TournamentTab } from './tournament';
 
 function FriendCard() {
 	const card = Card({
@@ -121,7 +122,11 @@ function OnlineCard() {
 			const respData = await response.json();
 			showGameOverlay(respData.gameId, 'network');
 			const newUrl = `/game?gameId=${respData.gameId}`;
-			history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+			history.pushState(
+				{ gameId: respData.gameId },
+				`Game ${respData.gameId}`,
+				newUrl
+			);
 		}
 	});
 
@@ -214,72 +219,7 @@ function QuickPlayTab() {
 	return tab;
 }
 
-function TournamentTab() {
-	const tab = Tab({
-		value: 'tournament',
-		classes: ['h-full'],
-	});
-	const card = Card({
-		classes: [
-			'flex',
-			'flex-col',
-			'justify-center',
-			'items-center',
-			'gap-4',
-			'h-full',
-			'bg-background',
-			'lg:gap-6',
-		],
-	});
-	const iconWrapper = Wrapper({
-		classes: [
-			'flex',
-			'justify-center',
-			'items-center',
-			'bg-secondary/25',
-			'w-min',
-			'p-4',
-			'rounded-full',
-		],
-	});
-	const icon = Icon({
-		icon: Trophy,
-		size: 'xl',
-		classes: ['text-secondary', 'glow-secondary-animate'],
-	});
-	const textWrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
-	const heading = Heading({
-		level: 3,
-		content: 'Super Tournament',
-		classes: ['text-center'],
-	});
-	const description = Text({
-		element: 'p',
-		content: 'Compete against other players in a tournament format.',
-		classes: ['text-sm', 'text-muted', 'text-center'],
-	});
-	const buttonWraper = Wrapper({
-		classes: ['flex', 'gap-2', 'w-full', 'justify-center'],
-	});
-
-	card.classList.remove('bg-foreground');
-	textWrapper.appendChild(heading);
-	textWrapper.appendChild(description);
-	iconWrapper.appendChild(icon);
-	buttonWraper.appendChild(
-		Text({
-			content: 'You must be authenticated to participate in a tournament!',
-			classes: ['text-secondary', 'text-center', 'font-bold'],
-		})
-	);
-	card.appendChild(iconWrapper);
-	card.appendChild(textWrapper);
-	card.appendChild(buttonWraper);
-
-	tab.appendChild(card);
-
-	return tab;
-}
+// TournamentTab is now imported from './tournament'
 
 export default function Game() {
 	const section = Card({
