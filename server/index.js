@@ -21,6 +21,7 @@ import {
   isTokenBlacklisted,
 } from './src/services/userAuthenticationServices.js';
 import { invitations } from './src/routes/invitations.js';
+import { tournamentRoutes } from './src/routes/tournament.js';
 
 const fastify = Fastify();
 
@@ -117,6 +118,7 @@ fastify.register(oauthRoutes); // /login/google, /auth/google/callback
 fastify.register(gameRoutes);
 fastify.register(avatarRoutes); // /avatar/proxy
 fastify.register(invitations);
+fastify.register(tournamentRoutes);
 
 fastify.get('/', async (req, res) => {
   return res.status(200).send({

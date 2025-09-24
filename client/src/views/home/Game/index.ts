@@ -1,4 +1,4 @@
-import { Gamepad2, Users, Bot, Trophy } from 'lucide';
+import { Gamepad2, Users, Bot } from 'lucide';
 import { Tabs, Trigger, Tab } from '../../../components/tabs';
 import { Wrapper } from '../../../components/wrapper';
 import { Card } from '../../../components/card';

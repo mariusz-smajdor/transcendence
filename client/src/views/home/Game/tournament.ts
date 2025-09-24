@@ -99,6 +99,17 @@ export function TournamentTab() {
 				return;
 			} else currentRoomId = null;
 			const tournaments = Array.isArray(rooms) ? rooms : [rooms];
+			if (tournaments.length === 0) {
+				const noTournamentsRow = TableRow({});
+				const noTournamentsCell = TableCell({
+					content: 'No tournaments found',
+					classes: ['text-center', 'text-muted', 'py-8'],
+				});
+				noTournamentsCell.setAttribute('colspan', '3');
+				noTournamentsRow.appendChild(noTournamentsCell);
+				tableBody.appendChild(noTournamentsRow);
+				return;
+			}
 			tournaments.forEach((room) => {
 				const row = TableRow({});
 				const creatorCell = TableCell({
@@ -277,7 +288,7 @@ export function TournamentTab() {
 		response: any
 	) {
 		//console.log(response)
-		const players = response.positions ?? null;
+		const players = response.positions ?? [];
 		card.innerHTML = '';
 		const wrapper = document.createElement('div');
 		wrapper.classList.add(
