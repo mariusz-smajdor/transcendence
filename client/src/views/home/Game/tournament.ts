@@ -18,6 +18,7 @@ import { Toaster } from '../../../components/toaster.js';
 import { TournamentBracket } from '../../../components/tournament-bracket';
 import { getCookie } from '../../game/game-cookies.js';
 import { showGameOverlay } from '../../game/game-overlay.js';
+import { store } from '../../../store.js';
 
 let currentRoomId: string | null = null;
 
@@ -180,7 +181,7 @@ export function TournamentTab() {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
-								name: 'example',
+								name: store.getState().user?.username ?? 'Guest',
 								token,
 								sessionId,
 								roomId: room.id,
@@ -268,7 +269,7 @@ export function TournamentTab() {
 
 		const token = getCookie('access_token') ?? null;
 		const sessionId = getCookie('sessionId') ?? null;
-		const isLoggedIn = !!token && !!sessionId;
+		const isLoggedIn = !!token;
 
 		let nicknameInput: HTMLInputElement | null = null;
 
@@ -330,7 +331,7 @@ export function TournamentTab() {
 		};
 
 		confirmBtn.onclick = async () => {
-			let creator = 'example';
+			let creator = store.getState().user?.username ?? 'Guest';
 			if (!isLoggedIn) {
 				const nickname = nicknameInput?.value.trim();
 				if (!nickname) {
