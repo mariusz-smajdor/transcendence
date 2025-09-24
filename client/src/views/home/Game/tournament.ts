@@ -57,6 +57,10 @@ export function TournamentTab() {
 			})
 		);
 
+		const buttonsWrapper = Wrapper({
+			classes: ['flex', 'gap-2'],
+		});
+
 		const newTournamentButton = Button({
 			variant: 'primary',
 			content: 'New Tournament',
@@ -66,13 +70,23 @@ export function TournamentTab() {
 			renderCreateForm();
 		});
 
+		const refreshButton = Button({
+			variant: 'outline',
+			content: 'Refresh',
+		});
+
+		refreshButton.addEventListener('click', async () => {
+			await renderRooms();
+		});
+
 		const wrapper = Wrapper({
 			element: 'div',
 			classes: ['flex', 'justify-between'],
 		});
 		wrapper.appendChild(heading);
-		wrapper.appendChild(newTournamentButton);
-
+		buttonsWrapper.appendChild(newTournamentButton);
+		buttonsWrapper.appendChild(refreshButton);
+		wrapper.appendChild(buttonsWrapper);
 		const table = Table({});
 		const tableHeader = TableHeader({});
 		const headerRow = TableRow({});
@@ -171,8 +185,8 @@ export function TournamentTab() {
 				});
 
 				const joinButton = Button({
-					variant: 'tab',
-					content: 'join',
+					variant: 'primary',
+					content: 'Join',
 				});
 
 				joinButton.addEventListener('click', async () => {
@@ -250,7 +264,6 @@ export function TournamentTab() {
 			});
 		}
 		renderRooms();
-		setInterval(renderRooms, 2000);
 	}
 	function renderCreateForm() {
 		card.innerHTML = '';

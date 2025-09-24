@@ -6,7 +6,7 @@ import { tournamentGame } from '../tournament/tournamentGame.js';
 export const tournaments = new Tournaments();
 
 export async function tournamentRoutes(fastify) {
-  //check for available tournamnets or open the current tournament
+  //check for available tournamets or open the current tournament
   fastify.post('/tournament/rooms', async (req, res) => {
     try {
       let { token, sessionId } = req.body;
