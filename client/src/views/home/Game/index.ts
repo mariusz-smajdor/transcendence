@@ -8,6 +8,7 @@ import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
 import { showLobbyOverlay } from '../../game//lobby-overlay';
 import { fetchMe } from '../../../api/me';
+import { TournamentTab } from './tournament';
 
 function FriendCard() {
 	const card = Card({
@@ -121,7 +122,11 @@ function OnlineCard() {
 			const respData = await response.json();
 			showGameOverlay(respData.gameId, 'network');
 			const newUrl = `/game?gameId=${respData.gameId}`;
-			history.pushState({ gameId: respData.gameId }, `Game ${respData.gameId}`, newUrl);
+			history.pushState(
+				{ gameId: respData.gameId },
+				`Game ${respData.gameId}`,
+				newUrl
+			);
 		}
 	});
 
@@ -210,73 +215,6 @@ function QuickPlayTab() {
 	tab.appendChild(friendCard);
 	tab.appendChild(onlineCard);
 	tab.appendChild(aiCard);
-
-	return tab;
-}
-
-function TournamentTab() {
-	const tab = Tab({
-		value: 'tournament',
-		classes: ['h-full'],
-	});
-	const card = Card({
-		classes: [
-			'flex',
-			'flex-col',
-			'justify-center',
-			'items-center',
-			'gap-4',
-			'h-full',
-			'bg-background',
-			'lg:gap-6',
-		],
-	});
-	const iconWrapper = Wrapper({
-		classes: [
-			'flex',
-			'justify-center',
-			'items-center',
-			'bg-secondary/25',
-			'w-min',
-			'p-4',
-			'rounded-full',
-		],
-	});
-	const icon = Icon({
-		icon: Trophy,
-		size: 'xl',
-		classes: ['text-secondary', 'glow-secondary-animate'],
-	});
-	const textWrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
-	const heading = Heading({
-		level: 3,
-		content: 'Super Tournament',
-		classes: ['text-center'],
-	});
-	const description = Text({
-		element: 'p',
-		content: 'Compete against other players in a tournament format.',
-		classes: ['text-sm', 'text-muted', 'text-center'],
-	});
-	const buttonWraper = Wrapper({
-		classes: ['flex', 'gap-2', 'w-full', 'justify-center'],
-	});
-
-	card.classList.remove('bg-foreground');
-	textWrapper.appendChild(heading);
-	textWrapper.appendChild(description);
-	iconWrapper.appendChild(icon);
-	buttonWraper.appendChild(
-		Text({
-			content: 'You must be authenticated to participate in a tournament!',
-			classes: ['text-secondary', 'text-center', 'font-bold'],
-		})
-	);
-	card.appendChild(iconWrapper);
-	card.appendChild(textWrapper);
-	card.appendChild(buttonWraper);
-
-	tab.appendChild(card);
 
 	return tab;
 }

@@ -12,6 +12,7 @@ import notificationRoutes from './src/routes/notifications.js';
 import messagesRoutes from './src/routes/messagesRoutes.js';
 import oauthRoutes from './src/routes/oauthRoutes.js';
 import gameRoutes from './src/routes/game.js';
+import { avatarRoutes } from './src/routes/avatar.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import FastifyStatic from '@fastify/static';
@@ -114,6 +115,7 @@ fastify.register(notificationRoutes); // /notifications (WebSocket)
 fastify.register(messagesRoutes); // /messages, /conversations
 fastify.register(oauthRoutes); // /login/google, /auth/google/callback
 fastify.register(gameRoutes);
+fastify.register(avatarRoutes); // /avatar/proxy
 fastify.register(invitations);
 
 fastify.get('/', async (req, res) => {

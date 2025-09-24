@@ -1,6 +1,6 @@
 /**
  * Utility function to get the correct avatar URL
- * Handles both Google OAuth avatars (complete URLs) and uploaded avatars (relative paths)
+ * Handles both Google OAuth avatars (proxied through server) and uploaded avatars (relative paths)
  */
 export function getAvatarUrl(
 	avatar: string | null | undefined,
@@ -10,7 +10,17 @@ export function getAvatarUrl(
 		return `https://ui-avatars.com/api/?length=1&name=${fallbackName}&background=random`;
 	}
 
-	// If avatar is already a complete URL (Google OAuth), use it as-is
+	// If avatar is a Google OAuth URL, proxy it through our server to avoid CORS issues
+	if (
+		avatar.includes('googleusercontent.com') ||
+		avatar.includes('googleapis.com')
+	) {
+		return `http://localhost:3000/avatar/proxy?url=${encodeURIComponent(
+			avatar
+		)}`;
+	}
+
+	// If avatar is already a complete URL (other external services), use it as-is
 	if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
 		return avatar;
 	}
