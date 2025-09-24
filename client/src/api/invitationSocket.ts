@@ -1,5 +1,5 @@
 import { getCookie } from '../views/game/game-cookies';
-import { showPopupMessage } from '../views/home/Game/tournament';
+import { showPopupMessage } from '../utils/tournamentUtils';
 
 type InvitationHandler = (data: any) => void;
 
