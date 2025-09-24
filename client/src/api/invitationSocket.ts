@@ -1,5 +1,5 @@
 import { getCookie } from '../views/game/game-cookies';
-import { showPopupMessage } from '../views/home/Game/tournament';
+import { Toaster } from '../components/toaster';
 
 type InvitationHandler = (data: any) => void;
 
@@ -30,7 +30,7 @@ export function connectInvitationSocket() {
 				document.cookie = 'token=; path=/;';
 			}
 			return;
-		} else if (data.type === 'message') showPopupMessage(data.message);
+		} else if (data.type === 'message') Toaster(data.message);
 		handlers.forEach((handler) => handler(data));
 	};
 

@@ -65,7 +65,7 @@ function registerUser(
 					if (form.lastChild instanceof HTMLSpanElement) {
 						form.removeChild(form.lastChild);
 					}
-				}, 3000);
+				}, 1000);
 			}
 		} catch (error) {
 			if (error instanceof Error) {

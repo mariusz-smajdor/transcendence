@@ -29,4 +29,4 @@ export type GameUI = {
 	actions: UIActions;
 };
 
-export type GameType = 'network' | 'local' | 'ai';
+export type GameType = 'network' | 'local' | 'ai' | 'tournament';
