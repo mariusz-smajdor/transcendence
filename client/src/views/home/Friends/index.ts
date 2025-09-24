@@ -16,12 +16,12 @@ import {
 	sendFriendRequest,
 } from '../../../api/friendRequest';
 import { getConversations } from '../../../api/messages';
-// import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
 import { store } from '../../../store';
 import { MessageCard } from './MessageCard';
 import { dataChangeEmitter } from '../../../services/notificationService';
 import { Toaster } from '../../../components/toaster';
-// import { showGameOverlay } from '../../game/game-overlay';
+import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
+import { showGameOverlay } from '../../game/game-overlay';
 
 // Track which friends have unread messages
 const unreadMessages = new Set<number>();
@@ -288,55 +288,55 @@ function AllFriendsTab() {
 		});
 	}
 
-	// onInvitation((data) => {
-	// 	if (data.type === 'invite' && data.fromUserId) {
-	// 		const friendRow = wrapper.querySelector(
-	// 			`[data-friend-id="${data.fromUserId}"]`
-	// 		);
-	// 		if (friendRow && !friendRow.querySelector('.invitation-to-game-btn')) {
-	// 			const invitationToGame = Button({
-	// 				type: 'button',
-	// 				content: 'Invited to game',
-	// 				classes: [
-	// 					'flex',
-	// 					'gap-2',
-	// 					'items-center',
-	// 					'text-sm',
-	// 					'invitation-to-game-btn',
-	// 				],
-	// 			});
-	// 			invitationToGame.onclick = () => {
-	// 				sendInvitation({
-	// 					type: 'accept',
-	// 					message: 'Invitation accepted',
-	// 					toUserId: data.fromUserId,
-	// 				});
-	// 				friendRow.removeChild(invitationToGame);
-	// 			};
-	// 			friendRow.appendChild(invitationToGame);
-	// 		}
-	// 	}
-	// });
+	onInvitation((data) => {
+		if (data.type === 'invite' && data.fromUserId) {
+			const friendRow = wrapper.querySelector(
+				`[data-friend-id="${data.fromUserId}"]`
+			);
+			if (friendRow && !friendRow.querySelector('.invitation-to-game-btn')) {
+				const invitationToGame = Button({
+					type: 'button',
+					content: 'Invited to game',
+					classes: [
+						'flex',
+						'gap-2',
+						'items-center',
+						'text-sm',
+						'invitation-to-game-btn',
+					],
+				});
+				invitationToGame.onclick = () => {
+					sendInvitation({
+						type: 'accept',
+						message: 'Invitation accepted',
+						toUserId: data.fromUserId,
+					});
+					friendRow.removeChild(invitationToGame);
+				};
+				friendRow.appendChild(invitationToGame);
+			}
+		}
+	});
 
-	// onInvitation((data) => {
-	// 	if (data.type === 'uninvite' && data.fromUserId) {
-	// 		const friendRow = wrapper.querySelector(
-	// 			`[data-friend-id="${data.fromUserId}"]`
-	// 		);
-	// 		const invitationBtn = friendRow?.querySelector('.invitation-to-game-btn');
-	// 		if (friendRow && invitationBtn) {
-	// 			friendRow.removeChild(invitationBtn);
-	// 		}
-	// 	}
-	// });
+	onInvitation((data) => {
+		if (data.type === 'uninvite' && data.fromUserId) {
+			const friendRow = wrapper.querySelector(
+				`[data-friend-id="${data.fromUserId}"]`
+			);
+			const invitationBtn = friendRow?.querySelector('.invitation-to-game-btn');
+			if (friendRow && invitationBtn) {
+				friendRow.removeChild(invitationBtn);
+			}
+		}
+	});
 
-	// onInvitation((data) => {
-	// 	if (data.type === 'game_start_with_id' && data.gameId) {
-	// 		showGameOverlay(data.gameId, 'network');
-	// 		const newUrl = `/game?gameId=${data.gameId}`;
-	// 		history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
-	// 	}
-	// });
+	onInvitation((data) => {
+		if (data.type === 'game_start_with_id' && data.gameId) {
+			showGameOverlay(data.gameId, 'network');
+			const newUrl = `/game?gameId=${data.gameId}`;
+			history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
+		}
+	});
 
 	searchInput.addEventListener('input', renderFriends);
 
