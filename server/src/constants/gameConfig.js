@@ -1,0 +1,5 @@
+export const GAME_CONFIG = {
+  NUMBER_OF_ROUNDS: 2,
+  BALL_SPEED: 5,
+  PADDLE_SPEED: 30,
+};
