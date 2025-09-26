@@ -27,44 +27,37 @@ function createBracketMatches(
 	const matches: BracketMatch[] = [];
 
 	if (numberOfPlayers === 4) {
-		// Quarter finals
+		// Semi finals (first stage for 4 players)
 		matches.push(
 			{
-				id: 'qf1',
+				id: 'sf1',
 				player1: players[0],
 				player2: players[1],
-				round: 'quarter',
+				round: 'semi',
 				position: { x: 0, y: 0 },
 			},
 			{
-				id: 'qf2',
+				id: 'sf2',
 				player1: players[2],
 				player2: players[3],
-				round: 'quarter',
+				round: 'semi',
 				position: { x: 0, y: 1 },
 			}
 		);
-		// Semi finals
-		matches.push({
-			id: 'sf1',
-			winner: 'Winner SF1',
-			round: 'semi',
-			position: { x: 1, y: 0.5 },
-		});
 		// Final
 		matches.push({
 			id: 'final',
 			winner: 'Winner',
 			round: 'final',
-			position: { x: 2, y: 0.5 },
+			position: { x: 1, y: 0.5 },
 		});
 	} else if (numberOfPlayers === 8) {
 		// Quarter finals
 		for (let i = 0; i < 8; i += 2) {
 			matches.push({
 				id: `qf${i / 2 + 1}`,
-				player1: `P${i + 1}`,
-				player2: `P${i + 2}`,
+				player1: players[i] || `Player ${i + 1}`,
+				player2: players[i + 1] || `Player ${i + 2}`,
 				round: 'quarter',
 				position: { x: 0, y: i / 2 },
 			});
