@@ -181,6 +181,10 @@ export class Room {
 
   addPlayer(connection, nickname, token, sessionId) {
     this.players.push(new Player(connection, nickname, sessionId, token));
+
+    // Broadcast player update to all existing players in the room
+    this.broadcastPlayerUpdate();
+
     if (this.players.length === this.expectedPlayers.size) {
       this.gameOn = true;
       this.createMatches();
@@ -207,6 +211,9 @@ export class Room {
         return true;
       });
     }
+
+    // Broadcast player update after removal
+    this.broadcastPlayerUpdate();
   }
 
   getActivePlayers() {
@@ -322,6 +329,27 @@ export class Room {
       }
     }
     return true;
+  }
+
+  broadcastPlayerUpdate() {
+    // Send tournament update to all players with active connections
+    for (const player of this.players) {
+      if (player.connection && player.active) {
+        try {
+          player.connection.send(
+            JSON.stringify({
+              type: 'tournament_update',
+              playersIn: this.players.length,
+              playersExpected: this.getExpectedPlayers(),
+              positions: this.positions(),
+              gameOn: this.gameOn,
+            }),
+          );
+        } catch (error) {
+          console.error('Error broadcasting tournament update:', error);
+        }
+      }
+    }
   }
 }
 

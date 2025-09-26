@@ -20,8 +20,10 @@ import { getCookie } from '../../game/game-cookies.js';
 import { showGameOverlay } from '../../game/game-overlay.js';
 import { store } from '../../../store.js';
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
+import { onInvitation } from '../../../api/invitationSocket.js';
 
 let currentRoomId: string | null = null;
+let currentBracketComponent: HTMLElement | null = null;
 
 export function TournamentTab() {
 	const tab = Tab({
@@ -43,6 +45,7 @@ export function TournamentTab() {
 
 	async function renderTournamentList() {
 		card.innerHTML = '';
+		currentBracketComponent = null;
 
 		const heading = Heading({
 			level: 2,
@@ -150,6 +153,7 @@ export function TournamentTab() {
 					},
 				});
 
+				currentBracketComponent = bracketComponent;
 				card.appendChild(bracketComponent);
 				return;
 			} else currentRoomId = null;
@@ -245,6 +249,7 @@ export function TournamentTab() {
 							},
 						});
 
+						currentBracketComponent = bracketComponent;
 						card.appendChild(bracketComponent);
 					}
 				});
@@ -411,13 +416,73 @@ export function TournamentTab() {
 				},
 			});
 
+			currentBracketComponent = bracketComponent;
 			card.appendChild(bracketComponent);
 		};
 	}
 
+	// Set up WebSocket listener for tournament updates
+	const unsubscribe = onInvitation((data) => {
+		if (data.type === 'tournament_update' && currentRoomId) {
+			updateTournamentBracket(data, renderTournamentList);
+		}
+	});
+
+	// Clean up listener when component is removed
+	tab.addEventListener('remove', () => {
+		unsubscribe();
+	});
+
 	renderTournamentList();
 	tab.appendChild(card);
 	return tab;
+}
+
+function updateTournamentBracket(
+	data: any,
+	renderTournamentList: () => Promise<void>
+) {
+	if (!currentBracketComponent || !currentRoomId) return;
+
+	// Update the tournament bracket with new player data
+	const bracketComponent = TournamentBracket({
+		numberOfPlayers: data.playersExpected,
+		playersIn: data.playersIn,
+		players: data.positions,
+		onLeaveTournament: async () => {
+			const token = getCookie('access_token') ?? null;
+			const sessionId = getCookie('sessionId') ?? null;
+			if (await leaveRoom(currentRoomId, token, sessionId))
+				await renderTournamentList();
+		},
+		onPlayMatch: async () => {
+			const token = getCookie('access_token') ?? null;
+			const sessionId = getCookie('sessionId') ?? null;
+			const response = await fetch('http://localhost:3000/tournament/play', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					roomId: currentRoomId,
+					token,
+					sessionId,
+				}),
+			});
+			const responseData = await response.json();
+			if (response.ok && responseData.gameId) {
+				Toaster('Match found! Game ID: ' + responseData.gameId);
+				showGameOverlay(responseData.gameId, 'tournament', currentRoomId);
+			} else {
+				Toaster(responseData.error || 'No match available yet.');
+			}
+		},
+	});
+
+	// Replace the current bracket component
+	currentBracketComponent.parentNode?.replaceChild(
+		bracketComponent,
+		currentBracketComponent
+	);
+	currentBracketComponent = bracketComponent;
 }
 
 async function fetchTournamentRooms(
