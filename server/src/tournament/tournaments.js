@@ -162,11 +162,14 @@ export class Room {
     let result = new Array();
     if (!this.matches) return result;
     this.matches.forEach((match) => {
-      result.push({
-        scoreL: match.game.gameState.score.left,
-        scoreR: match.game.gameState.score.right,
-        winner: match.winner,
-      });
+      if (match.winner) {
+        // match.winner now contains the actual winner's nickname
+        result.push({
+          scoreL: match.leftScore,
+          scoreR: match.rightScore,
+          winner: match.winner, // This is now the actual winner's nickname
+        });
+      }
     });
     return result;
   }
@@ -297,8 +300,17 @@ export class Room {
     if (match.winner) return;
     match.leftScore = leftScore;
     match.rightScore = rightScore;
-    match.winner = true;
+
+    // Determine the actual winner's nickname
+    const winner = leftScore > rightScore ? 'left' : 'right';
+    const winnerPlayer =
+      winner === 'left' ? match.leftPlayer : match.rightPlayer;
+    match.winner = winnerPlayer ? winnerPlayer.nickname : winner;
+
     this.nextRound();
+
+    // Broadcast tournament update with match results
+    this.broadcastPlayerUpdate();
   }
 
   nextRound() {
@@ -342,6 +354,7 @@ export class Room {
               playersIn: this.players.length,
               playersExpected: this.getExpectedPlayers(),
               positions: this.positions(),
+              matches: this.getMatches(), // Include match results
               gameOn: this.gameOn,
             }),
           );

@@ -3,10 +3,17 @@ import { Card } from './card';
 import { Text } from './text';
 import { Button } from './button';
 
+type MatchResult = {
+	matchId: string;
+	winner: string;
+	loser: string;
+};
+
 type TournamentBracketProps = ComponentProps & {
 	numberOfPlayers: number;
 	playersIn: number;
 	players: string[];
+	matchResults?: MatchResult[];
 	onLeaveTournament: () => void;
 	onPlayMatch: () => void;
 };
@@ -20,10 +27,32 @@ type BracketMatch = {
 	position: { x: number; y: number };
 };
 
+function getMatchWinner(
+	matchId: string,
+	matchResults: MatchResult[]
+): string | null {
+	console.log(`🔍 Debug: getMatchWinner called for matchId: ${matchId}`, {
+		matchResults,
+		searchingFor: matchId,
+	});
+
+	const result = matchResults.find((r) => r.matchId === matchId);
+	console.log(`🔍 Debug: Found result for ${matchId}:`, result);
+
+	return result ? result.winner : null;
+}
+
 function createBracketMatches(
 	numberOfPlayers: number,
-	players: string[]
+	players: string[],
+	matchResults: MatchResult[] = []
 ): BracketMatch[] {
+	console.log('🔍 Debug: createBracketMatches called with:', {
+		numberOfPlayers,
+		players,
+		matchResults,
+	});
+
 	const matches: BracketMatch[] = [];
 
 	if (numberOfPlayers === 4) {
@@ -31,53 +60,127 @@ function createBracketMatches(
 		matches.push(
 			{
 				id: 'sf1',
-				player1: players[0],
-				player2: players[1],
+				player1: players[0] || 'Waiting for player...',
+				player2: players[1] || 'Waiting for player...',
 				round: 'semi',
 				position: { x: 0, y: 0 },
 			},
 			{
 				id: 'sf2',
-				player1: players[2],
-				player2: players[3],
+				player1: players[2] || 'Waiting for player...',
+				player2: players[3] || 'Waiting for player...',
 				round: 'semi',
 				position: { x: 0, y: 1 },
 			}
 		);
-		// Final
-		matches.push({
-			id: 'final',
-			winner: 'Winner',
-			round: 'final',
-			position: { x: 1, y: 0.5 },
+
+		// Final - use actual winners from semifinals
+		const sf1Winner = getMatchWinner('sf1', matchResults);
+		const sf2Winner = getMatchWinner('sf2', matchResults);
+
+		console.log('🔍 Debug: 4-player final check:', {
+			sf1Winner,
+			sf2Winner,
+			bothCompleted: sf1Winner && sf2Winner,
 		});
+
+		if (sf1Winner && sf2Winner) {
+			// Both semifinals completed, show actual players
+			console.log(
+				'🔍 Debug: Creating final match with actual players:',
+				sf1Winner,
+				'vs',
+				sf2Winner
+			);
+			matches.push({
+				id: 'final',
+				player1: sf1Winner || 'Waiting for player...',
+				player2: sf2Winner || 'Waiting for player...',
+				round: 'final',
+				position: { x: 1, y: 0.5 },
+			});
+		} else {
+			// Semifinals not completed yet, show placeholder
+			console.log('🔍 Debug: Creating final match with TBD placeholder');
+			matches.push({
+				id: 'final',
+				winner: 'TBD',
+				round: 'final',
+				position: { x: 1, y: 0.5 },
+			});
+		}
 	} else if (numberOfPlayers === 8) {
 		// Quarter finals
 		for (let i = 0; i < 8; i += 2) {
 			matches.push({
 				id: `qf${i / 2 + 1}`,
-				player1: players[i] || `Player ${i + 1}`,
-				player2: players[i + 1] || `Player ${i + 2}`,
+				player1: players[i] || 'Waiting for player...',
+				player2: players[i + 1] || 'Waiting for player...',
 				round: 'quarter',
 				position: { x: 0, y: i / 2 },
 			});
 		}
-		// Semi finals
-		for (let i = 0; i < 4; i += 2) {
+
+		// Semi finals - use actual winners from quarterfinals
+		const qf1Winner = getMatchWinner('qf1', matchResults);
+		const qf2Winner = getMatchWinner('qf2', matchResults);
+		const qf3Winner = getMatchWinner('qf3', matchResults);
+		const qf4Winner = getMatchWinner('qf4', matchResults);
+
+		if (qf1Winner && qf2Winner) {
 			matches.push({
-				id: `sf${i / 2 + 1}`,
-				winner: `QF${i / 2 + 1} Winner`,
+				id: 'sf1',
+				player1: qf1Winner || 'Waiting for player...',
+				player2: qf2Winner || 'Waiting for player...',
 				round: 'semi',
-				position: { x: 1, y: i / 2 + 0.5 },
+				position: { x: 1, y: 0.5 },
+			});
+		} else {
+			matches.push({
+				id: 'sf1',
+				winner: 'TBD',
+				round: 'semi',
+				position: { x: 1, y: 0.5 },
 			});
 		}
-		// Final
-		matches.push({
-			id: 'final',
-			winner: 'Winner',
-			round: 'final',
-			position: { x: 2, y: 1 },
-		});
+
+		if (qf3Winner && qf4Winner) {
+			matches.push({
+				id: 'sf2',
+				player1: qf3Winner || 'Waiting for player...',
+				player2: qf4Winner || 'Waiting for player...',
+				round: 'semi',
+				position: { x: 1, y: 1.5 },
+			});
+		} else {
+			matches.push({
+				id: 'sf2',
+				winner: 'TBD',
+				round: 'semi',
+				position: { x: 1, y: 1.5 },
+			});
+		}
+
+		// Final - use actual winners from semifinals
+		const sf1Winner = getMatchWinner('sf1', matchResults);
+		const sf2Winner = getMatchWinner('sf2', matchResults);
+
+		if (sf1Winner && sf2Winner) {
+			matches.push({
+				id: 'final',
+				player1: sf1Winner || 'Waiting for player...',
+				player2: sf2Winner || 'Waiting for player...',
+				round: 'final',
+				position: { x: 2, y: 1 },
+			});
+		} else {
+			matches.push({
+				id: 'final',
+				winner: 'TBD',
+				round: 'final',
+				position: { x: 2, y: 1 },
+			});
+		}
 	}
 
 	return matches;
@@ -137,6 +240,7 @@ export function TournamentBracket({
 	numberOfPlayers,
 	playersIn,
 	players,
+	matchResults = [],
 	onLeaveTournament,
 	onPlayMatch,
 	classes = [],
@@ -176,7 +280,7 @@ export function TournamentBracket({
 	);
 
 	// Create matches
-	const matches = createBracketMatches(numberOfPlayers, players);
+	const matches = createBracketMatches(numberOfPlayers, players, matchResults);
 
 	// Group matches by round
 	const rounds = matches.reduce((acc, match) => {

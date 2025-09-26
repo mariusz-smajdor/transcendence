@@ -22,6 +22,65 @@ import { store } from '../../../store.js';
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 import { onInvitation } from '../../../api/invitationSocket.js';
 
+// Transform server match results to client format
+function transformServerMatchResults(
+	serverMatches: any[],
+	numberOfPlayers: number
+) {
+	console.log('🔍 Debug: transformServerMatchResults called with:', {
+		serverMatches,
+		numberOfPlayers,
+	});
+
+	const matchResults: Array<{
+		matchId: string;
+		winner: string;
+		loser: string;
+	}> = [];
+
+	// Server matches don't have explicit match IDs, so we need to map them based on tournament structure
+	// For now, we'll create a simple mapping based on the order of matches
+	serverMatches.forEach((match, index) => {
+		console.log(`🔍 Debug: Processing match ${index}:`, match);
+
+		if (match.winner) {
+			// Determine match ID based on tournament structure and match index
+			let matchId: string;
+			if (numberOfPlayers === 4) {
+				// For 4 players: sf1, sf2, final
+				if (index === 0) matchId = 'sf1';
+				else if (index === 1) matchId = 'sf2';
+				else if (index === 2) matchId = 'final';
+				else return; // Skip invalid matches
+			} else if (numberOfPlayers === 8) {
+				// For 8 players: qf1, qf2, qf3, qf4, sf1, sf2, final
+				if (index < 4) matchId = `qf${index + 1}`;
+				else if (index < 6) matchId = `sf${index - 3}`;
+				else if (index === 6) matchId = 'final';
+				else return; // Skip invalid matches
+			} else {
+				return; // Unsupported tournament size
+			}
+
+			console.log(
+				`🔍 Debug: Mapped match ${index} to matchId: ${matchId}, winner: ${match.winner}`
+			);
+
+			// Now match.winner contains the actual player nickname
+			// We need to determine the loser, but we don't have that info from server
+			// For now, we'll use a placeholder for the loser
+			matchResults.push({
+				matchId,
+				winner: match.winner,
+				loser: 'Unknown', // We don't have loser info from server
+			});
+		}
+	});
+
+	console.log('🔍 Debug: Final matchResults:', matchResults);
+	return matchResults;
+}
+
 let currentRoomId: string | null = null;
 let currentBracketComponent: HTMLElement | null = null;
 
@@ -118,10 +177,17 @@ export function TournamentTab() {
 				card.innerHTML = '';
 				const players = rooms.positions ?? [];
 
+				// Transform server match results to client format
+				const matchResults = transformServerMatchResults(
+					rooms.matches || [],
+					rooms.playersExpected
+				);
+
 				const bracketComponent = TournamentBracket({
 					numberOfPlayers: rooms.playersExpected,
 					playersIn: rooms.playersIn,
 					players,
+					matchResults,
 					onLeaveTournament: async () => {
 						const token = getCookie('access_token') ?? null;
 						const sessionId = getCookie('sessionId') ?? null;
@@ -385,6 +451,7 @@ export function TournamentTab() {
 				numberOfPlayers,
 				playersIn: 1, // This should be passed from the response data
 				players,
+				matchResults: [], // No matches yet for newly created tournament
 				onLeaveTournament: async () => {
 					const token = getCookie('access_token') ?? null;
 					const sessionId = getCookie('sessionId') ?? null;
@@ -445,10 +512,15 @@ function updateTournamentBracket(
 	if (!currentBracketComponent || !currentRoomId) return;
 
 	// Update the tournament bracket with new player data
+	const matchResults = transformServerMatchResults(
+		data.matches || [],
+		data.playersExpected
+	);
 	const bracketComponent = TournamentBracket({
 		numberOfPlayers: data.playersExpected,
 		playersIn: data.playersIn,
 		players: data.positions,
+		matchResults,
 		onLeaveTournament: async () => {
 			const token = getCookie('access_token') ?? null;
 			const sessionId = getCookie('sessionId') ?? null;

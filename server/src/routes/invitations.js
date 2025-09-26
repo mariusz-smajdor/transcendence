@@ -158,23 +158,30 @@ function scanWs(key) {
 export function closeOldWs(key) {
   let oldWs = clients.get(key);
   if (!oldWs) oldWs = notAuthenticated.get(key);
-  wsMessage(
-    'Connection closed! Please close this tab and continue in your new one.',
-    oldWs,
-  );
-  oldWs.close();
+
+  if (oldWs) {
+    wsMessage(
+      'Connection closed! Please close this tab and continue in your new one.',
+      oldWs,
+    );
+    oldWs.close();
+  }
 }
 
 export function closeCurrentWs(connection) {
-  wsMessage(
-    'Connection closed! Please close this tab and continue in previous one.',
-    connection,
-  );
-  connection.close();
+  if (connection) {
+    wsMessage(
+      'Connection closed! Please close this tab and continue in previous one.',
+      connection,
+    );
+    connection.close();
+  }
 }
 
 export function wsMessage(message, connection) {
-  connection.send(JSON.stringify({ type: 'message', message }));
+  if (connection && connection.send) {
+    connection.send(JSON.stringify({ type: 'message', message }));
+  }
 }
 
 export function addNewConnection(sessionId, userId, connection) {
