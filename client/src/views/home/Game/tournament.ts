@@ -27,11 +27,6 @@ function transformServerMatchResults(
 	serverMatches: any[],
 	numberOfPlayers: number
 ) {
-	console.log('🔍 Debug: transformServerMatchResults called with:', {
-		serverMatches,
-		numberOfPlayers,
-	});
-
 	const matchResults: Array<{
 		matchId: string;
 		winner: string;
@@ -41,8 +36,6 @@ function transformServerMatchResults(
 	// Server matches don't have explicit match IDs, so we need to map them based on tournament structure
 	// For now, we'll create a simple mapping based on the order of matches
 	serverMatches.forEach((match, index) => {
-		console.log(`🔍 Debug: Processing match ${index}:`, match);
-
 		if (match.winner) {
 			// Determine match ID based on tournament structure and match index
 			let matchId: string;
@@ -62,10 +55,6 @@ function transformServerMatchResults(
 				return; // Unsupported tournament size
 			}
 
-			console.log(
-				`🔍 Debug: Mapped match ${index} to matchId: ${matchId}, winner: ${match.winner}`
-			);
-
 			// Now match.winner contains the actual player nickname
 			// We need to determine the loser, but we don't have that info from server
 			// For now, we'll use a placeholder for the loser
@@ -77,7 +66,6 @@ function transformServerMatchResults(
 		}
 	});
 
-	console.log('🔍 Debug: Final matchResults:', matchResults);
 	return matchResults;
 }
 

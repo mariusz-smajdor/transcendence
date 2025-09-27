@@ -2,6 +2,8 @@ import { type ComponentProps } from '../types/component';
 import { Card } from './card';
 import { Text } from './text';
 import { Button } from './button';
+import { Icon } from './icon';
+import { Trophy } from 'lucide';
 
 type MatchResult = {
 	matchId: string;
@@ -31,13 +33,7 @@ function getMatchWinner(
 	matchId: string,
 	matchResults: MatchResult[]
 ): string | null {
-	console.log(`🔍 Debug: getMatchWinner called for matchId: ${matchId}`, {
-		matchResults,
-		searchingFor: matchId,
-	});
-
 	const result = matchResults.find((r) => r.matchId === matchId);
-	console.log(`🔍 Debug: Found result for ${matchId}:`, result);
 
 	return result ? result.winner : null;
 }
@@ -47,12 +43,6 @@ function createBracketMatches(
 	players: string[],
 	matchResults: MatchResult[] = []
 ): BracketMatch[] {
-	console.log('🔍 Debug: createBracketMatches called with:', {
-		numberOfPlayers,
-		players,
-		matchResults,
-	});
-
 	const matches: BracketMatch[] = [];
 
 	if (numberOfPlayers === 4) {
@@ -78,20 +68,8 @@ function createBracketMatches(
 		const sf1Winner = getMatchWinner('sf1', matchResults);
 		const sf2Winner = getMatchWinner('sf2', matchResults);
 
-		console.log('🔍 Debug: 4-player final check:', {
-			sf1Winner,
-			sf2Winner,
-			bothCompleted: sf1Winner && sf2Winner,
-		});
-
 		if (sf1Winner && sf2Winner) {
 			// Both semifinals completed, show actual players
-			console.log(
-				'🔍 Debug: Creating final match with actual players:',
-				sf1Winner,
-				'vs',
-				sf2Winner
-			);
 			matches.push({
 				id: 'final',
 				player1: sf1Winner || 'Waiting for player...',
@@ -101,7 +79,6 @@ function createBracketMatches(
 			});
 		} else {
 			// Semifinals not completed yet, show placeholder
-			console.log('🔍 Debug: Creating final match with TBD placeholder');
 			matches.push({
 				id: 'final',
 				winner: 'TBD',
@@ -267,6 +244,7 @@ export function TournamentBracket({
 	// Bracket container
 	const bracketContainer = document.createElement('div');
 	bracketContainer.classList.add(
+		'relative',
 		'flex',
 		'flex-row',
 		'items-center',
@@ -327,6 +305,52 @@ export function TournamentBracket({
 	buttonContainer.appendChild(leaveBtn);
 	buttonContainer.appendChild(playBtn);
 	container.appendChild(buttonContainer);
+
+	const finalWinner = getMatchWinner('final', matchResults);
+	if (finalWinner) {
+		const winnerCard = Card({
+			element: 'div',
+			classes: [
+				'absolute',
+				'top-0',
+				'left-0',
+				'right-0',
+				'bottom-0',
+				'z-50',
+				'flex',
+				'items-center',
+				'justify-center',
+				'flex-col',
+				'gap-8',
+				'bg-amber-900',
+				'border-amber-500',
+				'text-amber-400',
+			],
+		});
+		const winnerIcon = Icon({ icon: Trophy, classes: ['text-2xl'] });
+		winnerCard.appendChild(winnerIcon);
+		const winnerContainer = document.createElement('div');
+		winnerContainer.classList.add(
+			'flex',
+			'items-center',
+			'justify-center',
+			'flex-col',
+			'gap-2'
+		);
+		const winnerHeading = Text({
+			content: 'The tournament winner is',
+			classes: ['text-xs'],
+		});
+		winnerContainer.appendChild(winnerHeading);
+		const winnerText = Text({
+			content: finalWinner,
+			classes: ['text-lg', 'font-bold'],
+		});
+		winnerContainer.appendChild(winnerText);
+		winnerCard.appendChild(winnerContainer);
+		bracketContainer.appendChild(winnerCard);
+		buttonContainer.removeChild(playBtn);
+	}
 
 	return container;
 }
