@@ -6,9 +6,33 @@ function handleReadyKey(ws: WebSocket, e: KeyboardEvent) {
 
 const pressedKeys = new Set<string>();
 let movementInterval: number | null = null;
+let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+let keyupHandler: ((e: KeyboardEvent) => void) | null = null;
+
+// Function to clean up keyboard state and event listeners
+export function cleanupKeyboardState() {
+	pressedKeys.clear();
+	if (movementInterval) {
+		clearInterval(movementInterval);
+		movementInterval = null;
+	}
+
+	// Remove existing event listeners
+	if (keydownHandler) {
+		document.removeEventListener('keydown', keydownHandler);
+		keydownHandler = null;
+	}
+	if (keyupHandler) {
+		document.removeEventListener('keyup', keyupHandler);
+		keyupHandler = null;
+	}
+}
 
 export function setupKeyboardControls(ws: WebSocket) {
-	document.addEventListener('keydown', (e: KeyboardEvent) => {
+	// Clean up any existing state before setting up new controls
+	cleanupKeyboardState();
+
+	keydownHandler = (e: KeyboardEvent) => {
 		if (['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
 			e.preventDefault();
 		}
@@ -39,9 +63,9 @@ export function setupKeyboardControls(ws: WebSocket) {
 		}
 
 		handleReadyKey(ws, e);
-	});
+	};
 
-	document.addEventListener('keyup', (e: KeyboardEvent) => {
+	keyupHandler = (e: KeyboardEvent) => {
 		pressedKeys.delete(e.key);
 
 		// Stop continuous movement if no keys are pressed
@@ -49,11 +73,17 @@ export function setupKeyboardControls(ws: WebSocket) {
 			clearInterval(movementInterval);
 			movementInterval = null;
 		}
-	});
+	};
+
+	document.addEventListener('keydown', keydownHandler);
+	document.addEventListener('keyup', keyupHandler);
 }
 
 export function setupKeyboardControlsForLocal(ws: WebSocket) {
-	document.addEventListener('keydown', (e: KeyboardEvent) => {
+	// Clean up any existing state before setting up new controls
+	cleanupKeyboardState();
+
+	keydownHandler = (e: KeyboardEvent) => {
 		if (['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
 			e.preventDefault();
 		}
@@ -95,9 +125,9 @@ export function setupKeyboardControlsForLocal(ws: WebSocket) {
 		}
 
 		handleReadyKey(ws, e);
-	});
+	};
 
-	document.addEventListener('keyup', (e: KeyboardEvent) => {
+	keyupHandler = (e: KeyboardEvent) => {
 		pressedKeys.delete(e.key);
 
 		// Stop continuous movement if no keys are pressed
@@ -105,7 +135,10 @@ export function setupKeyboardControlsForLocal(ws: WebSocket) {
 			clearInterval(movementInterval);
 			movementInterval = null;
 		}
-	});
+	};
+
+	document.addEventListener('keydown', keydownHandler);
+	document.addEventListener('keyup', keyupHandler);
 }
 
 function moveSend(direction: string): string {
