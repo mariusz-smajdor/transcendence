@@ -22,6 +22,7 @@ export async function tournamentRoutes(fastify) {
           playersExpected: userRoom.getExpectedPlayers(),
           matches: userRoom.getMatches(),
           positions: userRoom.positions(),
+          playersStatus: userRoom.getPlayerStatus(),
         };
       } else {
         rooms = Array.from(tournaments.rooms.values()).map((room) => ({

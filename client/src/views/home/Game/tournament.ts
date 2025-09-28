@@ -272,6 +272,7 @@ export function TournamentTab() {
 							numberOfPlayers: data.playersExpected,
 							playersIn: data.playersIn,
 							players,
+							playerStatus: data.playersStatus,
 							onLeaveTournament: async () => {
 								const token = getCookie('access_token') ?? null;
 								const sessionId = getCookie('sessionId') ?? null;
@@ -509,6 +510,7 @@ function updateTournamentBracket(
 		playersIn: data.playersIn,
 		players: data.positions,
 		matchResults,
+		playerStatus: data.playersStatus,
 		onLeaveTournament: async () => {
 			const token = getCookie('access_token') ?? null;
 			const sessionId = getCookie('sessionId') ?? null;

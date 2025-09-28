@@ -4,6 +4,8 @@ import { Text } from './text';
 import { Button } from './button';
 import { Icon } from './icon';
 import { Trophy } from 'lucide';
+import { store } from '../store';
+import { getCookie } from '../views/game/game-cookies';
 
 type MatchResult = {
 	matchId: string;
@@ -16,6 +18,12 @@ type TournamentBracketProps = ComponentProps & {
 	playersIn: number;
 	players: string[];
 	matchResults?: MatchResult[];
+	playerStatus?: Array<{
+		nickname: string;
+		canPlay: boolean;
+		token: string;
+		sessionId: string;
+	}>;
 	onLeaveTournament: () => void;
 	onPlayMatch: () => void;
 };
@@ -28,6 +36,29 @@ type BracketMatch = {
 	round: 'quarter' | 'semi' | 'final';
 	position: { x: number; y: number };
 };
+
+function canUserPlayMatch(
+	playerStatus: Array<{
+		nickname: string;
+		canPlay: boolean;
+		token: string;
+		sessionId: string;
+	}>,
+	userToken: string | null,
+	userSessionId: string | null
+): boolean {
+	const user = store.getState().user;
+	if (!user) return false;
+
+	// Find the player status for the current user
+	const userStatus = playerStatus.find(
+		(status) =>
+			(userToken && status.token === userToken) ||
+			(userSessionId && status.sessionId === userSessionId)
+	);
+
+	return userStatus ? userStatus.canPlay : false;
+}
 
 function getMatchWinner(
 	matchId: string,
@@ -218,6 +249,7 @@ export function TournamentBracket({
 	playersIn,
 	players,
 	matchResults = [],
+	playerStatus = [],
 	onLeaveTournament,
 	onPlayMatch,
 	classes = [],
@@ -295,6 +327,10 @@ export function TournamentBracket({
 	});
 	leaveBtn.onclick = onLeaveTournament;
 
+	const token = getCookie('access_token') ?? null;
+	const sessionId = getCookie('sessionId') ?? null;
+	const userCanPlay = canUserPlayMatch(playerStatus, token, sessionId);
+
 	const playBtn = Button({
 		content: 'Play Match',
 		variant: 'primary',
@@ -303,7 +339,9 @@ export function TournamentBracket({
 	playBtn.onclick = onPlayMatch;
 
 	buttonContainer.appendChild(leaveBtn);
+	// if (userCanPlay) {
 	buttonContainer.appendChild(playBtn);
+	// }
 	container.appendChild(buttonContainer);
 
 	const finalWinner = getMatchWinner('final', matchResults);

@@ -174,6 +174,15 @@ export class Room {
     return result;
   }
 
+  getPlayerStatus() {
+    return this.players.map((player) => ({
+      nickname: player.nickname,
+      canPlay: player.lastWin && player.active,
+      token: player.token,
+      sessionId: player.sessionId,
+    }));
+  }
+
   getOnlinePlayers() {
     let i = 0;
     for (const player of this.players) {
@@ -305,7 +314,14 @@ export class Room {
     const winner = leftScore > rightScore ? 'left' : 'right';
     const winnerPlayer =
       winner === 'left' ? match.leftPlayer : match.rightPlayer;
+    const loserPlayer =
+      winner === 'left' ? match.rightPlayer : match.leftPlayer;
+
     match.winner = winnerPlayer ? winnerPlayer.nickname : winner;
+
+    // Update lastWin property - winner stays true, loser becomes false
+    winnerPlayer.lastWin = true;
+    loserPlayer.lastWin = false;
 
     this.nextRound();
 
@@ -356,6 +372,7 @@ export class Room {
               positions: this.positions(),
               matches: this.getMatches(), // Include match results
               gameOn: this.gameOn,
+              playersStatus: this.getPlayerStatus(),
             }),
           );
         } catch (error) {
