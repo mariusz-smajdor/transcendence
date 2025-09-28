@@ -60,7 +60,7 @@ export function updateGameState(gameState, ballSpeed) {
     gameState.ball.y = canvasHeight / 2;
     ballSpeed.ballSpeedX =
       GAME_CONFIG.BALL_SPEED * (Math.random() > 0.5 ? 1 : -1);
-    ballSpeed.ballSpeedY = 0.1;
+    ballSpeed.ballSpeedY = 0;
   }
 }
 
@@ -82,7 +82,7 @@ export function getGameStateProportional(gameState) {
 export function initGame() {
   let gameState = {
     ball: { x: 300, y: 200 },
-    paddles: { left: 150, right: 150 },
+    paddles: { left: 175, right: 175 },
     score: { left: 0, right: 0 },
     gameOver: false,
   };
@@ -93,7 +93,7 @@ export function gameLoop(game, db) {
   console.log('game started');
   let ballSpeed = {
     ballSpeedX: GAME_CONFIG.BALL_SPEED,
-    ballSpeedY: 1,
+    ballSpeedY: 0,
   };
   if (game.gameType === 'CPU') startAI(game, ballSpeed);
   let id = setInterval(() => {
