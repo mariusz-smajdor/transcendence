@@ -18,7 +18,7 @@ type StoreEvent = 'userUpdated' | 'messagesUpdated';
 class Store {
 	private state: State = {
 		user: null,
-		api_url: 'http://localhost:3000',
+		api_url: '/api',
 		messages: [],
 	};
 	private listeners: Map<StoreEvent, Function[]> = new Map();

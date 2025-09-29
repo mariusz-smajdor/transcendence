@@ -22,8 +22,28 @@ import {
 } from './src/services/userAuthenticationServices.js';
 import { invitations } from './src/routes/invitations.js';
 import { tournamentRoutes } from './src/routes/tournament.js';
+import fs from 'fs';
 
-const fastify = Fastify();
+const httpsOptions = {
+  key: fs.readFileSync(
+    path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      'certs',
+      'server.key',
+    ),
+  ),
+  cert: fs.readFileSync(
+    path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      'certs',
+      'server.crt',
+    ),
+  ),
+};
+
+const fastify = Fastify({
+  https: httpsOptions,
+});
 
 setTimeout(() => {
   cleanExpiredTokens(fastify.db);
@@ -74,7 +94,7 @@ fastify.register(FastifyStatic, {
   prefix: '/uploads/',
 });
 fastify.register(cors, {
-  origin: 'http://localhost:8080',
+  origin: ['http://localhost:8080', 'https://localhost:8080'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -152,6 +172,10 @@ fastify.listen({ port: 3000, host: '0.0.0.0' }, (err) => {
     fastify.log.error(err);
     process.exit(1);
   } else {
-    console.log(`Server listening on ${fastify.server.address().port}`);
+    console.log(
+      `Server listening on ${fastify.server.address().address}:${
+        fastify.server.address().port
+      }`,
+    );
   }
 });

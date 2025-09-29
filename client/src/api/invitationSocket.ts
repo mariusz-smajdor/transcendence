@@ -9,7 +9,7 @@ const handlers: InvitationHandler[] = [];
 export function connectInvitationSocket() {
 	if (socket) return;
 
-	socket = new WebSocket('ws://localhost:3000/invitations');
+	socket = new WebSocket('wss://localhost:8080/invitations');
 
 	socket.onopen = () => {
 		const token = getCookie('access_token');

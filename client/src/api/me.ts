@@ -2,7 +2,7 @@ import { store } from '../store';
 
 export async function fetchMe(): Promise<boolean> {
 	try {
-		const res = await fetch(`http://localhost:3000/me`, {
+		const res = await fetch(`/api/me`, {
 			method: 'GET',
 			credentials: 'include',
 		});

@@ -209,7 +209,7 @@ export default function Profile() {
 					formData.append('avatar', avatarInput.files[0]);
 				}
 
-				const res = await fetch('http://localhost:3000/profile', {
+				const res = await fetch('/api/profile', {
 					method: 'PUT',
 					body: formData,
 					credentials: 'include',

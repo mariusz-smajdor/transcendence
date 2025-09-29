@@ -4,7 +4,7 @@ import { dataChangeEmitter } from '../services/notificationService';
 
 export async function getFriends() {
 	try {
-		const res = await fetch('http://localhost:3000/friends', {
+		const res = await fetch('/api/friends', {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -30,7 +30,7 @@ export async function getFriends() {
 
 export async function sendFriendRequest(username: string) {
 	try {
-		const res = await fetch('http://localhost:3000/friends/request', {
+		const res = await fetch('/api/friends/request', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ export async function sendFriendRequest(username: string) {
 
 export async function getFriendRequests() {
 	try {
-		const res = await fetch('http://localhost:3000/friends/requests', {
+		const res = await fetch('/api/friends/requests', {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -85,7 +85,7 @@ export async function getFriendRequests() {
 
 export async function acceptFriendRequest(requestId: number) {
 	try {
-		const res = await fetch('http://localhost:3000/friends/accept', {
+		const res = await fetch('/api/friends/accept', {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -131,7 +131,7 @@ export async function acceptFriendRequest(requestId: number) {
 
 export async function rejectFriendRequest(requestId: number) {
 	try {
-		const res = await fetch('http://localhost:3000/friends/reject', {
+		const res = await fetch('/api/friends/reject', {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -172,7 +172,7 @@ export async function rejectFriendRequest(requestId: number) {
 
 export async function removeFriend(friendId: number) {
 	try {
-		const res = await fetch('http://localhost:3000/friends', {
+		const res = await fetch('/api/friends', {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {

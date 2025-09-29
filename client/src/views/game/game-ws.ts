@@ -8,17 +8,27 @@ type WebSocketDeps = {
 	gameState: GameState;
 	actions: UIActions;
 	roomId: string | null;
-}
+};
 
 type GameMessage = {
 	type: 'message';
 	message: string;
 	player: string;
-}
+};
 
-export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomId }: WebSocketDeps): WebSocket {
-	const ws: WebSocket = new WebSocket( roomId ? `ws://localhost:3000/tournament/match?gameId=${gameId}&roomId=${roomId}` :
-		`${setWebsocketURL(gameType)}${gameId}`);
+export function setupWebSocket({
+	gameId,
+	gameType,
+	ui,
+	gameState,
+	actions,
+	roomId,
+}: WebSocketDeps): WebSocket {
+	const ws: WebSocket = new WebSocket(
+		roomId
+			? `wss://localhost:8080/tournament/match?gameId=${gameId}&roomId=${roomId}`
+			: `${setWebsocketURL(gameType)}${gameId}`
+	);
 
 	ws.onmessage = (event: MessageEvent) => {
 		try {
@@ -35,10 +45,8 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomI
 					ui.roleText.textContent = 'Role: Spectator';
 				}
 
-				ui.text.textContent = 'Connected to server! Press \'R\' to play.';
-			}
-
-			else if (data.type === 'gameState') {
+				ui.text.textContent = "Connected to server! Press 'R' to play.";
+			} else if (data.type === 'gameState') {
 				gameState.leftPaddleY = data.data.paddles.left;
 				gameState.rightPaddleY = data.data.paddles.right;
 				gameState.ballX = data.data.ball.x;
@@ -47,22 +55,15 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomI
 				gameState.scoreRight = data.data.score.right;
 				gameState.gameOver = data.data.gameOver;
 				actions.drawScene();
-			}
-
-			else if (data.type === 'error') {
+			} else if (data.type === 'error') {
 				console.error(data.message);
-			}
-
-			else if (data.type === 'message') {
+			} else if (data.type === 'message') {
 				manageMessage(data, gameState, ui);
-			}
-
-			else if (data.type === 'nickname'){
+			} else if (data.type === 'nickname') {
 				gameState.rightPlayerName = data.object.right;
 				gameState.leftPlayerName = data.object.left;
 				actions.drawScene();
 			}
-
 		} catch (e) {
 			console.error('Error parsing JSON:', e);
 			ui.text.textContent = event.data;
@@ -71,12 +72,12 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomI
 
 	ws.onopen = () => {
 		const token = getCookie('access_token');
-		const sessionId = getCookie('sessionId')
-		ws.send(JSON.stringify({ type:'auth', token: token, sessionId}));
+		const sessionId = getCookie('sessionId');
+		ws.send(JSON.stringify({ type: 'auth', token: token, sessionId }));
 		if (gameType === 'network')
-			ui.text.textContent = 'Connected to server. Waiting for role assignment...';
-		else
-			ui.text.textContent = 'Game ready. Press \'R\' to start.';
+			ui.text.textContent =
+				'Connected to server. Waiting for role assignment...';
+		else ui.text.textContent = "Game ready. Press 'R' to start.";
 	};
 
 	ws.onclose = () => {
@@ -85,13 +86,17 @@ export function setupWebSocket({ gameId, gameType, ui, gameState, actions, roomI
 	};
 
 	ui.restartBtn.onclick = () => {
-		ws.send(JSON.stringify({type: 'status', status: 'RESET'}));
+		ws.send(JSON.stringify({ type: 'status', status: 'RESET' }));
 	};
 
 	return ws;
 }
 
-function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) {
+function manageMessage(
+	data: GameMessage,
+	gameState: GameState,
+	ui: UIElements
+) {
 	switch (data.message) {
 		case 'game_on':
 			ui.text.textContent = 'Game is on!';
@@ -101,26 +106,27 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 			break;
 		case 'waiting_for_readiness':
 			if (gameState.playerRole === 'left' || gameState.playerRole === 'right') {
-				ui.text.textContent = 'Waiting for players to confirm they are ready. Press \'R\' if you are ready.';
+				ui.text.textContent =
+					"Waiting for players to confirm they are ready. Press 'R' if you are ready.";
 			} else {
 				ui.text.textContent = 'Waiting for players to confirm they are ready.';
 			}
 			break;
 		case 'left_player_ready':
 			if (gameState.playerRole === 'right') {
-				ui.text.textContent = 'Left player is ready. Press \'R\' if you are ready.';
+				ui.text.textContent =
+					"Left player is ready. Press 'R' if you are ready.";
+			} else if (gameState.playerRole === 'left') {
+				ui.text.textContent = 'Waiting for the second player to be ready.';
 			}
-			else if(gameState.playerRole === 'left'){
-				ui.text.textContent = 'Waiting for the second player to be ready.'
-			}
-				
+
 			break;
 		case 'right_player_ready':
 			if (gameState.playerRole === 'left') {
-				ui.text.textContent = 'Right player is ready. Press \'R\' if you are ready.';
-			}
-			else if(gameState.playerRole === 'right'){
-				ui.text.textContent = 'Waiting for the second player to be ready.'
+				ui.text.textContent =
+					"Right player is ready. Press 'R' if you are ready.";
+			} else if (gameState.playerRole === 'right') {
+				ui.text.textContent = 'Waiting for the second player to be ready.';
 			}
 			break;
 		case 'count_to_start':
@@ -135,13 +141,15 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 			doCounting();
 			break;
 		case 'game_stop':
-			ui.text.textContent = 'Game stopped. Waiting for a second player to connect';
+			ui.text.textContent =
+				'Game stopped. Waiting for a second player to connect';
 			break;
 		case 'rematch':
 			if (gameState.playerRole === 'spectator')
-				ui.text.textContent = 'Rematch proposed! Waiting for players to confirm.';
+				ui.text.textContent =
+					'Rematch proposed! Waiting for players to confirm.';
 			else
-				ui.text.textContent = 'Rematch proposed! Press \'R\' if you are ready.';
+				ui.text.textContent = "Rematch proposed! Press 'R' if you are ready.";
 			break;
 		case 'winner_left':
 			ui.text.textContent = 'Left player won!';
@@ -173,16 +181,15 @@ function manageMessage(data: GameMessage, gameState: GameState, ui: UIElements) 
 	}
 }
 
-function setWebsocketURL(gameType: GameType)
-{
-	switch(gameType){
+function setWebsocketURL(gameType: GameType) {
+	switch (gameType) {
 		case 'network':
-			return "ws://localhost:3000/game?gameId=";
+			return 'wss://localhost:8080/game?gameId=';
 		case 'local':
-			return "ws://localhost:3000/localgame?gameId=";
+			return 'wss://localhost:8080/localgame?gameId=';
 		case 'ai':
-			return "ws://localhost:3000/aigame?gameId=";
+			return 'wss://localhost:8080/aigame?gameId=';
 		case 'tournament':
-			return "ws://localhost:3000/tournament/match?gameId=";
+			return 'wss://localhost:8080/tournament/match?gameId=';
 	}
 }

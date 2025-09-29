@@ -88,7 +88,7 @@ function Menu() {
 			e.preventDefault();
 
 			try {
-				const res = await fetch('http://localhost:3000/logout', {
+				const res = await fetch('/api/logout', {
 					method: 'POST',
 					credentials: 'include',
 				});

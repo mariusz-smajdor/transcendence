@@ -177,7 +177,7 @@ export async function showLobbyOverlay() {
 
 	const unsubscribe = onInvitation(async (data) => {
 		if (data.type === 'game_start' && data.fromUserId) {
-			const response = await fetch('http://localhost:3000/game/create');
+			const response = await fetch('/api/game/create');
 			const respData = await response.json();
 			sendInvitation({
 				type: 'game_start',

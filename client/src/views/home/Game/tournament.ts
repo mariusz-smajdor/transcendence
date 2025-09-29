@@ -186,7 +186,7 @@ export function TournamentTab() {
 						const token = getCookie('access_token') ?? null;
 						const sessionId = getCookie('sessionId') ?? null;
 						const response = await fetch(
-							'http://localhost:3000/tournament/play',
+							'/api/tournament/play',
 							{
 								method: 'POST',
 								headers: { 'Content-Type': 'application/json' },
@@ -249,7 +249,7 @@ export function TournamentTab() {
 
 				joinButton.addEventListener('click', async () => {
 					const response = await fetch(
-						'http://localhost:3000/tournament/join',
+						'/api/tournament/join',
 						{
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
@@ -283,7 +283,7 @@ export function TournamentTab() {
 								const token = getCookie('access_token') ?? null;
 								const sessionId = getCookie('sessionId') ?? null;
 								const response = await fetch(
-									'http://localhost:3000/tournament/play',
+									'/api/tournament/play',
 									{
 										method: 'POST',
 										headers: { 'Content-Type': 'application/json' },
@@ -418,7 +418,7 @@ export function TournamentTab() {
 			}
 
 			const numberOfPlayers = parseInt(select.value, 10);
-			let response = await fetch('http://localhost:3000/tournament/create', {
+			let response = await fetch('/api/tournament/create', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -451,7 +451,7 @@ export function TournamentTab() {
 					const token = getCookie('access_token') ?? null;
 					const sessionId = getCookie('sessionId') ?? null;
 					const response = await fetch(
-						'http://localhost:3000/tournament/play',
+						'/api/tournament/play',
 						{
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
@@ -520,7 +520,7 @@ function updateTournamentBracket(
 		onPlayMatch: async () => {
 			const token = getCookie('access_token') ?? null;
 			const sessionId = getCookie('sessionId') ?? null;
-			const response = await fetch('http://localhost:3000/tournament/play', {
+			const response = await fetch('/api/tournament/play', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -551,7 +551,7 @@ async function fetchTournamentRooms(
 	token: string | null,
 	sessionId: string | null
 ) {
-	const response = await fetch('http://localhost:3000/tournament/rooms', {
+	const response = await fetch('/api/tournament/rooms', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ token, sessionId }),
@@ -564,7 +564,7 @@ async function leaveRoom(
 	token: string | null,
 	sessionId: string | null
 ) {
-	const response = await fetch('http://localhost:3000/tournament/leave', {
+	const response = await fetch('/api/tournament/leave', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ roomId, token, sessionId }),

@@ -3,7 +3,7 @@ import { dataChangeEmitter } from '../services/notificationService';
 
 export async function sendMessage(receiverId: number, message: string) {
 	try {
-		const res = await fetch('http://localhost:3000/messages', {
+		const res = await fetch('/api/messages', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ export async function sendMessage(receiverId: number, message: string) {
 export async function getMessages(otherUserId: number) {
 	try {
 		const res = await fetch(
-			`http://localhost:3000/messages?otherUserId=${otherUserId}`,
+			`/api/messages?otherUserId=${otherUserId}`,
 			{
 				method: 'GET',
 				credentials: 'include',
@@ -52,7 +52,7 @@ export async function getMessages(otherUserId: number) {
 
 export async function getConversations() {
 	try {
-		const res = await fetch('http://localhost:3000/conversations', {
+		const res = await fetch('/api/conversations', {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -71,7 +71,7 @@ export async function getConversations() {
 
 export async function markMessagesAsRead(otherUserId: number) {
 	try {
-		const res = await fetch('http://localhost:3000/messages/read', {
+		const res = await fetch('/api/messages/read', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',

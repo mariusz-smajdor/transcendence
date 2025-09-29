@@ -15,7 +15,7 @@ export function getAvatarUrl(
 		avatar.includes('googleusercontent.com') ||
 		avatar.includes('googleapis.com')
 	) {
-		return `http://localhost:3000/avatar/proxy?url=${encodeURIComponent(
+		return `/api/avatar/proxy?url=${encodeURIComponent(
 			avatar
 		)}`;
 	}
@@ -26,5 +26,5 @@ export function getAvatarUrl(
 	}
 
 	// If avatar is a relative path (uploaded file), add server prefix
-	return `http://localhost:3000${avatar}`;
+	return `/api${avatar}`;
 }

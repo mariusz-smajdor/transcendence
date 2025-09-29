@@ -7,7 +7,7 @@ export const googleOAuthHandler = async (req, res) => {
     const oauth2Client = new google.auth.OAuth2(
       req.server.config.GOOGLE_CLIENT_ID,
       req.server.config.GOOGLE_CLIENT_SECRET,
-      `${req.protocol}://${req.hostname}:${req.server.config.PORT}/auth/google/callback`,
+      `https://localhost:3000/auth/google/callback`,
     );
 
     const scopes = [
@@ -46,7 +46,7 @@ export const googleOAuthCallbackHandler = async (req, res) => {
     const oauth2Client = new google.auth.OAuth2(
       req.server.config.GOOGLE_CLIENT_ID,
       req.server.config.GOOGLE_CLIENT_SECRET,
-      `${req.protocol}://${req.hostname}:${req.server.config.PORT}/auth/google/callback`,
+      `https://localhost:3000/auth/google/callback`,
     );
 
     // Exchange authorization code for tokens
@@ -132,9 +132,9 @@ export const googleOAuthCallbackHandler = async (req, res) => {
     });
 
     // Redirect to client with success
-    return res.redirect('http://localhost:8080/?oauth=success');
+    return res.redirect('https://localhost:8080/?oauth=success');
   } catch (error) {
     console.error('Google OAuth callback error:', error);
-    return res.redirect('http://localhost:8080/?oauth=error');
+    return res.redirect('https://localhost:8080/?oauth=error');
   }
 };
