@@ -3,75 +3,59 @@ import tailwindcss from '@tailwindcss/vite';
 import fs from 'fs';
 import path from 'path';
 
+// Constants
+const SERVER_TARGET = 'https://server:3000';
+const WS_TARGET = 'wss://server:3000';
+const CLIENT_PORT = 8080;
+
+// Helper functions
+const createWebSocketProxy = (target = WS_TARGET) => ({
+	target,
+	ws: true,
+	changeOrigin: true,
+	secure: false,
+});
+
+const createProxyLogger = (proxy) => {
+	proxy.on('error', (err) => console.log('Proxy error:', err));
+	proxy.on('proxyReq', (_, req) => console.log(`→ ${req.method} ${req.url}`));
+	proxy.on('proxyRes', (proxyRes, req) =>
+		console.log(`← ${proxyRes.statusCode} ${req.url}`)
+	);
+};
+
+// WebSocket endpoints
+const wsEndpoints = [
+	'/invitations',
+	'/notifications',
+	'/game',
+	'/localgame',
+	'/aigame',
+	'/tournament/match',
+];
+
 export default defineConfig({
 	plugins: [tailwindcss()],
 	server: {
-		port: 8080,
+		port: CLIENT_PORT,
 		host: true,
 		https: {
 			key: fs.readFileSync(path.join(__dirname, 'certs', 'localhost.key')),
 			cert: fs.readFileSync(path.join(__dirname, 'certs', 'localhost.crt')),
 		},
 		proxy: {
-			// Proxy API requests to avoid CORS and SSL issues
+			// API proxy with logging
 			'/api': {
-				target: 'https://server:3000', // Use HTTPS for container communication
+				target: SERVER_TARGET,
 				changeOrigin: true,
-				secure: false, // Allow self-signed certificates
+				secure: false,
 				rewrite: (path) => path.replace(/^\/api/, ''),
-				configure: (proxy, _options) => {
-					proxy.on('error', (err, _req, _res) => {
-						console.log('proxy error', err);
-					});
-					proxy.on('proxyReq', (proxyReq, req, _res) => {
-						console.log('Sending Request to the Target:', req.method, req.url);
-					});
-					proxy.on('proxyRes', (proxyRes, req, _res) => {
-						console.log(
-							'Received Response from the Target:',
-							proxyRes.statusCode,
-							req.url
-						);
-					});
-				},
+				configure: createProxyLogger,
 			},
-			// Proxy WebSocket connections
-			'/invitations': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
-			'/notifications': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
-			'/game': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
-			'/localgame': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
-			'/aigame': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
-			'/tournament/match': {
-				target: 'wss://server:3000',
-				ws: true,
-				changeOrigin: true,
-				secure: false,
-			},
+			// WebSocket proxies
+			...Object.fromEntries(
+				wsEndpoints.map((endpoint) => [endpoint, createWebSocketProxy()])
+			),
 		},
 		watch: {
 			usePolling: true,

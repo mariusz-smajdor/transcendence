@@ -2,3 +2,4 @@ node_modules
 src/js
 src/css/tailwind/output.css
 dist
+certs/*

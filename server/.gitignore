@@ -3,3 +3,4 @@ database.db
 .env
 uploads/*
 database
+certs/*
