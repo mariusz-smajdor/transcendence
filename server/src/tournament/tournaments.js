@@ -37,7 +37,7 @@ export class Tournaments {
       return false;
     }
     if (room.getOnlinePlayers() === 0) this.rooms.delete(room.id);
-    if (room.gameOn) room.checkMatches();
+    // Note: checkMatches() is now called within removePlayer() for active tournaments
     return true;
   }
 
@@ -158,7 +158,7 @@ export class Room {
   }
 
   getMatches() {
-    //result scoreL: x, scoreR: y, winner: nickname
+    //result scoreL: x, scoreR: y, winner: nickname, forfeit: boolean
     let result = new Array();
     if (!this.matches) return result;
     this.matches.forEach((match) => {
@@ -168,6 +168,7 @@ export class Room {
           scoreL: match.leftScore,
           scoreR: match.rightScore,
           winner: match.winner, // This is now the actual winner's nickname
+          forfeit: match.leftScore === -1 || match.rightScore === -1, // Indicate if match was won by forfeit
         });
       }
     });
@@ -205,18 +206,26 @@ export class Room {
 
   removePlayer(token = null, sessionId = null) {
     if (this.gameOn) {
+      // Tournament has started - mark player as inactive (forfeit)
       for (const player of this.players) {
         if (
           (token && token === player.token) ||
           (sessionId && sessionId === player.sessionId)
         ) {
+          console.log(
+            `Player ${player.nickname} left tournament (active: ${player.active})`,
+          );
           player.connection = null;
           player.sessionId = null;
           player.token = null;
           player.active = false;
         }
       }
+
+      // Check for forfeited matches immediately
+      this.checkMatches();
     } else {
+      // Tournament hasn't started - remove player completely
       this.players = this.players.filter((player) => {
         if (token && token === player.token) return false;
         if (sessionId && sessionId === player.sessionId) return false;
@@ -254,21 +263,43 @@ export class Room {
   }
 
   checkMatches() {
+    let hasForfeits = false;
+
     for (const match of this.matches.values()) {
       if (match.winner) continue;
+
       if (!match.leftPlayer.active) {
-        match.winner = true;
+        // Left player forfeited, right player wins
+        match.winner = match.rightPlayer.nickname;
         match.leftPlayer.lastWin = false;
+        match.rightPlayer.lastWin = true;
         match.leftScore = -1;
         match.rightScore = GAME_CONFIG.NUMBER_OF_ROUNDS;
-        this.nextRound();
+        hasForfeits = true;
+
+        console.log(
+          `Tournament match forfeited: ${match.leftPlayer.nickname} left, ${match.rightPlayer.nickname} wins by forfeit`,
+        );
       } else if (!match.rightPlayer.active) {
-        match.winner = true;
+        // Right player forfeited, left player wins
+        match.winner = match.leftPlayer.nickname;
         match.rightPlayer.lastWin = false;
+        match.leftPlayer.lastWin = true;
         match.leftScore = GAME_CONFIG.NUMBER_OF_ROUNDS;
         match.rightScore = -1;
-        this.nextRound();
+        hasForfeits = true;
+
+        console.log(
+          `Tournament match forfeited: ${match.rightPlayer.nickname} left, ${match.leftPlayer.nickname} wins by forfeit`,
+        );
       }
+    }
+
+    // Only call nextRound once after processing all forfeits
+    if (hasForfeits) {
+      // Broadcast tournament update to notify all players of forfeits
+      this.broadcastPlayerUpdate();
+      this.nextRound();
     }
   }
 
