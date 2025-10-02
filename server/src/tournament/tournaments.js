@@ -158,10 +158,14 @@ export class Room {
   }
 
   getMatches() {
-    //result scoreL: x, scoreR: y, winner: nickname, forfeit: boolean
+    //result scoreL: x, scoreR: y, winner: nickname, forfeit: boolean, leftPlayer: nickname, rightPlayer: nickname, round: number
     let result = new Array();
     if (!this.matches) return result;
-    this.matches.forEach((match) => {
+
+    // Convert matches to array and sort them by creation order (round progression)
+    const matchesArray = Array.from(this.matches.values());
+
+    matchesArray.forEach((match) => {
       if (match.winner) {
         // match.winner now contains the actual winner's nickname
         result.push({
@@ -169,9 +173,13 @@ export class Room {
           scoreR: match.rightScore,
           winner: match.winner, // This is now the actual winner's nickname
           forfeit: match.leftScore === -1 || match.rightScore === -1, // Indicate if match was won by forfeit
+          leftPlayer: match.leftPlayer ? match.leftPlayer.nickname : null,
+          rightPlayer: match.rightPlayer ? match.rightPlayer.nickname : null,
+          gameId: match.gameId, // Add gameId for better identification
         });
       }
     });
+
     return result;
   }
 

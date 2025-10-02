@@ -27,6 +27,10 @@ function transformServerMatchResults(
 	serverMatches: any[],
 	numberOfPlayers: number
 ) {
+	console.log('Transforming server matches:', {
+		serverMatches,
+		numberOfPlayers,
+	});
 	const matchResults: Array<{
 		matchId: string;
 		winner: string;
@@ -56,16 +60,23 @@ function transformServerMatchResults(
 			}
 
 			// Now match.winner contains the actual player nickname
-			// We need to determine the loser, but we don't have that info from server
-			// For now, we'll use a placeholder for the loser
+			// Determine the loser from the player information
+			const loser =
+				match.leftPlayer && match.rightPlayer
+					? match.winner === match.leftPlayer
+						? match.rightPlayer
+						: match.leftPlayer
+					: 'Unknown';
+
 			matchResults.push({
 				matchId,
 				winner: match.winner,
-				loser: 'Unknown', // We don't have loser info from server
+				loser: loser,
 			});
 		}
 	});
 
+	console.log('Final transformed match results:', matchResults);
 	return matchResults;
 }
 
@@ -176,6 +187,7 @@ export function TournamentTab() {
 					playersIn: rooms.playersIn,
 					players,
 					matchResults,
+					playerStatus: rooms.playersStatus,
 					onLeaveTournament: async () => {
 						const token = getCookie('access_token') ?? null;
 						const sessionId = getCookie('sessionId') ?? null;
@@ -185,18 +197,15 @@ export function TournamentTab() {
 					onPlayMatch: async () => {
 						const token = getCookie('access_token') ?? null;
 						const sessionId = getCookie('sessionId') ?? null;
-						const response = await fetch(
-							'/api/tournament/play',
-							{
-								method: 'POST',
-								headers: { 'Content-Type': 'application/json' },
-								body: JSON.stringify({
-									roomId: currentRoomId,
-									token,
-									sessionId,
-								}),
-							}
-						);
+						const response = await fetch('/api/tournament/play', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								roomId: currentRoomId,
+								token,
+								sessionId,
+							}),
+						});
 						const data = await response.json();
 						if (response.ok && data.gameId) {
 							Toaster('Match found! Game ID: ' + data.gameId);
@@ -248,19 +257,16 @@ export function TournamentTab() {
 				});
 
 				joinButton.addEventListener('click', async () => {
-					const response = await fetch(
-						'/api/tournament/join',
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								name: store.getState().user?.username ?? 'Guest',
-								token,
-								sessionId,
-								roomId: room.id,
-							}),
-						}
-					);
+					const response = await fetch('/api/tournament/join', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							name: store.getState().user?.username ?? 'Guest',
+							token,
+							sessionId,
+							roomId: room.id,
+						}),
+					});
 					const data = await response.json();
 					console.log(data);
 					if (response.ok) {
@@ -282,18 +288,15 @@ export function TournamentTab() {
 							onPlayMatch: async () => {
 								const token = getCookie('access_token') ?? null;
 								const sessionId = getCookie('sessionId') ?? null;
-								const response = await fetch(
-									'/api/tournament/play',
-									{
-										method: 'POST',
-										headers: { 'Content-Type': 'application/json' },
-										body: JSON.stringify({
-											roomId: currentRoomId,
-											token,
-											sessionId,
-										}),
-									}
-								);
+								const response = await fetch('/api/tournament/play', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({
+										roomId: currentRoomId,
+										token,
+										sessionId,
+									}),
+								});
 								const data = await response.json();
 								if (response.ok && data.gameId) {
 									Toaster('Match found! Game ID: ' + data.gameId);
@@ -441,6 +444,7 @@ export function TournamentTab() {
 				playersIn: 1, // This should be passed from the response data
 				players,
 				matchResults: [], // No matches yet for newly created tournament
+				playerStatus: responseData.playersStatus,
 				onLeaveTournament: async () => {
 					const token = getCookie('access_token') ?? null;
 					const sessionId = getCookie('sessionId') ?? null;
@@ -450,18 +454,15 @@ export function TournamentTab() {
 				onPlayMatch: async () => {
 					const token = getCookie('access_token') ?? null;
 					const sessionId = getCookie('sessionId') ?? null;
-					const response = await fetch(
-						'/api/tournament/play',
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({
-								roomId: currentRoomId,
-								token,
-								sessionId,
-							}),
-						}
-					);
+					const response = await fetch('/api/tournament/play', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							roomId: currentRoomId,
+							token,
+							sessionId,
+						}),
+					});
 					const data = await response.json();
 					if (response.ok && data.gameId) {
 						Toaster('Match found! Game ID: ' + data.gameId);
@@ -480,6 +481,7 @@ export function TournamentTab() {
 	// Set up WebSocket listener for tournament updates
 	const unsubscribe = onInvitation((data) => {
 		if (data.type === 'tournament_update' && currentRoomId) {
+			console.log('Received tournament update:', data);
 			updateTournamentBracket(data, renderTournamentList);
 		}
 	});
@@ -500,11 +502,16 @@ function updateTournamentBracket(
 ) {
 	if (!currentBracketComponent || !currentRoomId) return;
 
+	console.log('Updating tournament bracket with data:', data);
+	console.log('Raw matches from server:', data.matches);
+
 	// Update the tournament bracket with new player data
 	const matchResults = transformServerMatchResults(
 		data.matches || [],
 		data.playersExpected
 	);
+
+	console.log('Transformed match results:', matchResults);
 	const bracketComponent = TournamentBracket({
 		numberOfPlayers: data.playersExpected,
 		playersIn: data.playersIn,

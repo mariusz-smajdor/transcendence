@@ -66,6 +66,7 @@ export async function tournamentRoutes(fastify) {
       playersIn: 1,
       playersExpected: numberOfPlayers,
       positions: tournaments.rooms.get(roomId).positions(),
+      playersStatus: tournaments.rooms.get(roomId).getPlayerStatus(),
     });
   });
 
@@ -94,6 +95,7 @@ export async function tournamentRoutes(fastify) {
         playersIn: room.players.length,
         playersExpected: room.getExpectedPlayers(),
         positions: room.getDraw(),
+        playersStatus: room.getPlayerStatus(),
       });
     } else {
       res.code(200).send({
@@ -102,6 +104,7 @@ export async function tournamentRoutes(fastify) {
         playersIn: room.players.length,
         playersExpected: room.getExpectedPlayers(),
         positions: room.positions(),
+        playersStatus: room.getPlayerStatus(),
       });
     }
   });
