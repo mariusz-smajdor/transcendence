@@ -4,8 +4,6 @@ import { Text } from './text';
 import { Button } from './button';
 import { Icon } from './icon';
 import { Trophy } from 'lucide';
-import { store } from '../store';
-import { getCookie } from '../views/game/game-cookies';
 
 type MatchResult = {
 	matchId: string;
@@ -33,32 +31,10 @@ type BracketMatch = {
 	player1?: string;
 	player2?: string;
 	winner?: string;
+	isCompleted?: boolean;
 	round: 'quarter' | 'semi' | 'final';
 	position: { x: number; y: number };
 };
-
-function canUserPlayMatch(
-	playerStatus: Array<{
-		nickname: string;
-		canPlay: boolean;
-		token: string;
-		sessionId: string;
-	}>,
-	userToken: string | null,
-	userSessionId: string | null
-): boolean {
-	const user = store.getState().user;
-	if (!user) return false;
-
-	// Find the player status for the current user
-	const userStatus = playerStatus.find(
-		(status) =>
-			(userToken && status.token === userToken) ||
-			(userSessionId && status.sessionId === userSessionId)
-	);
-
-	return userStatus ? userStatus.canPlay : false;
-}
 
 function getMatchWinner(
 	matchId: string,
@@ -78,11 +54,16 @@ function createBracketMatches(
 
 	if (numberOfPlayers === 4) {
 		// Semi finals (first stage for 4 players)
+		const sf1Winner = getMatchWinner('sf1', matchResults);
+		const sf2Winner = getMatchWinner('sf2', matchResults);
+
 		matches.push(
 			{
 				id: 'sf1',
 				player1: players[0] || 'Waiting for player...',
 				player2: players[1] || 'Waiting for player...',
+				winner: sf1Winner || undefined,
+				isCompleted: !!sf1Winner,
 				round: 'semi',
 				position: { x: 0, y: 0 },
 			},
@@ -90,101 +71,114 @@ function createBracketMatches(
 				id: 'sf2',
 				player1: players[2] || 'Waiting for player...',
 				player2: players[3] || 'Waiting for player...',
+				winner: sf2Winner || undefined,
+				isCompleted: !!sf2Winner,
 				round: 'semi',
 				position: { x: 0, y: 1 },
 			}
 		);
 
-		// Final - use actual winners from semifinals
-		const sf1Winner = getMatchWinner('sf1', matchResults);
-		const sf2Winner = getMatchWinner('sf2', matchResults);
-
-		if (sf1Winner && sf2Winner) {
-			// Both semifinals completed, show actual players
+		// Final - show winners immediately when available
+		const finalWinner = getMatchWinner('final', matchResults);
+		if (sf1Winner || sf2Winner || finalWinner) {
 			matches.push({
 				id: 'final',
-				player1: sf1Winner || 'Waiting for player...',
-				player2: sf2Winner || 'Waiting for player...',
+				player1: sf1Winner || 'TBD',
+				player2: sf2Winner || 'TBD',
+				winner: finalWinner || undefined,
+				isCompleted: !!finalWinner,
 				round: 'final',
 				position: { x: 1, y: 0.5 },
 			});
 		} else {
-			// Semifinals not completed yet, show placeholder
+			// No semifinals completed yet, show placeholder
 			matches.push({
 				id: 'final',
-				winner: 'TBD',
+				player1: 'TBD',
+				player2: 'TBD',
 				round: 'final',
 				position: { x: 1, y: 0.5 },
 			});
 		}
 	} else if (numberOfPlayers === 8) {
 		// Quarter finals
-		for (let i = 0; i < 8; i += 2) {
+		const quarterWinners: (string | null)[] = [];
+		for (let i = 0; i < 4; i++) {
+			const qfWinner = getMatchWinner(`qf${i + 1}`, matchResults);
+			quarterWinners.push(qfWinner);
+
 			matches.push({
-				id: `qf${i / 2 + 1}`,
-				player1: players[i] || 'Waiting for player...',
-				player2: players[i + 1] || 'Waiting for player...',
+				id: `qf${i + 1}`,
+				player1: players[i * 2] || 'Waiting for player...',
+				player2: players[i * 2 + 1] || 'Waiting for player...',
+				winner: qfWinner || undefined,
+				isCompleted: !!qfWinner,
 				round: 'quarter',
-				position: { x: 0, y: i / 2 },
+				position: { x: 0, y: i },
 			});
 		}
 
-		// Semi finals - use actual winners from quarterfinals
-		const qf1Winner = getMatchWinner('qf1', matchResults);
-		const qf2Winner = getMatchWinner('qf2', matchResults);
-		const qf3Winner = getMatchWinner('qf3', matchResults);
-		const qf4Winner = getMatchWinner('qf4', matchResults);
-
-		if (qf1Winner && qf2Winner) {
-			matches.push({
-				id: 'sf1',
-				player1: qf1Winner || 'Waiting for player...',
-				player2: qf2Winner || 'Waiting for player...',
-				round: 'semi',
-				position: { x: 1, y: 0.5 },
-			});
-		} else {
-			matches.push({
-				id: 'sf1',
-				winner: 'TBD',
-				round: 'semi',
-				position: { x: 1, y: 0.5 },
-			});
-		}
-
-		if (qf3Winner && qf4Winner) {
-			matches.push({
-				id: 'sf2',
-				player1: qf3Winner || 'Waiting for player...',
-				player2: qf4Winner || 'Waiting for player...',
-				round: 'semi',
-				position: { x: 1, y: 1.5 },
-			});
-		} else {
-			matches.push({
-				id: 'sf2',
-				winner: 'TBD',
-				round: 'semi',
-				position: { x: 1, y: 1.5 },
-			});
-		}
-
-		// Final - use actual winners from semifinals
+		// Semi finals - show winners immediately when available
 		const sf1Winner = getMatchWinner('sf1', matchResults);
 		const sf2Winner = getMatchWinner('sf2', matchResults);
 
-		if (sf1Winner && sf2Winner) {
+		if (quarterWinners[0] || quarterWinners[1] || sf1Winner) {
+			matches.push({
+				id: 'sf1',
+				player1: quarterWinners[0] || 'TBD',
+				player2: quarterWinners[1] || 'TBD',
+				winner: sf1Winner || undefined,
+				isCompleted: !!sf1Winner,
+				round: 'semi',
+				position: { x: 1, y: 0.5 },
+			});
+		} else {
+			matches.push({
+				id: 'sf1',
+				player1: 'TBD',
+				player2: 'TBD',
+				round: 'semi',
+				position: { x: 1, y: 0.5 },
+			});
+		}
+
+		if (quarterWinners[2] || quarterWinners[3] || sf2Winner) {
+			matches.push({
+				id: 'sf2',
+				player1: quarterWinners[2] || 'TBD',
+				player2: quarterWinners[3] || 'TBD',
+				winner: sf2Winner || undefined,
+				isCompleted: !!sf2Winner,
+				round: 'semi',
+				position: { x: 1, y: 1.5 },
+			});
+		} else {
+			matches.push({
+				id: 'sf2',
+				player1: 'TBD',
+				player2: 'TBD',
+				round: 'semi',
+				position: { x: 1, y: 1.5 },
+			});
+		}
+
+		// Final - show winners immediately when available
+		const finalWinner = getMatchWinner('final', matchResults);
+		if (sf1Winner || sf2Winner || finalWinner) {
 			matches.push({
 				id: 'final',
-				player1: sf1Winner || 'Waiting for player...',
-				player2: sf2Winner || 'Waiting for player...',
+				player1: sf1Winner || 'TBD',
+				player2: sf2Winner || 'TBD',
+				winner: finalWinner || undefined,
+				isCompleted: !!finalWinner,
 				round: 'final',
 				position: { x: 2, y: 1 },
 			});
 		} else {
 			matches.push({
 				id: 'final',
-				winner: 'TBD',
+				player1: 'TBD',
+				player2: 'TBD',
 				round: 'final',
 				position: { x: 2, y: 1 },
 			});
@@ -201,44 +195,102 @@ function MatchCard({
 	match: BracketMatch;
 	classes?: string[];
 }) {
-	const card = Card({
-		classes: [
-			'min-w-[120px]',
-			'min-h-[40px]',
-			'flex',
-			'flex-col',
-			'items-center',
-			'justify-center',
-			'text-center',
-			'border-2',
-			'border-gray-600',
-			'bg-gray-800',
-			'text-white',
-			'text-sm',
-			'font-medium',
-			...classes,
-		],
-	});
+	// Determine card styling based on match completion status
+	const cardClasses = [
+		'min-w-[120px]',
+		'min-h-[40px]',
+		'flex',
+		'flex-col',
+		'items-center',
+		'justify-center',
+		'text-center',
+		'border-2',
+		'text-sm',
+		'font-medium',
+		...classes,
+	];
+
+	// Add completion-based styling
+	if (match.isCompleted) {
+		cardClasses.push('border-green-500', 'bg-green-900', 'text-green-100');
+	} else {
+		cardClasses.push('border-gray-600', 'bg-gray-800', 'text-white');
+	}
+
+	const card = Card({ classes: cardClasses });
 
 	if (match.player1 && match.player2) {
-		// Show both players
+		// Show both players with winner highlighting
+		const player1Classes = ['text-xs', 'mb-1'];
+		const player2Classes = ['text-xs'];
+
+		// Highlight the winner
+		if (match.winner) {
+			if (match.winner === match.player1) {
+				player1Classes.push('font-bold', 'text-green-300');
+				player2Classes.push('text-gray-400', 'line-through');
+			} else if (match.winner === match.player2) {
+				player2Classes.push('font-bold', 'text-green-300');
+				player1Classes.push('text-gray-400', 'line-through');
+			}
+		}
+
 		const player1Text = Text({
 			content: match.player1,
-			classes: ['text-xs', 'mb-1'],
+			classes: player1Classes,
 		});
 		const vsText = Text({
 			content: 'vs',
 			classes: ['text-xs', 'text-gray-400', 'mb-1'],
 		});
-		const player2Text = Text({ content: match.player2, classes: ['text-xs'] });
+		const player2Text = Text({
+			content: match.player2,
+			classes: player2Classes,
+		});
 
 		card.appendChild(player1Text);
 		card.appendChild(vsText);
 		card.appendChild(player2Text);
-	} else if (match.winner) {
-		// Show winner placeholder
-		const winnerText = Text({ content: match.winner, classes: ['text-xs'] });
-		card.appendChild(winnerText);
+
+		// Add winner indicator if match is completed
+		if (match.winner && match.isCompleted) {
+			const winnerIndicator = Text({
+				content: `🏆 ${match.winner}`,
+				classes: ['text-xs', 'mt-1', 'text-yellow-400', 'font-bold'],
+			});
+			card.appendChild(winnerIndicator);
+		}
+	} else if (match.player1 === 'TBD' && match.player2 === 'TBD') {
+		// Show TBD for both players
+		const tbdText = Text({
+			content: 'TBD vs TBD',
+			classes: ['text-xs', 'text-gray-500'],
+		});
+		card.appendChild(tbdText);
+	} else if (match.player1 && match.player1 !== 'TBD') {
+		// Show advancing player waiting for opponent
+		const advancingText = Text({
+			content: match.player1,
+			classes: ['text-xs', 'font-bold', 'text-green-300', 'mb-1'],
+		});
+		const waitingText = Text({
+			content: 'vs TBD',
+			classes: ['text-xs', 'text-gray-500'],
+		});
+		card.appendChild(advancingText);
+		card.appendChild(waitingText);
+	} else if (match.player2 && match.player2 !== 'TBD') {
+		// Show advancing player waiting for opponent
+		const waitingText = Text({
+			content: 'TBD vs',
+			classes: ['text-xs', 'text-gray-500', 'mb-1'],
+		});
+		const advancingText = Text({
+			content: match.player2,
+			classes: ['text-xs', 'font-bold', 'text-green-300'],
+		});
+		card.appendChild(waitingText);
+		card.appendChild(advancingText);
 	}
 
 	return card;
@@ -249,7 +301,7 @@ export function TournamentBracket({
 	playersIn,
 	players,
 	matchResults = [],
-	playerStatus = [],
+	playerStatus: _playerStatus = [],
 	onLeaveTournament,
 	onPlayMatch,
 	classes = [],
@@ -327,10 +379,6 @@ export function TournamentBracket({
 	});
 	leaveBtn.onclick = onLeaveTournament;
 
-	const token = getCookie('access_token') ?? null;
-	const sessionId = getCookie('sessionId') ?? null;
-	const userCanPlay = canUserPlayMatch(playerStatus, token, sessionId);
-
 	const playBtn = Button({
 		content: 'Play Match',
 		variant: 'primary',
@@ -339,9 +387,7 @@ export function TournamentBracket({
 	playBtn.onclick = onPlayMatch;
 
 	buttonContainer.appendChild(leaveBtn);
-	// if (userCanPlay) {
 	buttonContainer.appendChild(playBtn);
-	// }
 	container.appendChild(buttonContainer);
 
 	const finalWinner = getMatchWinner('final', matchResults);
