@@ -11,11 +11,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 	if (oauthStatus === 'success') {
 		// OAuth login successful, fetch user data
-		connectInvitationSocket();
-		await fetchMe();
-		await getFriends();
-		await getFriendRequests();
-		notificationService.connect();
+		const isValidToken = await fetchMe();
+		if (isValidToken) {
+			await connectInvitationSocket();
+			await getFriends();
+			await getFriendRequests();
+			await notificationService.connect();
+		}
 
 		// Clean up URL parameters
 		window.history.replaceState({}, document.title, window.location.pathname);
@@ -25,12 +27,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 		// Clean up URL parameters
 		window.history.replaceState({}, document.title, window.location.pathname);
 	} else if (document.cookie.includes('access_token')) {
-		// Regular token-based authentication
-		connectInvitationSocket();
-		await fetchMe();
-		await getFriends();
-		await getFriendRequests();
-		notificationService.connect();
+		// Regular token-based authentication - validate token first
+		const isValidToken = await fetchMe();
+		if (isValidToken) {
+			await connectInvitationSocket();
+			await getFriends();
+			await getFriendRequests();
+			await notificationService.connect();
+		}
 	}
 
 	new Router();

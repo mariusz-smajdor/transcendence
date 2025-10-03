@@ -59,6 +59,23 @@ export const notificationsWebSocketHandler = async (
     );
   } catch (error) {
     console.error('WebSocket authentication error:', error);
-    connection.close(1008, 'Invalid token');
+
+    // Check if the error is specifically about token expiration
+    if (error.code === 'FAST_JWT_EXPIRED') {
+      console.log('Token expired, sending refresh request to client');
+      connection.send(
+        JSON.stringify({
+          type: 'token_expired',
+          message: 'Your session has expired. Please refresh your token.',
+          timestamp: Date.now(),
+        }),
+      );
+      // Give client a moment to handle the message before closing
+      setTimeout(() => {
+        connection.close(1008, 'Token expired');
+      }, 1000);
+    } else {
+      connection.close(1008, 'Invalid token');
+    }
   }
 };

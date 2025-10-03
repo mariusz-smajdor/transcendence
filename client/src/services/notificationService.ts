@@ -59,7 +59,7 @@ class NotificationService {
 	private reconnectDelay = 1000;
 	private isConnecting = false;
 
-	connect() {
+	async connect() {
 		if (
 			this.isConnecting ||
 			(this.ws && this.ws.readyState === WebSocket.OPEN)
@@ -74,6 +74,14 @@ class NotificationService {
 			const token = this.getAccessToken();
 			if (!token) {
 				console.error('No access token found for WebSocket connection');
+				this.isConnecting = false;
+				return;
+			}
+
+			// Validate token before attempting connection
+			const isValidToken = await this.validateToken();
+			if (!isValidToken) {
+				console.log('Token validation failed, skipping WebSocket connection');
 				this.isConnecting = false;
 				return;
 			}
@@ -116,15 +124,15 @@ class NotificationService {
 		}
 	}
 
-	private attemptReconnect() {
+	private async attemptReconnect() {
 		if (this.reconnectAttempts < this.maxReconnectAttempts) {
 			this.reconnectAttempts++;
 			console.log(
 				`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
 			);
 
-			setTimeout(() => {
-				this.connect();
+			setTimeout(async () => {
+				await this.connect();
 			}, this.reconnectDelay * this.reconnectAttempts);
 		} else {
 			console.log('Max reconnection attempts reached');
@@ -262,6 +270,19 @@ class NotificationService {
 			}
 		}
 		return null;
+	}
+
+	private async validateToken(): Promise<boolean> {
+		try {
+			const res = await fetch(`/api/me`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			return res.ok;
+		} catch (error) {
+			console.error('Token validation error:', error);
+			return false;
+		}
 	}
 }
 

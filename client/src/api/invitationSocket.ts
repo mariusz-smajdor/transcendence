@@ -3,11 +3,33 @@ import { Toaster } from '../components/toaster';
 
 type InvitationHandler = (data: any) => void;
 
+async function validateToken(): Promise<boolean> {
+	try {
+		const res = await fetch(`/api/me`, {
+			method: 'GET',
+			credentials: 'include',
+		});
+		return res.ok;
+	} catch (error) {
+		console.error('Token validation error:', error);
+		return false;
+	}
+}
+
 let socket: WebSocket | null = null;
 const handlers: InvitationHandler[] = [];
 
-export function connectInvitationSocket() {
+export async function connectInvitationSocket() {
 	if (socket) return;
+
+	// Validate token before connecting
+	const isValidToken = await validateToken();
+	if (!isValidToken) {
+		console.log(
+			'Token validation failed, skipping invitation WebSocket connection'
+		);
+		return;
+	}
 
 	socket = new WebSocket('wss://localhost:8080/invitations');
 
