@@ -88,7 +88,11 @@ fastify.after((err) => {
   });
 });
 
-fastify.register(multipart);
+fastify.register(multipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+});
 fastify.register(FastifyStatic, {
   root: path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads'),
   prefix: '/uploads/',

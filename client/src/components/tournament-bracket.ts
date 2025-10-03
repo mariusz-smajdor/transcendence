@@ -3,7 +3,7 @@ import { Card } from './card';
 import { Text } from './text';
 import { Button } from './button';
 import { Icon } from './icon';
-import { Trophy } from 'lucide';
+import { Cross, Trophy } from 'lucide';
 import { store } from '../store';
 
 type MatchResult = {
@@ -415,50 +415,103 @@ export function TournamentBracket({
 	container.appendChild(buttonContainer);
 
 	const finalWinner = getMatchWinner('final', matchResults);
-	console.log('Final winner check:', { finalWinner, matchResults });
 	if (finalWinner) {
-		const winnerCard = Card({
-			element: 'div',
-			classes: [
-				'absolute',
-				'top-0',
-				'left-0',
-				'right-0',
-				'bottom-0',
-				'z-50',
+		const currentUser = store.getState().user;
+		const isCurrentUserWinner =
+			currentUser && currentUser.username === finalWinner;
+
+		// Remove play button since tournament is finished
+		if (buttonContainer.contains(playBtn)) {
+			buttonContainer.removeChild(playBtn);
+		}
+
+		if (isCurrentUserWinner) {
+			// Show winner card for the winner
+			const winnerCard = Card({
+				element: 'div',
+				classes: [
+					'absolute',
+					'top-0',
+					'left-0',
+					'right-0',
+					'bottom-0',
+					'z-50',
+					'flex',
+					'items-center',
+					'justify-center',
+					'flex-col',
+					'gap-8',
+					'bg-amber-900',
+					'border-amber-500',
+					'text-amber-400',
+				],
+			});
+			const winnerIcon = Icon({ icon: Trophy, classes: ['text-2xl'] });
+			winnerCard.appendChild(winnerIcon);
+			const winnerContainer = document.createElement('div');
+			winnerContainer.classList.add(
 				'flex',
 				'items-center',
 				'justify-center',
 				'flex-col',
-				'gap-8',
-				'bg-amber-900',
-				'border-amber-500',
-				'text-amber-400',
-			],
-		});
-		const winnerIcon = Icon({ icon: Trophy, classes: ['text-2xl'] });
-		winnerCard.appendChild(winnerIcon);
-		const winnerContainer = document.createElement('div');
-		winnerContainer.classList.add(
-			'flex',
-			'items-center',
-			'justify-center',
-			'flex-col',
-			'gap-2'
-		);
-		const winnerHeading = Text({
-			content: 'The tournament winner is',
-			classes: ['text-xs'],
-		});
-		winnerContainer.appendChild(winnerHeading);
-		const winnerText = Text({
-			content: finalWinner,
-			classes: ['text-lg', 'font-bold'],
-		});
-		winnerContainer.appendChild(winnerText);
-		winnerCard.appendChild(winnerContainer);
-		bracketContainer.appendChild(winnerCard);
-		buttonContainer.removeChild(playBtn);
+				'gap-2'
+			);
+			const winnerHeading = Text({
+				content: 'You are the winner!',
+				classes: ['text-xs'],
+			});
+			winnerContainer.appendChild(winnerHeading);
+			const winnerText = Text({
+				content: 'Congratulations!',
+				classes: ['text-lg', 'font-bold'],
+			});
+			winnerContainer.appendChild(winnerText);
+			winnerCard.appendChild(winnerContainer);
+			bracketContainer.appendChild(winnerCard);
+		} else if (currentUser) {
+			// Show loser card for non-winner participants
+			const loserCard = Card({
+				element: 'div',
+				classes: [
+					'absolute',
+					'top-0',
+					'left-0',
+					'right-0',
+					'bottom-0',
+					'z-50',
+					'flex',
+					'items-center',
+					'justify-center',
+					'flex-col',
+					'gap-8',
+					'bg-red-900',
+					'border-red-500',
+					'text-red-400',
+				],
+			});
+			const loserIcon = Icon({ icon: Cross, classes: ['text-2xl'] });
+			loserCard.appendChild(loserIcon);
+			const loserContainer = document.createElement('div');
+			loserContainer.classList.add(
+				'flex',
+				'items-center',
+				'justify-center',
+				'flex-col',
+				'gap-2'
+			);
+			const loserHeading = Text({
+				content: 'Tournament finished!',
+				classes: ['text-xs'],
+			});
+			loserContainer.appendChild(loserHeading);
+			const loserText = Text({
+				content: `Winner: ${finalWinner}`,
+				classes: ['text-lg', 'font-bold'],
+			});
+			loserContainer.appendChild(loserText);
+			loserCard.appendChild(loserContainer);
+			bracketContainer.appendChild(loserCard);
+		}
 	}
 
 	return container;
