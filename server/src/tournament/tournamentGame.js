@@ -89,73 +89,108 @@ export function tournamentGame(fastify, connection, game, match, room) {
   });
 
   connection.on('close', () => {
-    game.clients.delete(connection);
+    try {
+      game.clients.delete(connection);
 
-    const role = game.playersManager.getRole(connection);
-    if (match.winner || role === 'spectator') {
-      return;
-    }
-    if (role !== 'spectator') {
-      if (role === 'left') {
-        broadcastMessage(game.clients, 'left_error');
-      } else if (role === 'right') {
-        broadcastMessage(game.clients, 'right_error');
+      const role = game.playersManager.getRole(connection);
+      if (match.winner || role === 'spectator') {
+        return;
       }
-    }
-    game.playersManager.removeTournamentRole(connection);
 
-    if (
-      game.playersManager.leftPlayer === null ||
-      game.playersManager.rightPlayer === null
-    ) {
-      stopGameLoop(game);
-      game.isRunning = false;
+      if (role !== 'spectator') {
+        if (role === 'left') {
+          broadcastMessage(game.clients, 'left_error');
+        } else if (role === 'right') {
+          broadcastMessage(game.clients, 'right_error');
+        }
+      }
+
+      game.playersManager.removeTournamentRole(connection);
+
+      if (
+        game.playersManager.leftPlayer === null ||
+        game.playersManager.rightPlayer === null
+      ) {
+        stopGameLoop(game);
+        game.isRunning = false;
+      }
+
+      // Fix: Define gameType for tournament matches
+      const gameType = 'tournament';
+      if (match.save) {
+        saveClosedMatch(fastify.db, role, game.playersManager.stats, gameType);
+      }
+
+      if (role === 'left') {
+        room.matchFinished(-1, GAME_CONFIG.NUMBER_OF_ROUNDS, match);
+      } else if (role === 'right') {
+        room.matchFinished(GAME_CONFIG.NUMBER_OF_ROUNDS, -1, match);
+      }
+
+      setTimeout(() => {
+        try {
+          broadcastMessage(game.clients, 'match_finished');
+          setTimeout(() => disconectPlayers(game.clients), 3000);
+        } catch (error) {
+          console.error('Error in match finished timeout:', error);
+        }
+      }, 3000);
+    } catch (error) {
+      console.error('Error handling connection close:', error);
     }
-    if (match.save)
-      saveClosedMatch(fastify.db, role, game.playersManager.stats, gameType);
-    if (role === 'left') {
-      room.matchFinished(-1, GAME_CONFIG.NUMBER_OF_ROUNDS, match);
-    } else if (role === 'right') {
-      room.matchFinished(GAME_CONFIG.NUMBER_OF_ROUNDS, -1, match);
-    }
-    setTimeout(() => {
-      broadcastMessage(game.clients, 'match_finished');
-      setTimeout(() => disconectPlayers(game.clients), 3000);
-    }, 3000);
   });
 
   connection.on('error', (err) => {
-    console.error('WebSocket error:', err);
-    game.clients.delete(connection);
+    try {
+      console.error('WebSocket error:', err);
+      game.clients.delete(connection);
 
-    const role = game.playersManager.getRole(connection);
-    if (match.winner || role === 'spectator') {
-      return;
-    }
-    if (role !== 'spectator') {
-      if (role === 'left') broadcastMessage(game.clients, 'left_error');
-      else if (role === 'right') broadcastMessage(game.clients, 'right_error');
-    }
-    game.playersManager.removeTournamentRole(connection);
+      const role = game.playersManager.getRole(connection);
+      if (match.winner || role === 'spectator') {
+        return;
+      }
 
-    if (
-      game.playersManager.leftPlayer === null ||
-      game.playersManager.rightPlayer === null
-    ) {
-      stopGameLoop(game);
-      game.isRunning = false;
+      if (role !== 'spectator') {
+        if (role === 'left') {
+          broadcastMessage(game.clients, 'left_error');
+        } else if (role === 'right') {
+          broadcastMessage(game.clients, 'right_error');
+        }
+      }
+
+      game.playersManager.removeTournamentRole(connection);
+
+      if (
+        game.playersManager.leftPlayer === null ||
+        game.playersManager.rightPlayer === null
+      ) {
+        stopGameLoop(game);
+        game.isRunning = false;
+      }
+
+      // Fix: Define gameType for tournament matches
+      const gameType = 'tournament';
+      if (match.save) {
+        saveClosedMatch(fastify.db, role, game.playersManager.stats, gameType);
+      }
+
+      if (role === 'left') {
+        room.matchFinished(-1, GAME_CONFIG.NUMBER_OF_ROUNDS, match);
+      } else if (role === 'right') {
+        room.matchFinished(GAME_CONFIG.NUMBER_OF_ROUNDS, -1, match);
+      }
+
+      setTimeout(() => {
+        try {
+          broadcastMessage(game.clients, 'match_finished');
+          setTimeout(() => disconectPlayers(game.clients), 3000);
+        } catch (error) {
+          console.error('Error in match finished timeout:', error);
+        }
+      }, 3000);
+    } catch (error) {
+      console.error('Error handling connection error:', error);
     }
-    if (match.save)
-      saveClosedMatch(fastify.db, role, game.playersManager.stats, gameType);
-    if (role === 'left') {
-      room.matchFinished(-1, GAME_CONFIG.NUMBER_OF_ROUNDS, match);
-    } else if (role === 'right') {
-      room.matchFinished(GAME_CONFIG.NUMBER_OF_ROUNDS, -1, match);
-    }
-    setTimeout(() => {
-      broadcastMessage(game.clients, 'match_finished');
-      setTimeout(disconectPlayers(game.clients), 3000);
-    }, 3000);
   });
 }
 
@@ -218,7 +253,13 @@ function assignPlayer(connection, token, sessionId, match, game) {
 }
 
 function disconectPlayers(clients) {
-  for (const client of clients) {
-    client.close();
+  try {
+    for (const client of clients) {
+      if (client && client.readyState === client.OPEN) {
+        client.close();
+      }
+    }
+  } catch (error) {
+    console.error('Error disconnecting players:', error);
   }
 }
