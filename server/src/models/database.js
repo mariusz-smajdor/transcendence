@@ -66,6 +66,7 @@ const dbConnector = async (fastify, options) => {
 	  score_player_2 INTEGER NOT NULL,
 	  match_date TEXT NOT NULL,
 	  game_type TEXT NOT NULL,
+	  blockchain_tx TEXT,
 	  FOREIGN KEY (user_id_1) REFERENCES users (id),
 	  FOREIGN KEY (user_id_2) REFERENCES users (id)
 	  );
