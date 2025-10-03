@@ -88,25 +88,15 @@ export async function tournamentRoutes(fastify) {
     }
     room = tournaments.joinRoom(roomId, connection, name, token, sessionId);
 
-    if (room.players.length == room.getExpectedPlayers()) {
-      res.code(200).send({
-        id: roomId,
-        creator: room.creator,
-        playersIn: room.players.length,
-        playersExpected: room.getExpectedPlayers(),
-        positions: room.getDraw(),
-        playersStatus: room.getPlayerStatus(),
-      });
-    } else {
-      res.code(200).send({
-        id: roomId,
-        creator: room.creator,
-        playersIn: room.players.length,
-        playersExpected: room.getExpectedPlayers(),
-        positions: room.positions(),
-        playersStatus: room.getPlayerStatus(),
-      });
-    }
+    // Always send consistent data format regardless of tournament status
+    res.code(200).send({
+      id: roomId,
+      creator: room.creator,
+      playersIn: room.players.length,
+      playersExpected: room.getExpectedPlayers(),
+      positions: room.positions(), // Use consistent positions method
+      playersStatus: room.getPlayerStatus(),
+    });
   });
 
   // fastify.get('/tournament/start', async (req, res) => {
