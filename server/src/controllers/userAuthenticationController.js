@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { deleteAvatarFile } from '../utils/avatarCleanup.js';
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
 
 export const registrationHandler = async (req, res) => {
   const { username, password, confirmPassword, email } = req.body;
@@ -286,5 +288,79 @@ export const updateProfileHandler = async (req, res) => {
     return res
       .status(500)
       .send({ success: false, message: 'Failed to update profile' });
+  }
+};
+
+export const enable2FAHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
+
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+
+  if (!token) {
+    return res
+      .status(400)
+      .send({ success: false, message: 'No token provided' });
+  }
+
+  try {
+    const decoded = req.server.jwt.verify(token);
+    const userId = decoded.userId;
+    const db = req.context.config.db;
+
+    // Generate new secret
+    const secret = speakeasy.generateSecret({
+      name: `Transcendence:${decoded.username}`,
+    });
+
+    // Update user with new secret
+    db.prepare('UPDATE users SET totp_secret = ? WHERE id = ?').run(
+      secret.base32,
+      userId,
+    );
+
+    const qrCode = await QRCode.toDataURL(secret.otpauth_url);
+
+    return res.status(200).send({
+      success: true,
+      message: '2FA enabled successfully',
+      qrCode,
+      secret: secret.base32,
+    });
+  } catch (err) {
+    return res.status(400).send({ success: false, message: 'Invalid token' });
+  }
+};
+
+export const disable2FAHandler = async (req, res) => {
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
+
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+
+  if (!token) {
+    return res
+      .status(400)
+      .send({ success: false, message: 'No token provided' });
+  }
+
+  try {
+    const decoded = req.server.jwt.verify(token);
+    const userId = decoded.userId;
+    const db = req.context.config.db;
+
+    // Remove secret from user
+    db.prepare('UPDATE users SET totp_secret = NULL WHERE id = ?').run(userId);
+
+    return res.status(200).send({
+      success: true,
+      message: '2FA disabled successfully',
+    });
+  } catch (err) {
+    return res.status(400).send({ success: false, message: 'Invalid token' });
   }
 };

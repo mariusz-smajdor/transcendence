@@ -21,6 +21,14 @@ async function userAuthenticationRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await userAuthController.updateProfileHandler(req, res);
   });
+  fastify.post('/enable-2fa', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.enable2FAHandler(req, res);
+  });
+  fastify.post('/disable-2fa', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await userAuthController.disable2FAHandler(req, res);
+  });
 }
 
 export default userAuthenticationRoutes;

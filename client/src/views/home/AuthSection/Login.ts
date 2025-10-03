@@ -3,12 +3,14 @@ import { Heading } from '../../../components/heading';
 import { Input } from '../../../components/input';
 import { Label } from '../../../components/label';
 import { Tab } from '../../../components/tabs';
+import { Text } from '../../../components/text';
 import { Wrapper } from '../../../components/wrapper';
 
 function loginUser(
 	form: HTMLFormElement,
 	usernameInput: HTMLInputElement,
-	passwordInput: HTMLInputElement
+	passwordInput: HTMLInputElement,
+	totpInput?: HTMLInputElement
 ) {
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
@@ -17,12 +19,15 @@ function loginUser(
 			form.removeChild(form.lastChild);
 		}
 
-		const submitMessage = document.createElement('span');
-		submitMessage.classList.add('text-red-400', 'text-xs');
+		const submitMessage = Text({
+			content: '',
+			classes: ['text-red-400', 'text-xs'],
+		});
 
 		const loginData = {
 			username: usernameInput.value,
 			password: passwordInput.value,
+			totpToken: totpInput?.value || undefined,
 		};
 
 		try {
@@ -38,7 +43,14 @@ function loginUser(
 			const data = await res.json();
 
 			if (!data.success) {
-				submitMessage.textContent = data.message;
+				if (data.requires2FA) {
+					// 2FA is required
+					submitMessage.textContent = 'Please enter your 2FA code';
+					submitMessage.classList.remove('text-red-400');
+					submitMessage.classList.add('text-blue-400');
+				} else {
+					submitMessage.textContent = data.message;
+				}
 				form.appendChild(submitMessage);
 			} else {
 				submitMessage.textContent = 'Login successful!';
@@ -47,6 +59,7 @@ function loginUser(
 				form.appendChild(submitMessage);
 				usernameInput.value = '';
 				passwordInput.value = '';
+				if (totpInput) totpInput.value = '';
 
 				window.location.reload();
 			}
@@ -55,7 +68,7 @@ function loginUser(
 				submitMessage.textContent = error.message;
 			} else {
 				submitMessage.textContent =
-					'An unknown error occurred. PLease try again.';
+					'An unknown error occurred. Please try again.';
 			}
 			form.appendChild(submitMessage);
 		}
@@ -77,6 +90,8 @@ export default function Login() {
 		method: 'POST',
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
 	}) as HTMLFormElement;
+
+	// Username field
 	const usernameLabel = Label({
 		content: 'Username:',
 		classes: ['flex', 'flex-col', 'gap-2'],
@@ -88,6 +103,8 @@ export default function Login() {
 		placeholder: 'your username',
 		required: true,
 	});
+
+	// Password field
 	const passwordLabel = Label({
 		content: 'Password:',
 		classes: ['flex', 'flex-col', 'gap-2'],
@@ -100,13 +117,34 @@ export default function Login() {
 		required: true,
 	});
 
-	loginUser(form, usernameInput, passwordInput);
+	// 2FA field (optional)
+	const totpLabel = Label({
+		content: '2FA Code (optional):',
+		classes: ['flex', 'flex-col', 'gap-2'],
+	});
+	const totpInput = Input({
+		type: 'text',
+		name: 'totp',
+		id: 'totp',
+		placeholder: '123456',
+		required: false,
+	});
+
+	// Show 2FA field by default (optional)
+	totpInput.style.display = 'block';
+	totpLabel.style.display = 'block';
+
+	loginUser(form, usernameInput, passwordInput, totpInput);
 
 	usernameLabel.appendChild(usernameInput);
 	passwordLabel.appendChild(passwordInput);
+	totpLabel.appendChild(totpInput);
+
 	form.appendChild(usernameLabel);
 	form.appendChild(passwordLabel);
+	form.appendChild(totpLabel);
 	form.appendChild(Button({ content: 'Sign in', type: 'submit' }));
+
 	tab.appendChild(heading);
 	tab.appendChild(form);
 

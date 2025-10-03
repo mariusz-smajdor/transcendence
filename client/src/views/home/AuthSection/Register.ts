@@ -11,7 +11,8 @@ function registerUser(
 	emailInput: HTMLInputElement,
 	usernameInput: HTMLInputElement,
 	passwordInput: HTMLInputElement,
-	confirmPasswordInput: HTMLInputElement
+	confirmPasswordInput: HTMLInputElement,
+	qrCodeContainer?: HTMLElement
 ) {
 	form.addEventListener('submit', async (event) => {
 		event.preventDefault();
@@ -42,37 +43,40 @@ function registerUser(
 					...registerData,
 				}),
 			});
-			console.log(registerData);
+
 			const data = await res.json();
 			if (!data.success) {
 				submitMessage.textContent = data.message;
 				form.appendChild(submitMessage);
 			} else {
 				submitMessage.textContent =
-					'Registration successful, you can log in now!';
+					'Registration successful! Scan the QR code with your authenticator app.';
 				submitMessage.classList.remove('text-red-400');
 				submitMessage.classList.add('text-green-400');
 				form.appendChild(submitMessage);
+
+				// Show QR code if available
+				if (data.qrCode && qrCodeContainer) {
+					const qrImg = document.createElement('img');
+					qrImg.src = data.qrCode;
+					qrImg.alt = '2FA QR Code';
+					qrImg.className = 'mx-auto mt-4 max-w-xs';
+					qrCodeContainer.innerHTML = '';
+					qrCodeContainer.appendChild(qrImg);
+					qrCodeContainer.style.display = 'block';
+				}
+
 				emailInput.value = '';
 				usernameInput.value = '';
 				passwordInput.value = '';
-				setTimeout(() => {
-					const loginTab = document.querySelector(
-						'[data-value="login"]'
-					) as HTMLButtonElement;
-					loginTab.click();
-					submitMessage.textContent = '';
-					if (form.lastChild instanceof HTMLSpanElement) {
-						form.removeChild(form.lastChild);
-					}
-				}, 1000);
+				confirmPasswordInput.value = '';
 			}
 		} catch (error) {
 			if (error instanceof Error) {
 				submitMessage.textContent = error.message;
 			} else {
 				submitMessage.textContent =
-					'An unknown error occurred. PLease try again.';
+					'An unknown error occurred. Please try again.';
 			}
 			form.appendChild(submitMessage);
 		}
@@ -139,12 +143,18 @@ export default function Register() {
 		required: true,
 	});
 
+	// QR Code container (initially hidden)
+	const qrCodeContainer = document.createElement('div');
+	qrCodeContainer.className = 'text-center';
+	qrCodeContainer.style.display = 'none';
+
 	registerUser(
 		form,
 		emailInput,
 		usernameInput,
 		passwordInput,
-		confirmPasswordInput
+		confirmPasswordInput,
+		qrCodeContainer
 	);
 
 	emailLabel.appendChild(emailInput);
@@ -155,6 +165,7 @@ export default function Register() {
 	form.appendChild(usernameLabel);
 	form.appendChild(passwordLabel);
 	form.appendChild(confirmPasswordLabel);
+	form.appendChild(qrCodeContainer);
 	form.appendChild(Button({ content: 'Sign up', type: 'submit' }));
 	tab.appendChild(heading);
 	tab.appendChild(form);
