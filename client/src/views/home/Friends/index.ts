@@ -106,7 +106,7 @@ function FriendRequestTab() {
 				alt: f.senderUsername,
 				width: 35,
 				height: 35,
-				classes: ['rounded-full', 'border', 'border-accent'],
+				classes: ['rounded-full', 'border', 'border-accent', 'aspect-square'],
 			});
 			const name = Text({
 				element: 'span',
@@ -215,7 +215,7 @@ function AllFriendsTab() {
 				alt: f.username,
 				width: 35,
 				height: 35,
-				classes: ['rounded-full', 'border', 'border-accent'],
+				classes: ['rounded-full', 'border', 'border-accent', 'aspect-square'],
 			});
 			const name = Text({
 				element: 'span',

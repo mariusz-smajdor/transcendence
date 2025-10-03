@@ -57,7 +57,7 @@ export default function Profile() {
 			alt: 'Avatar',
 			width: 48,
 			height: 48,
-			classes: ['rounded-full', 'border', 'border-accent'],
+			classes: ['rounded-full', 'border', 'border-accent', 'aspect-square'],
 		});
 		const avatarInput = Input({
 			type: 'file',

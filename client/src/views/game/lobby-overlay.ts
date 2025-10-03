@@ -112,7 +112,7 @@ export async function showLobbyOverlay() {
 				alt: f.username,
 				width: 35,
 				height: 35,
-				classes: ['rounded-full', 'border', 'border-accent'],
+				classes: ['rounded-full', 'border', 'border-accent', 'aspect-square'],
 			});
 			const name = Text({
 				element: 'span',
