@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 		// OAuth login successful, fetch user data
 		const isValidToken = await fetchMe();
 		if (isValidToken) {
+			// Store OAuth status in localStorage
+			localStorage.setItem('isOAuthUser', 'true');
 			await getFriends();
 			await getFriendRequests();
 			await notificationService.connect();

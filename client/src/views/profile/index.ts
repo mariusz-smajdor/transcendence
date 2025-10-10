@@ -43,6 +43,8 @@ export default function Profile() {
 	document.addEventListener('keydown', onKeyDown);
 
 	function Form() {
+		const isOAuthUser = localStorage.getItem('isOAuthUser') === 'true';
+
 		const form = Wrapper({
 			element: 'form',
 			method: 'POST',
@@ -137,9 +139,11 @@ export default function Profile() {
 		passwordLabel.appendChild(passwordInput);
 		submitWrapper.appendChild(submitBtn);
 
-		grid.appendChild(usernameLabel);
-		grid.appendChild(emailLabel);
-		grid.appendChild(passwordLabel);
+		if (!isOAuthUser) {
+			grid.appendChild(usernameLabel);
+			grid.appendChild(emailLabel);
+			grid.appendChild(passwordLabel);
+		}
 		grid.appendChild(submitWrapper);
 
 		form.appendChild(avatarLabel);
