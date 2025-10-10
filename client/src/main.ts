@@ -8,12 +8,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 	// Check for OAuth redirect parameters
 	const urlParams = new URLSearchParams(window.location.search);
 	const oauthStatus = urlParams.get('oauth');
+	await connectInvitationSocket();
 
 	if (oauthStatus === 'success') {
 		// OAuth login successful, fetch user data
 		const isValidToken = await fetchMe();
 		if (isValidToken) {
-			await connectInvitationSocket();
 			await getFriends();
 			await getFriendRequests();
 			await notificationService.connect();
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 		// Regular token-based authentication - validate token first
 		const isValidToken = await fetchMe();
 		if (isValidToken) {
-			await connectInvitationSocket();
 			await getFriends();
 			await getFriendRequests();
 			await notificationService.connect();
