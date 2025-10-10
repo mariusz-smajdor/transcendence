@@ -27,26 +27,7 @@ type TournamentBracketProps = ComponentProps & {
 	onPlayMatch: () => void;
 };
 
-const canUserPlayMatch = (
-	playerStatus: Array<{
-		nickname: string;
-		canPlay: boolean;
-		token: string;
-		sessionId: string;
-	}>
-) => {
-	const user = store.getState().user;
-	if (!user) return false;
-	console.log('user:', user);
-	console.log('playerStatus:', playerStatus);
-	const userStatus = playerStatus.find(
-		(player) => player.nickname === user.username
-	);
-	console.log('userStatus:', userStatus);
-	if (!userStatus) return false;
-	console.log(`userStatus.canPlay: ${userStatus.canPlay}`);
-	return userStatus.canPlay;
-};
+// Function removed as per requirements
 
 type BracketMatch = {
 	id: string;
@@ -409,9 +390,7 @@ export function TournamentBracket({
 	playBtn.onclick = onPlayMatch;
 
 	buttonContainer.appendChild(leaveBtn);
-	if (canUserPlayMatch(_playerStatus)) {
-		buttonContainer.appendChild(playBtn);
-	}
+	buttonContainer.appendChild(playBtn);
 	container.appendChild(buttonContainer);
 
 	const finalWinner = getMatchWinner('final', matchResults);
