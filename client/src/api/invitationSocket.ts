@@ -15,14 +15,12 @@ export async function connectInvitationSocket() {
 	socket.onopen = () => {
 		const token = getCookie('access_token');
 		const sessionId = getCookie('sessionId');
-		//console.log(token,sessionId);
 		socket?.send(JSON.stringify({ type: 'auth', token, sessionId }));
 		console.log('Invitation WebSocket opened');
 	};
 
 	socket.onmessage = (event) => {
 		const data = JSON.parse(event.data);
-		console.log(data);
 		if (data.type === 'cookies') {
 			if (data.sessionId) {
 				document.cookie = `sessionId=${data.sessionId}; path=/;`;
