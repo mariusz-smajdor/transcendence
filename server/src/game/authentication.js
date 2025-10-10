@@ -47,4 +47,3 @@ export function setPlayerStats(game,connection,msg,payload){
 		return;
 	}
 }
-

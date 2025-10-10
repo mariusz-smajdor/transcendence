@@ -80,8 +80,6 @@ function OnlineCard() {
 			'row-span-3',
 			'col-span-1',
 			'h-full',
-			'hover:border-primary',
-			'cursor-pointer',
 			'lg:gap-4',
 		],
 	});
@@ -112,23 +110,30 @@ function OnlineCard() {
 		content: 'Challenge your friend online',
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
-
-	card.addEventListener('click', async () => {
+	
+	// Check authentication status immediately and update UI accordingly
+	(async () => {
 		const isLoggedIn = await fetchMe();
 		if (isLoggedIn) {
-			showLobbyOverlay();
+			// Enable the card for logged-in users
+			card.classList.add('hover:border-primary', 'cursor-pointer');
+			
+			card.addEventListener('click', () => {
+				showLobbyOverlay();
+			});
 		} else {
-			const response = await fetch('/api/game/create');
-			const respData = await response.json();
-			showGameOverlay(respData.gameId, 'network');
-			const newUrl = `/game?gameId=${respData.gameId}`;
-			history.pushState(
-				{ gameId: respData.gameId },
-				`Game ${respData.gameId}`,
-				newUrl
-			);
+			// Disable the card for non-authenticated users
+			card.classList.add('opacity-50', 'cursor-not-allowed');
+			
+			// Add a tooltip or message indicating login requirement
+			const loginMessage = Text({
+				element: 'p',
+				content: 'Login required',
+				classes: ['text-xs', 'text-red-400', 'mt-1'],
+			});
+			wrapper.appendChild(loginMessage);
 		}
-	});
+	})();
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
