@@ -173,8 +173,8 @@ export default function Game() {
 			],
 			tabs: [QuickPlayTab(), TournamentTab()],
 			classes: ['h-full'],
-			syncWithUrl: true,
-			urlParam: 'gameTab',
+			enableHistory: true,
+			tabGroupId: 'game-tabs',
 		})
 	);
 

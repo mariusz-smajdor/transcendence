@@ -19,12 +19,6 @@ export async function handleGameAcceptance(fromUserId: number): Promise<void> {
 		});
 
 		showGameOverlay(respData.gameId, 'network');
-		const newUrl = `/game?gameId=${respData.gameId}`;
-		history.pushState(
-			{ gameId: respData.gameId },
-			`Game ${respData.gameId}`,
-			newUrl
-		);
 	} catch (error) {
 		console.error('Failed to create game:', error);
 		Toaster('Failed to start game');
@@ -38,6 +32,4 @@ export async function handleGameAcceptance(fromUserId: number): Promise<void> {
  */
 export function handleGameStart(gameId: string): void {
 	showGameOverlay(gameId, 'network');
-	const newUrl = `/game?gameId=${gameId}`;
-	history.pushState({ gameId }, `Game ${gameId}`, newUrl);
 }

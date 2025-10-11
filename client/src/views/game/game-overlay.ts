@@ -3,6 +3,7 @@ import { Text } from '../../components/text';
 import Game from './game';
 import { GameType } from '../../types/game';
 import { cleanupKeyboardState } from './game-keys';
+import { historyManager } from '../../utils/historyManager';
 
 export function showGameOverlay(
 	gameId: string,
@@ -50,7 +51,7 @@ export function showGameOverlay(
 	CloseBtn.style.fontSize = '2rem';
 	CloseBtn.onclick = () => {
 		closeGameOverlay();
-		window.history.pushState(null, '', '/');
+		historyManager.back();
 	};
 
 	const shareText = Text({
@@ -104,6 +105,9 @@ export function showGameOverlay(
 		overlay.appendChild(shareText);
 		shareText.appendChild(link);
 	}
+
+	// Push history state for back button support
+	historyManager.pushState('game', { gameId, gameType });
 }
 
 export function closeGameOverlay() {
