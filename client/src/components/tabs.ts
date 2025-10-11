@@ -23,6 +23,9 @@ type TabsProps = ComponentProps & {
 	defaultValue: string;
 	triggers: TriggersArray;
 	tabs: TabsArray;
+	// Optional: sync tab state with URL
+	syncWithUrl?: boolean;
+	urlParam?: string; // e.g., 'gameTab'
 };
 
 export function Tab({ value, classes }: TabProps) {
@@ -48,6 +51,8 @@ export function Tabs({
 	defaultValue,
 	triggers,
 	tabs,
+	syncWithUrl = false,
+	urlParam = 'tab',
 }: TabsProps) {
 	const wrapper = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6', ...classes!],
@@ -68,6 +73,15 @@ export function Tabs({
 		trigger.addEventListener('click', () => {
 			if (trigger.dataset.value) {
 				activateTab(trigger.dataset.value);
+				if (syncWithUrl) {
+					const params = new URLSearchParams(window.location.search);
+					const current = params.get(urlParam);
+					if (current !== trigger.dataset.value) {
+						params.set(urlParam, trigger.dataset.value);
+						const newUrl = `${window.location.pathname}?${params.toString()}`;
+						history.pushState(null, '', newUrl);
+					}
+				}
 			}
 		});
 	});
@@ -89,7 +103,18 @@ export function Tabs({
 			}
 		});
 	};
-	activateTab(defaultValue);
+
+	// Initialize active tab: prefer URL param when enabled, else default value
+	let initialValue = defaultValue;
+	if (syncWithUrl) {
+		const params = new URLSearchParams(window.location.search);
+		const fromUrl = params.get(urlParam);
+		const validValues = new Set(triggers.map((t) => t.dataset.value));
+		if (fromUrl && validValues.has(fromUrl)) {
+			initialValue = fromUrl;
+		}
+	}
+	activateTab(initialValue);
 
 	return wrapper;
 }
