@@ -341,11 +341,7 @@ function dataToSave(stats, player) {
 }
 
 function getDate() {
+  // Return current date and time in ISO format (YYYY-MM-DD HH:MM:SS)
   const timestamp = new Date();
-  const formatDate = (date) => {
-    return date < 10 ? `0${date}` : date;
-  };
-  return `${timestamp.getFullYear()}-${formatDate(
-    timestamp.getMonth() + 1,
-  )}-${formatDate(timestamp.getDate())}`;
+  return timestamp.toISOString().replace('T', ' ').substring(0, 19);
 }

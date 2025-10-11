@@ -20,6 +20,7 @@ import {
 	type MatchStats,
 } from '../../../api/matchResults.js';
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
+import { formatFullDateTime } from '../../../utils/dateFormatter.js';
 
 export default function History(user: any) {
 	const section = Card({
@@ -106,66 +107,74 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 			emptyRow.appendChild(emptyCell);
 			tableBody.appendChild(emptyRow);
 		} else {
-			matches.forEach((match: MatchResult) => {
-				const row = TableRow({});
+			matches
+				.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+				.forEach((match: MatchResult) => {
+					const row = TableRow({});
 
-				const opponentCell = TableCell({
-					content: match.opponent.username,
-					classes: ['flex', 'items-center', 'gap-2'],
+					const opponentCell = TableCell({
+						content: match.opponent.username,
+						classes: ['flex', 'items-center', 'gap-2'],
+					});
+
+					opponentCell.prepend(
+						Img({
+							src: getAvatarUrl(match.opponent.avatar, match.opponent.username),
+							classes: [
+								'w-8',
+								'h-8',
+								'rounded-full',
+								'border',
+								'border-accent',
+							],
+							alt: 'Opponent avatar',
+							loading: 'lazy',
+						})
+					);
+
+					const scoreCell =
+						match.winner === user.username
+							? TableCell({
+									content: match.score,
+									classes: ['text-green-400'],
+							  })
+							: TableCell({
+									content: match.score.split(' - ').reverse().join(' - '),
+									classes: ['text-red-400'],
+							  });
+
+					const typeSpan = Text({
+						element: 'span',
+						content: match.gameType,
+						classes: [
+							'text-xs',
+							'text-primary',
+							'bg-primary/25',
+							'py-1',
+							'px-2',
+							'rounded-full',
+						],
+					});
+					const typeCell = TableCell({});
+					typeCell.appendChild(typeSpan);
+
+					const dateCell = TableCell({
+						content: formatFullDateTime(match.date),
+						classes: ['text-muted'],
+					});
+
+					const blockchainCell = TableCell({
+						content: match.blockchainTx ? '✓' : '✗',
+						classes: [match.blockchainTx ? 'text-green-400' : 'text-red-400'],
+					});
+
+					row.appendChild(opponentCell);
+					row.appendChild(scoreCell);
+					row.appendChild(typeCell);
+					row.appendChild(dateCell);
+					row.appendChild(blockchainCell);
+					tableBody.appendChild(row);
 				});
-
-				opponentCell.prepend(
-					Img({
-						src: getAvatarUrl(match.opponent.avatar, match.opponent.username),
-						classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
-						alt: 'Opponent avatar',
-						loading: 'lazy',
-					})
-				);
-
-				const scoreCell =
-					match.winner === user.username
-						? TableCell({
-								content: match.score,
-								classes: ['text-green-400'],
-						  })
-						: TableCell({
-								content: match.score.split(' - ').reverse().join(' - '),
-								classes: ['text-red-400'],
-						  });
-
-				const typeSpan = Text({
-					element: 'span',
-					content: match.gameType,
-					classes: [
-						'text-xs',
-						'text-primary',
-						'bg-primary/25',
-						'py-1',
-						'px-2',
-						'rounded-full',
-					],
-				});
-				const typeCell = TableCell({});
-				typeCell.appendChild(typeSpan);
-
-				const dateCell = TableCell({
-					content: match.date,
-					classes: ['text-muted'],
-				});
-
-				const blockchainCell = TableCell({
-					content: match.blockchainTx ? '✓' : '✗',
-					classes: [match.blockchainTx ? 'text-green-400' : 'text-red-400'],
-				});
-
-				row.appendChild(opponentCell);
-				row.appendChild(scoreCell);
-				row.appendChild(typeCell);
-				row.appendChild(dateCell);
-				row.appendChild(blockchainCell);
-				tableBody.appendChild(row);
-			});
 		}
 
 		headerRow.appendChild(opponentHeader);
