@@ -297,6 +297,14 @@ class NotificationService {
 					avatarWrapper.insertBefore(onlineIndicator, avatarWrapper.firstChild);
 				}
 			}
+
+			// Show invite button
+			const inviteButton = friendRow.querySelector(
+				'.invite-game-btn'
+			) as HTMLElement;
+			if (inviteButton) {
+				inviteButton.style.display = 'block';
+			}
 		}
 
 		// Emit event for any components that need to react
@@ -314,6 +322,14 @@ class NotificationService {
 			const onlineIndicator = friendRow.querySelector('.online-indicator');
 			if (onlineIndicator) {
 				onlineIndicator.remove();
+			}
+
+			// Hide invite button
+			const inviteButton = friendRow.querySelector(
+				'.invite-game-btn'
+			) as HTMLElement;
+			if (inviteButton) {
+				inviteButton.style.display = 'none';
 			}
 		}
 
