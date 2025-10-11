@@ -22,7 +22,10 @@ import { MessageCard } from './MessageCard';
 import { dataChangeEmitter } from '../../../services/notificationService';
 import { Toaster } from '../../../components/toaster';
 import { onInvitation, sendInvitation } from '../../../api/invitationSocket';
-import { showGameOverlay } from '../../game/game-overlay';
+import {
+	handleGameAcceptance,
+	handleGameStart,
+} from '../../../utils/gameInvitationHandler';
 
 // Track which friends have unread messages
 const unreadMessages = new Set<number>();
@@ -414,34 +417,13 @@ function AllFriendsTab() {
 	onInvitation(async (data) => {
 		if (data.type === 'game_start' && data.fromUserId) {
 			// Inviter receives acceptance - create game and send gameId back
-			try {
-				const response = await fetch('/api/game/create');
-				const respData = await response.json();
-				sendInvitation({
-					type: 'game_start',
-					message: 'Game started',
-					toUserId: data.fromUserId,
-					gameId: respData.gameId,
-				});
-				showGameOverlay(respData.gameId, 'network');
-				const newUrl = `/game?gameId=${respData.gameId}`;
-				history.pushState(
-					{ gameId: respData.gameId },
-					`Game ${respData.gameId}`,
-					newUrl
-				);
-			} catch (error) {
-				console.error('Failed to create game:', error);
-				Toaster('Failed to start game');
-			}
+			await handleGameAcceptance(data.fromUserId);
 		}
 	});
 
 	onInvitation((data) => {
 		if (data.type === 'game_start_with_id' && data.gameId) {
-			showGameOverlay(data.gameId, 'network');
-			const newUrl = `/game?gameId=${data.gameId}`;
-			history.pushState({ gameId: data.gameId }, `Game ${data.gameId}`, newUrl);
+			handleGameStart(data.gameId);
 		}
 	});
 
