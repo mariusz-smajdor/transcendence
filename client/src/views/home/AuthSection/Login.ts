@@ -117,9 +117,9 @@ export default function Login() {
 		required: true,
 	});
 
-	// 2FA field (optional)
+	// 2FA field
 	const totpLabel = Label({
-		content: '2FA Code (optional):',
+		content: '2FA Code:',
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const totpInput = Input({
@@ -130,7 +130,7 @@ export default function Login() {
 		required: false,
 	});
 
-	// Show 2FA field by default (optional)
+	// Show 2FA field by default
 	totpInput.style.display = 'block';
 	totpLabel.style.display = 'block';
 
