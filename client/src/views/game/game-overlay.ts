@@ -30,6 +30,8 @@ export function showGameOverlay(
 		'z-50'
 	);
 	overlay.id = 'game-modal';
+	// Keep a reference to ws on the overlay for cleanup when navigating back
+	(overlay as any).__ws = gameWebSocket;
 
 	const CloseBtn = Button({
 		content: '✕',
@@ -47,12 +49,7 @@ export function showGameOverlay(
 
 	CloseBtn.style.fontSize = '2rem';
 	CloseBtn.onclick = () => {
-		window.removeEventListener('keydown', preventArrowScroll);
-		cleanupKeyboardState();
-		if (gameWebSocket && gameWebSocket.readyState === WebSocket.OPEN) {
-			gameWebSocket.close();
-		}
-		overlay.remove();
+		closeGameOverlay();
 		window.history.pushState(null, '', '/');
 	};
 
@@ -107,6 +104,23 @@ export function showGameOverlay(
 		overlay.appendChild(shareText);
 		shareText.appendChild(link);
 	}
+}
+
+export function closeGameOverlay() {
+	const overlay = document.getElementById('game-modal') as HTMLElement | null;
+	if (!overlay) return;
+
+	// Remove keydown prevention and cleanup keyboard handlers
+	window.removeEventListener('keydown', preventArrowScroll);
+	cleanupKeyboardState();
+
+	// Close any associated WebSocket if present
+	const ws = (overlay as any).__ws as WebSocket | undefined;
+	if (ws && ws.readyState === WebSocket.OPEN) {
+		ws.close();
+	}
+
+	overlay.remove();
 }
 
 function preventArrowScroll(e: KeyboardEvent) {

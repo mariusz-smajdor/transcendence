@@ -1,7 +1,7 @@
 import Header from './layout/header';
 import Home from './views/home';
 // import Game from './views/game/game';
-import { showGameOverlay } from './views/game/game-overlay';
+import { showGameOverlay, closeGameOverlay } from './views/game/game-overlay';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -37,6 +37,9 @@ export class Router {
 	}
 
 	private loadRoute() {
+		// Ensure any active game overlay is closed when routes change
+		closeGameOverlay();
+
 		const path = location.pathname;
 
 		const view = this.routes[path];
