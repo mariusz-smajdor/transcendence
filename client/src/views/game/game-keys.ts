@@ -106,7 +106,7 @@ export function setupKeyboardControlsForLocal(ws: WebSocket) {
 							ws.send(moveSend('RIGHT_DOWN'));
 						}
 					});
-				}, 100); // 10 FPS - more reliable than 16ms
+				}, 50); // 20 FPS - more reliable than 16ms
 			}
 
 			// Send initial movement command immediately
