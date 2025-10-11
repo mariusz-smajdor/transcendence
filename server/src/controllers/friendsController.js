@@ -6,6 +6,7 @@ import {
   rejectFriendRequest,
   removeFriend,
 } from '../services/friendsServices.js';
+import { getOnlineFriends } from '../services/notificationService.js';
 
 export const getFriendsHandler = async (req, res) => {
   const db = req.context.config.db;
@@ -230,6 +231,36 @@ export const removeFriendHandler = async (req, res) => {
     }
   } catch (error) {
     console.error('Error in removeFriendHandler:', error);
+    return res.status(401).send({ success: false, message: 'Invalid token' });
+  }
+};
+
+export const getOnlineFriendsHandler = async (req, res) => {
+  const db = req.context.config.db;
+  const authHeader = req.headers.authorization;
+  let token = authHeader?.split(' ')[1];
+
+  if (!token && req.cookies.access_token) {
+    token = req.cookies.access_token;
+  }
+
+  if (!token) {
+    return res
+      .status(401)
+      .send({ success: false, message: 'No token provided' });
+  }
+
+  try {
+    const decoded = req.server.jwt.verify(token);
+    const userId = decoded.userId;
+
+    const onlineFriendIds = await getOnlineFriends(userId, db);
+
+    return res
+      .status(200)
+      .send({ success: true, onlineFriends: onlineFriendIds });
+  } catch (error) {
+    console.error('Error in getOnlineFriendsHandler:', error);
     return res.status(401).send({ success: false, message: 'Invalid token' });
   }
 };

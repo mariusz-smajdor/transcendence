@@ -2,6 +2,33 @@ import { Toaster } from '../components/toaster';
 import { store } from '../store';
 import { dataChangeEmitter } from '../services/notificationService';
 
+// Store online friends
+let onlineFriendsSet = new Set<number>();
+
+export function getOnlineFriendsSet(): Set<number> {
+	return onlineFriendsSet;
+}
+
+export async function getOnlineFriends(): Promise<number[]> {
+	try {
+		const res = await fetch('/api/friends/online', {
+			method: 'GET',
+			credentials: 'include',
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) return [];
+
+		// Update the set
+		onlineFriendsSet = new Set(data.onlineFriends);
+
+		return data.onlineFriends;
+	} catch (error) {
+		console.error('Failed to fetch online friends:', error);
+		return [];
+	}
+}
+
 export async function getFriends() {
 	try {
 		const res = await fetch('/api/friends', {

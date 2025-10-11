@@ -36,6 +36,12 @@ async function friendsRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await friendsController.removeFriendHandler(req, res);
   });
+
+  // Get online friends
+  fastify.get('/friends/online', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await friendsController.getOnlineFriendsHandler(req, res);
+  });
 }
 
 export default friendsRoutes;

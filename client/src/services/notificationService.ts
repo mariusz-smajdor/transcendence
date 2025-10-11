@@ -7,13 +7,17 @@ export const NOTIFICATION_TYPES = {
 	FRIEND_REMOVED: 'friend_removed',
 	MESSAGE: 'message',
 	CONNECTION_ESTABLISHED: 'connection_established',
+	FRIEND_ONLINE: 'friend_online',
+	FRIEND_OFFLINE: 'friend_offline',
 } as const;
 
 // Event system for notifying components of data changes
 type DataChangeEvent =
 	| 'friendRequestsUpdated'
 	| 'friendsUpdated'
-	| 'messagesUpdated';
+	| 'messagesUpdated'
+	| 'friendOnline'
+	| 'friendOffline';
 
 class EventEmitter {
 	private listeners: Map<DataChangeEvent, Function[]> = new Map();
@@ -165,6 +169,14 @@ class NotificationService {
 				this.handleMessage(notification);
 				break;
 
+			case NOTIFICATION_TYPES.FRIEND_ONLINE:
+				this.handleFriendOnline(notification);
+				break;
+
+			case NOTIFICATION_TYPES.FRIEND_OFFLINE:
+				this.handleFriendOffline(notification);
+				break;
+
 			default:
 				console.log('Unknown notification type:', notification.type);
 		}
@@ -248,6 +260,65 @@ class NotificationService {
 		} catch (error) {
 			console.error('Failed to refresh friends:', error);
 		}
+	}
+
+	private handleFriendOnline(notification: NotificationData) {
+		console.log('Friend came online:', notification.data.friendUsername);
+
+		// Find the friend's avatar and add green dot
+		const friendId = notification.data.friendId;
+		const friendRow = document.querySelector(`[data-friend-id="${friendId}"]`);
+
+		if (friendRow) {
+			// Check if green dot already exists
+			const existingDot = friendRow.querySelector('.online-indicator');
+			if (!existingDot) {
+				// Find the avatar wrapper (using relative class)
+				const avatarWrapper = friendRow.querySelector(
+					'.flex.items-center.gap-4.relative'
+				);
+				if (avatarWrapper) {
+					// Create online indicator
+					const onlineIndicator = document.createElement('div');
+					onlineIndicator.className = 'online-indicator';
+					onlineIndicator.style.cssText = `
+						position: absolute;
+						width: 10px;
+						height: 10px;
+						background-color: #22c55e;
+						border-radius: 50%;
+						border: 2px solid var(--background);
+						margin-left: 26px;
+						margin-top: 26px;
+						box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+					`;
+
+					// Insert at the beginning so it appears over the avatar
+					avatarWrapper.insertBefore(onlineIndicator, avatarWrapper.firstChild);
+				}
+			}
+		}
+
+		// Emit event for any components that need to react
+		dataChangeEmitter.emit('friendOnline', notification.data);
+	}
+
+	private handleFriendOffline(notification: NotificationData) {
+		console.log('Friend went offline:', notification.data.friendUsername);
+
+		// Find the friend's avatar and remove green dot
+		const friendId = notification.data.friendId;
+		const friendRow = document.querySelector(`[data-friend-id="${friendId}"]`);
+
+		if (friendRow) {
+			const onlineIndicator = friendRow.querySelector('.online-indicator');
+			if (onlineIndicator) {
+				onlineIndicator.remove();
+			}
+		}
+
+		// Emit event for any components that need to react
+		dataChangeEmitter.emit('friendOffline', notification.data);
 	}
 
 	disconnect() {

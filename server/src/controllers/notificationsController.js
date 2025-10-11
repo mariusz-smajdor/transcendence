@@ -1,6 +1,7 @@
 import {
   addConnection,
   removeConnection,
+  notifyFriendsOfStatus,
 } from '../services/notificationService.js';
 
 export const notificationsWebSocketHandler = async (
@@ -8,6 +9,7 @@ export const notificationsWebSocketHandler = async (
   req,
   fastify,
 ) => {
+  const db = fastify.db;
   // Extract user ID from JWT token
   const authHeader = req.headers.authorization;
   let token = authHeader?.split(' ')[1];
@@ -35,18 +37,25 @@ export const notificationsWebSocketHandler = async (
     // Add connection to active connections
     addConnection(userId, connection);
 
+    // Notify friends that user is online
+    await notifyFriendsOfStatus(userId, true, db);
+
     // Handle connection close
-    connection.on('close', (code, reason) => {
+    connection.on('close', async (code, reason) => {
       console.log(
         `WebSocket closed for user ${userId}. Code: ${code}, Reason: ${reason}`,
       );
       removeConnection(userId);
+      // Notify friends that user is offline
+      await notifyFriendsOfStatus(userId, false, db);
     });
 
     // Handle connection errors
-    connection.on('error', (error) => {
+    connection.on('error', async (error) => {
       console.error(`WebSocket error for user ${userId}:`, error);
       removeConnection(userId);
+      // Notify friends that user is offline
+      await notifyFriendsOfStatus(userId, false, db);
     });
 
     // Send welcome message
