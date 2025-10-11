@@ -14,6 +14,7 @@ import {
 	rejectFriendRequest,
 	removeFriend,
 	sendFriendRequest,
+	getOnlineFriends,
 } from '../../../api/friendRequest';
 import { getConversations } from '../../../api/messages';
 import { store } from '../../../store';
@@ -25,6 +26,46 @@ import { showGameOverlay } from '../../game/game-overlay';
 
 // Track which friends have unread messages
 const unreadMessages = new Set<number>();
+
+// Helper function to create online indicator
+function createOnlineIndicator(): HTMLDivElement {
+	const onlineIndicator = document.createElement('div');
+	onlineIndicator.className = 'online-indicator';
+	onlineIndicator.style.cssText = `
+		position: absolute;
+		width: 10px;
+		height: 10px;
+		background-color: #22c55e;
+		border-radius: 50%;
+		border: 2px solid var(--background);
+		margin-left: 26px;
+		margin-top: 26px;
+		box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+	`;
+	return onlineIndicator;
+}
+
+// Function to add online indicators to currently online friends
+async function updateOnlineStatus() {
+	const onlineFriends = await getOnlineFriends();
+
+	// Remove all existing indicators first
+	document.querySelectorAll('.online-indicator').forEach((el) => el.remove());
+
+	// Add indicators for online friends
+	onlineFriends.forEach((friendId) => {
+		const friendRow = document.querySelector(`[data-friend-id="${friendId}"]`);
+		if (friendRow) {
+			const avatarWrapper = friendRow.querySelector(
+				'.flex.items-center.gap-4.relative'
+			);
+			if (avatarWrapper && !avatarWrapper.querySelector('.online-indicator')) {
+				const indicator = createOnlineIndicator();
+				avatarWrapper.insertBefore(indicator, avatarWrapper.firstChild);
+			}
+		}
+	});
+}
 
 async function checkUnreadMessages() {
 	try {
@@ -208,7 +249,7 @@ function AllFriendsTab() {
 			friends.dataset.friendId = String(f.id);
 
 			const friend = Wrapper({
-				classes: ['flex', 'items-center', 'gap-4'],
+				classes: ['flex', 'items-center', 'gap-4', 'relative'],
 			});
 			const avatar = Img({
 				src: getAvatarUrl(f.avatar, f.username),
@@ -343,14 +384,29 @@ function AllFriendsTab() {
 	// Listen for friends updates
 	dataChangeEmitter.on('friendsUpdated', () => {
 		renderFriends();
-		// Check for unread messages after friends list is updated
+		// Check for unread messages and online status after friends list is updated
 		setTimeout(() => {
 			checkUnreadMessages();
+			updateOnlineStatus();
 		}, 200);
+	});
+
+	// Listen for friend online/offline events
+	dataChangeEmitter.on('friendOnline', () => {
+		// The notification service already handles adding the dot
+	});
+
+	dataChangeEmitter.on('friendOffline', () => {
+		// The notification service already handles removing the dot
 	});
 
 	// Initial render
 	renderFriends();
+
+	// Check online status after initial render
+	setTimeout(() => {
+		updateOnlineStatus();
+	}, 200);
 
 	tab.appendChild(searchInput);
 	tab.appendChild(wrapper);

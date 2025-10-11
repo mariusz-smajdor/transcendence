@@ -5,6 +5,8 @@ export const NOTIFICATION_TYPES = {
   FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
   FRIEND_REMOVED: 'friend_removed',
   MESSAGE: 'message',
+  FRIEND_ONLINE: 'friend_online',
+  FRIEND_OFFLINE: 'friend_offline',
   // Future notification types can be added here
   // GAME_INVITATION: 'game_invitation',
 };
@@ -116,4 +118,90 @@ export const createMessageNotification = (
     },
     message: `New message from ${senderUsername}`,
   };
+};
+
+export const createFriendOnlineNotification = (friendId, friendUsername) => {
+  return {
+    type: NOTIFICATION_TYPES.FRIEND_ONLINE,
+    data: {
+      friendId,
+      friendUsername,
+      timestamp: Date.now(),
+    },
+    message: `${friendUsername} is now online`,
+  };
+};
+
+export const createFriendOfflineNotification = (friendId, friendUsername) => {
+  return {
+    type: NOTIFICATION_TYPES.FRIEND_OFFLINE,
+    data: {
+      friendId,
+      friendUsername,
+      timestamp: Date.now(),
+    },
+    message: `${friendUsername} is now offline`,
+  };
+};
+
+export const notifyFriendsOfStatus = async (userId, isOnline, db) => {
+  try {
+    // Get user's friends - using the friends table structure
+    const friendsQuery = `
+      SELECT u.id, u.username
+      FROM users u
+      INNER JOIN friends f ON (
+        (f.user_id_1 = ? AND f.user_id_2 = u.id) OR
+        (f.user_id_2 = ? AND f.user_id_1 = u.id)
+      )
+      WHERE u.id != ?
+    `;
+
+    const friends = db.prepare(friendsQuery).all(userId, userId, userId);
+
+    // Get the username of the user who changed status
+    const user = db
+      .prepare('SELECT username FROM users WHERE id = ?')
+      .get(userId);
+
+    if (!user) return;
+
+    // Notify each friend
+    for (const friend of friends) {
+      const notification = isOnline
+        ? createFriendOnlineNotification(userId, user.username)
+        : createFriendOfflineNotification(userId, user.username);
+
+      sendNotification(friend.id, notification);
+    }
+  } catch (error) {
+    console.error('Error notifying friends of status change:', error);
+  }
+};
+
+export const getOnlineFriends = async (userId, db) => {
+  try {
+    // Get user's friends - using the friends table structure
+    const friendsQuery = `
+      SELECT u.id, u.username
+      FROM users u
+      INNER JOIN friends f ON (
+        (f.user_id_1 = ? AND f.user_id_2 = u.id) OR
+        (f.user_id_2 = ? AND f.user_id_1 = u.id)
+      )
+      WHERE u.id != ?
+    `;
+
+    const friends = db.prepare(friendsQuery).all(userId, userId, userId);
+
+    // Filter to only return friends who are online
+    const onlineFriends = friends.filter((friend) =>
+      activeConnections.has(friend.id),
+    );
+
+    return onlineFriends.map((friend) => friend.id);
+  } catch (error) {
+    console.error('Error getting online friends:', error);
+    return [];
+  }
 };
