@@ -1,0 +1,39 @@
+@keyframes glowPulse {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 4px var(--color-primary))
+			drop-shadow(0 0 8px var(--color-primary));
+	}
+	50% {
+		filter: drop-shadow(0 0 8px var(--color-primary))
+			drop-shadow(0 0 12px var(--color-primary));
+	}
+}
+
+.glow-primary-animate {
+	color: var(--color-primary);
+	animation: glowPulse 3s infinite ease-in-out;
+}
+
+@keyframes glowPulseSecondary {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 4px var(--color-secondary))
+			drop-shadow(0 0 8px var(--color-secondary));
+	}
+	50% {
+		filter: drop-shadow(0 0 8px var(--color-secondary))
+			drop-shadow(0 0 12px var(--color-secondary));
+	}
+}
+
+.glow-secondary-animate {
+	color: var(--color-secondary);
+	animation: glowPulseSecondary 3s infinite ease-in-out;
+}
+
+.canvas-glow {
+	animation: glowPulse 2.5s infinite ease-in-out;
+	border-radius: var(--radius);
+	border: 6px solid var(--color-secondary);
+}
