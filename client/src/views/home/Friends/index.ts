@@ -1,4 +1,4 @@
-import { MessageCircle, UserPlus, Users, UserX } from 'lucide';
+import { MessageCircle, UserPlus, Users, UserX, Gamepad2 } from 'lucide';
 import { Wrapper } from '../../../components/wrapper';
 import { Card } from '../../../components/card';
 import { Heading } from '../../../components/heading';
@@ -48,20 +48,37 @@ function createOnlineIndicator(): HTMLDivElement {
 // Function to add online indicators to currently online friends
 async function updateOnlineStatus() {
 	const onlineFriends = await getOnlineFriends();
+	const onlineSet = new Set(onlineFriends);
 
 	// Remove all existing indicators first
 	document.querySelectorAll('.online-indicator').forEach((el) => el.remove());
 
-	// Add indicators for online friends
-	onlineFriends.forEach((friendId) => {
-		const friendRow = document.querySelector(`[data-friend-id="${friendId}"]`);
-		if (friendRow) {
+	// Update all friend rows
+	document.querySelectorAll('[data-friend-id]').forEach((friendRow) => {
+		const friendId = parseInt(friendRow.getAttribute('data-friend-id') || '0');
+		const inviteButton = friendRow.querySelector(
+			'.invite-game-btn'
+		) as HTMLElement;
+		const isOnline = onlineSet.has(friendId);
+
+		if (isOnline) {
+			// Add online indicator
 			const avatarWrapper = friendRow.querySelector(
 				'.flex.items-center.gap-4.relative'
 			);
 			if (avatarWrapper && !avatarWrapper.querySelector('.online-indicator')) {
 				const indicator = createOnlineIndicator();
 				avatarWrapper.insertBefore(indicator, avatarWrapper.firstChild);
+			}
+
+			// Show invite button
+			if (inviteButton) {
+				inviteButton.style.display = 'block';
+			}
+		} else {
+			// Hide invite button for offline friends
+			if (inviteButton) {
+				inviteButton.style.display = 'none';
 			}
 		}
 	});
@@ -275,6 +292,17 @@ function AllFriendsTab() {
 			const msgIcon = Icon({
 				icon: MessageCircle,
 			});
+			const inviteButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-green-400', 'invite-game-btn'],
+			});
+			inviteButton.dataset.friendId = f.id.toString();
+			// Hide by default, will be shown for online friends
+			inviteButton.style.display = 'none';
+			const inviteIcon = Icon({
+				icon: Gamepad2,
+			});
 			const removeButton = Button({
 				type: 'button',
 				variant: 'ghost',
@@ -305,6 +333,16 @@ function AllFriendsTab() {
 				}
 			});
 
+			inviteButton.addEventListener('click', () => {
+				// Send game invitation
+				sendInvitation({
+					type: 'invite',
+					toUserId: f.id,
+					message: `${store.getState().user?.username} invited you to play`,
+				});
+				Toaster(`Game invitation sent to ${f.username}`);
+			});
+
 			removeButton.addEventListener('click', async () => {
 				try {
 					await removeFriend(f.id);
@@ -318,8 +356,10 @@ function AllFriendsTab() {
 			});
 
 			msgButton.appendChild(msgIcon);
+			inviteButton.appendChild(inviteIcon);
 			removeButton.appendChild(removeIcon);
 			buttonsContainer.appendChild(msgButton);
+			buttonsContainer.appendChild(inviteButton);
 			buttonsContainer.appendChild(removeButton);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
@@ -367,6 +407,32 @@ function AllFriendsTab() {
 			const invitationBtn = friendRow?.querySelector('.invitation-to-game-btn');
 			if (friendRow && invitationBtn) {
 				friendRow.removeChild(invitationBtn);
+			}
+		}
+	});
+
+	onInvitation(async (data) => {
+		if (data.type === 'game_start' && data.fromUserId) {
+			// Inviter receives acceptance - create game and send gameId back
+			try {
+				const response = await fetch('/api/game/create');
+				const respData = await response.json();
+				sendInvitation({
+					type: 'game_start',
+					message: 'Game started',
+					toUserId: data.fromUserId,
+					gameId: respData.gameId,
+				});
+				showGameOverlay(respData.gameId, 'network');
+				const newUrl = `/game?gameId=${respData.gameId}`;
+				history.pushState(
+					{ gameId: respData.gameId },
+					`Game ${respData.gameId}`,
+					newUrl
+				);
+			} catch (error) {
+				console.error('Failed to create game:', error);
+				Toaster('Failed to start game');
 			}
 		}
 	});
