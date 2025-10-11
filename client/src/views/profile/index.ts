@@ -29,9 +29,21 @@ export default function Profile() {
 		],
 	});
 
+	function removeUrlParam() {
+		const url = new URL(window.location.href);
+		if (url.searchParams.get('modal') === 'profile') {
+			url.searchParams.delete('modal');
+			window.history.replaceState(null, '', url.toString());
+		}
+	}
+
 	const closeModal = () => {
 		overlay.remove();
 		document.removeEventListener('keydown', onKeyDown);
+		window.removeEventListener('popstate', onPopState);
+-		removeUrlParam();
++		// Pop the history entry we pushed when opening the modal
++		window.history.back();
 	};
 
 	const onKeyDown = (e: KeyboardEvent) => {
@@ -40,7 +52,25 @@ export default function Profile() {
 		}
 	};
 
+	const onPopState = () => {
+		const param = new URL(window.location.href).searchParams.get('modal');
+		if (param !== 'profile') {
+			overlay.remove();
+			document.removeEventListener('keydown', onKeyDown);
+			window.removeEventListener('popstate', onPopState);
+		}
+	};
+
 	document.addEventListener('keydown', onKeyDown);
+	window.addEventListener('popstate', onPopState);
+
+	// Push URL state indicating modal is open if not already present
+	const currentParam = new URL(window.location.href).searchParams.get('modal');
+	if (currentParam !== 'profile') {
+		const urlOpen = new URL(window.location.href);
+		urlOpen.searchParams.set('modal', 'profile');
+		window.history.pushState(null, '', urlOpen.toString());
+	}
 
 	function Form() {
 		const isOAuthUser = localStorage.getItem('isOAuthUser') === 'true';

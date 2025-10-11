@@ -64,6 +64,10 @@ function Menu() {
 		const dropdownMenu = DropdownMenu({
 			dropdownTrigger: avatar,
 			classes: ['top-12', 'right-0'],
+			// Enable URL sync for back/forward navigation
+			syncWithUrl: true,
+			urlParam: 'dropdown',
+			urlValue: 'avatar',
 		});
 		const dropdownTitle = DropdownTitle({
 			content: user.username,
@@ -105,6 +109,8 @@ function Menu() {
 		});
 
 		dropdownProfile.addEventListener('click', () => {
+			// Close dropdown without changing URL (Profile will manage its own URL state)
+			(dropdownMenu as any)?.closeMenu?.(false);
 			document.body.appendChild(Profile());
 		});
 
