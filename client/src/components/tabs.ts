@@ -1,6 +1,7 @@
 import { type ComponentProps } from '../types/component';
 import { Button } from './button';
 import { Wrapper } from './wrapper';
+import { historyManager } from '../utils/historyManager';
 
 type TriggersArray = [
 	HTMLButtonElement,
@@ -23,9 +24,9 @@ type TabsProps = ComponentProps & {
 	defaultValue: string;
 	triggers: TriggersArray;
 	tabs: TabsArray;
-	// Optional: sync tab state with URL
-	syncWithUrl?: boolean;
-	urlParam?: string; // e.g., 'gameTab'
+	// Optional: enable back button support for tabs
+	enableHistory?: boolean;
+	tabGroupId?: string; // Unique identifier for this tab group
 };
 
 export function Tab({ value, classes }: TabProps) {
@@ -51,8 +52,8 @@ export function Tabs({
 	defaultValue,
 	triggers,
 	tabs,
-	syncWithUrl = false,
-	urlParam = 'tab',
+	enableHistory = false,
+	tabGroupId = 'default',
 }: TabsProps) {
 	const wrapper = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6', ...classes!],
@@ -60,6 +61,8 @@ export function Tabs({
 	const triggerButtons = Wrapper({
 		classes: ['flex', 'p-1', 'bg-accent', 'w-full', 'rounded', 'gap-1'],
 	});
+
+	let currentTab = defaultValue;
 
 	triggers.forEach((trigger) => {
 		triggerButtons.appendChild(trigger);
@@ -69,24 +72,10 @@ export function Tabs({
 		tab.classList.add('hidden');
 		wrapper.appendChild(tab);
 	});
-	triggers.forEach((trigger) => {
-		trigger.addEventListener('click', () => {
-			if (trigger.dataset.value) {
-				activateTab(trigger.dataset.value);
-				if (syncWithUrl) {
-					const params = new URLSearchParams(window.location.search);
-					const current = params.get(urlParam);
-					if (current !== trigger.dataset.value) {
-						params.set(urlParam, trigger.dataset.value);
-						const newUrl = `${window.location.pathname}?${params.toString()}`;
-						history.pushState(null, '', newUrl);
-					}
-				}
-			}
-		});
-	});
 
-	const activateTab = (value: string) => {
+	const activateTab = (value: string, pushHistory = false) => {
+		currentTab = value;
+
 		tabs.forEach((tab) => {
 			if (tab.dataset.value === value) {
 				tab.classList.remove('hidden');
@@ -102,19 +91,38 @@ export function Tabs({
 				trigger.classList.remove('text-white', 'bg-background');
 			}
 		});
+
+		// Push history state if enabled and not default tab
+		if (enableHistory && pushHistory && value !== defaultValue) {
+			historyManager.pushState('tab', { tabGroupId, tabValue: value });
+		}
 	};
 
-	// Initialize active tab: prefer URL param when enabled, else default value
-	let initialValue = defaultValue;
-	if (syncWithUrl) {
-		const params = new URLSearchParams(window.location.search);
-		const fromUrl = params.get(urlParam);
-		const validValues = new Set(triggers.map((t) => t.dataset.value));
-		if (fromUrl && validValues.has(fromUrl)) {
-			initialValue = fromUrl;
-		}
+	triggers.forEach((trigger) => {
+		trigger.addEventListener('click', () => {
+			if (trigger.dataset.value && trigger.dataset.value !== currentTab) {
+				activateTab(trigger.dataset.value, true);
+			}
+		});
+	});
+
+	// Handle back button
+	if (enableHistory) {
+		const handleHistory = (state: any) => {
+			if (state.type === 'tab' && state.data?.tabGroupId === tabGroupId) {
+				activateTab(state.data.tabValue, false);
+			} else if (state.type === 'base' || !state.data) {
+				// When going back to base state, show default tab
+				activateTab(defaultValue, false);
+			}
+		};
+
+		historyManager.on('tab', handleHistory);
+		historyManager.on('base', handleHistory);
 	}
-	activateTab(initialValue);
+
+	// Initialize with default tab
+	activateTab(defaultValue, false);
 
 	return wrapper;
 }
