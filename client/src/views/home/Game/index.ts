@@ -6,8 +6,6 @@ import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
-import { showLobbyOverlay } from '../../game//lobby-overlay';
-import { fetchMe } from '../../../api/me';
 import { TournamentTab } from './tournament';
 
 function FriendCard() {
@@ -18,8 +16,8 @@ function FriendCard() {
 			'flex-col',
 			'justify-center',
 			'items-center',
-			'row-span-3',
-			'col-span-1',
+			'row-span-2',
+			'col-span-2',
 			'h-full',
 			'hover:border-primary',
 			'cursor-pointer',
@@ -59,81 +57,6 @@ function FriendCard() {
 		const data = await response.json();
 		showGameOverlay(data.gameId, 'local');
 	});
-
-	iconWrapper.appendChild(icon);
-	wrapper.appendChild(heading);
-	wrapper.appendChild(description);
-	card.appendChild(iconWrapper);
-	card.appendChild(wrapper);
-
-	return card;
-}
-
-function OnlineCard() {
-	const card = Card({
-		classes: [
-			'flex',
-			'gap-2',
-			'flex-col',
-			'justify-center',
-			'items-center',
-			'row-span-3',
-			'col-span-1',
-			'h-full',
-			'lg:gap-4',
-		],
-	});
-	const iconWrapper = Wrapper({
-		classes: [
-			'flex',
-			'justify-center',
-			'items-center',
-			'bg-primary/25',
-			'w-min',
-			'p-3',
-			'rounded-full',
-		],
-	});
-	const icon = Icon({
-		icon: Gamepad2,
-		size: 'lg',
-		classes: ['text-primary'],
-	});
-	const wrapper = Wrapper({});
-	const heading = Heading({
-		level: 3,
-		content: '1v1 Online Match',
-		classes: ['text-[1rem]', 'text-center'],
-	});
-	const description = Text({
-		element: 'p',
-		content: 'Challenge your friend online',
-		classes: ['text-sm', 'text-muted', 'text-center'],
-	});
-	
-	// Check authentication status immediately and update UI accordingly
-	(async () => {
-		const isLoggedIn = await fetchMe();
-		if (isLoggedIn) {
-			// Enable the card for logged-in users
-			card.classList.add('hover:border-primary', 'cursor-pointer');
-			
-			card.addEventListener('click', () => {
-				showLobbyOverlay();
-			});
-		} else {
-			// Disable the card for non-authenticated users
-			card.classList.add('opacity-50', 'cursor-not-allowed');
-			
-			// Add a tooltip or message indicating login requirement
-			const loginMessage = Text({
-				element: 'p',
-				content: 'Login required',
-				classes: ['text-xs', 'text-red-400', 'mt-1'],
-			});
-			wrapper.appendChild(loginMessage);
-		}
-	})();
 
 	iconWrapper.appendChild(icon);
 	wrapper.appendChild(heading);
@@ -214,11 +137,9 @@ function QuickPlayTab() {
 		],
 	});
 	const friendCard = FriendCard();
-	const onlineCard = OnlineCard();
 	const aiCard = AiCard();
 
 	tab.appendChild(friendCard);
-	tab.appendChild(onlineCard);
 	tab.appendChild(aiCard);
 
 	return tab;

@@ -7,8 +7,8 @@ import { Img } from '../../components/img';
 import { Wrapper } from '../../components/wrapper';
 import { Icon } from '../../components/icon';
 import { sendInvitation, onInvitation } from '../../api/invitationSocket';
-import { showGameOverlay } from './game-overlay';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { handleGameAcceptance } from '../../utils/gameInvitationHandler';
 
 export async function showLobbyOverlay() {
 	await getFriends();
@@ -177,23 +177,8 @@ export async function showLobbyOverlay() {
 
 	const unsubscribe = onInvitation(async (data) => {
 		if (data.type === 'game_start' && data.fromUserId) {
-			const response = await fetch('/api/game/create');
-			const respData = await response.json();
-			sendInvitation({
-				type: 'game_start',
-				message: 'Game started',
-				toUserId: data.fromUserId,
-				gameId: respData.gameId,
-			});
 			overlay.remove();
-			showGameOverlay(respData.gameId, 'network');
-			const newUrl = `/game?gameId=${respData.gameId}`;
-			history.pushState(
-				{ gameId: respData.gameId },
-				`Game ${respData.gameId}`,
-				newUrl
-			);
-
+			await handleGameAcceptance(data.fromUserId);
 			unsubscribe();
 		}
 	});
