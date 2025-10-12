@@ -12,6 +12,18 @@ async function matchResultsRoutes(fastify) {
     req.context.config = { db: fastify.db };
     return await matchResultsController.getMatchStatsHandler(req, res);
   });
+
+  // Get friend's match history and stats
+  fastify.get('/friend/:friendId/match-history', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await matchResultsController.getFriendMatchHistoryHandler(req, res);
+  });
+
+  // Debug endpoint to check friends
+  fastify.get('/debug/friends', async (req, res) => {
+    req.context.config = { db: fastify.db };
+    return await matchResultsController.getDebugFriendsHandler(req, res);
+  });
 }
 
 export default matchResultsRoutes;
