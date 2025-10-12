@@ -45,6 +45,14 @@ export async function connectInvitationSocket() {
 }
 
 export function onInvitation(handler: InvitationHandler) {
+	// Prevent duplicate handlers
+	if (handlers.includes(handler)) {
+		console.warn(
+			'Duplicate invitation handler detected, skipping registration'
+		);
+		return () => {}; // Return empty cleanup function
+	}
+
 	handlers.push(handler);
 	return () => {
 		const idx = handlers.indexOf(handler);

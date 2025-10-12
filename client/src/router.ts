@@ -60,6 +60,9 @@ export class Router {
 			closeGameOverlay();
 		}
 
+		// Cleanup any existing invitation handlers before re-rendering
+		this.cleanupInvitationHandlers();
+
 		const path = location.pathname;
 
 		const view = this.routes[path] || this.routes['/'];
@@ -67,6 +70,16 @@ export class Router {
 			this.rootElement.innerHTML = '';
 			this.rootElement.appendChild(Header());
 			this.rootElement.appendChild(view());
+		}
+	}
+
+	private cleanupInvitationHandlers() {
+		// Find and cleanup any existing invitation handlers
+		const friendsWrapper = document.querySelector(
+			'[data-friends-wrapper]'
+		) as HTMLElement;
+		if (friendsWrapper && (friendsWrapper as any).__cleanupInvitationHandlers) {
+			(friendsWrapper as any).__cleanupInvitationHandlers();
 		}
 	}
 }
