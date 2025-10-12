@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 
+// DB-only save of a match result. Returns the DB result (including lastInsertRowid).
 export async function saveMatchResult(db, stats, winner, gameType) {
   const looser = winner === 'left' ? 'right' : 'left';
   const user_1 = dataToSave(stats, winner);
@@ -26,13 +27,31 @@ export async function saveMatchResult(db, stats, winner, gameType) {
     null, // blockchain_tx will be null initially
   );
 
-  // 2. Then save to blockchain
+  // Only save to blockchain for tournament matches
+  if (gameType !== 'tournament') {
+    return {
+      dbResult,
+      blockchainTx: null,
+      blockchainStatus: 'skipped',
+    };
+  }
+
+  // Return only the database result; blockchain is handled separately
+  return { dbResult };
+}
+
+// Save a tournament match to the blockchain and optionally update the DB row with the tx hash.
+// If dbRowId is provided, the corresponding match_history row will be updated.
+export async function saveMatchToBlockchain(db, stats, winner, dbRowId) {
+  const looser = winner === 'left' ? 'right' : 'left';
+  const user_1 = dataToSave(stats, winner);
+  const user_2 = dataToSave(stats, looser);
+
   try {
-    // Get user nicknames from database with proper UTF-8 encoding
+    // Get user nicknames with proper encoding
     const user1Nickname = await getUserNickname(db, user_1.id);
     const user2Nickname = await getUserNickname(db, user_2.id);
 
-    // Sanitize and ensure proper UTF-8 encoding
     const cleanNickname1 = sanitizeString(user1Nickname);
     const cleanNickname2 = sanitizeString(user2Nickname);
 
@@ -43,7 +62,6 @@ export async function saveMatchResult(db, stats, winner, gameType) {
       player2Score: user_2.score,
     });
 
-    // Setup Ethereum connection
     const provider = new ethers.JsonRpcProvider(process.env.BLOCKCHAIN_RPC_URL);
     const wallet = new ethers.Wallet(process.env.WALLET_PRIVATE_KEY, provider);
 
@@ -56,18 +74,15 @@ export async function saveMatchResult(db, stats, winner, gameType) {
       user2ScoreParsed: parseInt(user_2.score, 10),
     });
 
-    // Contract ABI (simplified version matching your Solidity contract)
     const contractABI = [
       'function recordMatch(string _player1Nickname, string _player2Nickname, uint8 _player1Score, uint8 _player2Score) external',
     ];
-
     const contract = new ethers.Contract(
       process.env.CONTRACT_ADDRESS,
       contractABI,
       wallet,
     );
 
-    // Try to estimate gas first to see if the call would work
     try {
       const gasEstimate = await contract.recordMatch.estimateGas(
         cleanNickname1,
@@ -82,10 +97,7 @@ export async function saveMatchResult(db, stats, winner, gameType) {
 
     const intScore1 = parseInt(user_1.score, 10);
     const intScore2 = parseInt(user_2.score, 10);
-
-    if (
-      !validateEncoding(cleanNickname1, cleanNickname2, intScore1, intScore2)
-    ) {
+    if (!validateEncoding(cleanNickname1, cleanNickname2, intScore1, intScore2)) {
       throw new Error('Data encoding validation failed');
     }
 
@@ -94,45 +106,33 @@ export async function saveMatchResult(db, stats, winner, gameType) {
       user2Hex: Buffer.from(cleanNickname2, 'utf8').toString('hex'),
     });
 
-    // Send transaction with properly encoded strings
     const tx = await contract.recordMatch(
       cleanNickname1,
       cleanNickname2,
       Number(intScore1),
       Number(intScore2),
-      {
-        gasLimit: 200000, // Set explicit gas limit
-      },
     );
-
     console.log('Transaction sent:', tx.hash);
 
-    // Wait for confirmation
     const receipt = await tx.wait();
+    console.log('Transaction confirmed:', receipt.status === 1 ? 'success' : 'failed');
 
-    console.log(
-      'Transaction confirmed:',
-      receipt.status === 1 ? 'success' : 'failed',
-    );
-
-    // Update database with blockchain transaction hash
-    const updateStm = db.prepare(`
-      UPDATE match_history 
-      SET blockchain_tx = ? 
-      WHERE id = ?
-    `);
-    updateStm.run(tx.hash, dbResult.lastInsertRowid);
+    if (dbRowId) {
+      const updateStm = db.prepare(`
+        UPDATE match_history 
+        SET blockchain_tx = ? 
+        WHERE id = ?
+      `);
+      updateStm.run(tx.hash, dbRowId);
+    }
 
     return {
-      dbResult,
       blockchainTx: tx.hash,
       blockchainStatus: receipt.status === 1 ? 'success' : 'failed',
     };
   } catch (blockchainError) {
     console.error('Blockchain save failed:', blockchainError);
-    // Return database result even if blockchain save fails
     return {
-      dbResult,
       blockchainTx: null,
       blockchainStatus: 'failed',
       blockchainError: blockchainError.message,
@@ -228,13 +228,13 @@ export async function getMatchResults(db, userId) {
       const isPlayer1 = match.user_id_1 === userId;
       const opponent = isPlayer1
         ? {
-            username: match.player2_username,
-            avatar: match.player2_avatar,
-          }
+          username: match.player2_username,
+          avatar: match.player2_avatar,
+        }
         : {
-            username: match.player1_username,
-            avatar: match.player1_avatar,
-          };
+          username: match.player1_username,
+          avatar: match.player1_avatar,
+        };
 
       const playerScore = isPlayer1
         ? match.score_player_1
@@ -328,9 +328,15 @@ export async function getMatchStats(db, userId) {
 }
 
 export function saveClosedMatch(db, looser, stats, gameType) {
-  game.playerManager.stats.get(looser).result = -1;
+  // Mark the loser (if structure supports it) and persist as a normal result
+  try {
+    const loserStats = stats?.get?.(looser);
+    if (loserStats) loserStats.result = -1;
+  } catch {
+    // no-op if stats map doesn't have this shape
+  }
   const winner = looser === 'left' ? 'right' : 'left';
-  saveMatchResult(db, stats, winner, gameType);
+  return saveMatchResult(db, stats, winner, gameType);
 }
 
 function dataToSave(stats, player) {

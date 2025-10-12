@@ -6,7 +6,7 @@ import {
 import { broadcastGameState, broadcastMessage } from '../game/broadcast.js';
 import { Room } from './tournaments.js';
 import { clients } from '../routes/invitations.js';
-import { saveClosedMatch, saveMatchResult } from '../models/gameHistory.js';
+import { saveClosedMatch, saveMatchResult, saveMatchToBlockchain } from '../models/gameHistory.js';
 import { GAME_CONFIG } from '../constants/gameConfig.js';
 
 export function tournamentGameLoop(connection, room, match, game, db) {
@@ -15,7 +15,7 @@ export function tournamentGameLoop(connection, room, match, game, db) {
     ballSpeedX: GAME_CONFIG.BALL_SPEED,
     ballSpeedY: 1,
   };
-  let id = setInterval(() => {
+  let id = setInterval(async () => {
     updateGameState(game.gameState, ballSpeed);
     if (game.gameState.gameOver) {
       stopGameLoop(game);
@@ -24,9 +24,31 @@ export function tournamentGameLoop(connection, room, match, game, db) {
         game.gameState.score.left >= GAME_CONFIG.NUMBER_OF_ROUNDS
           ? 'left'
           : 'right';
-      if (match.save) {
-        game.playersManager.updateScore(game.gameState.score, game.gameType);
-        saveMatchResult(db, game.playersManager.stats, winner, game.gameType);
+      try {
+        if (match.save) {
+          game.playersManager.updateScore(
+            game.gameState.score,
+            game.gameType,
+          );
+          const { dbResult } = await saveMatchResult(
+            db,
+            game.playersManager.stats,
+            winner,
+            game.gameType,
+          );
+          // Always save tournament results to blockchain at match end
+          await saveMatchToBlockchain(
+            db,
+            game.playersManager.stats,
+            winner,
+            dbResult?.lastInsertRowid,
+          );
+        } else {
+          // No DB save requested, but still save to blockchain (dbRowId omitted)
+          await saveMatchToBlockchain(db, game.playersManager.stats, winner);
+        }
+      } catch (e) {
+        console.error('Error saving match results:', e);
       }
       room.matchFinished(
         game.gameState.score.left,
@@ -37,8 +59,7 @@ export function tournamentGameLoop(connection, room, match, game, db) {
       broadcastGameState(game.clients, gameStatePropotional);
       broadcastMessage(
         game.clients,
-        `The winner is: ${
-          game.playersManager.stats.get(winner)?.username ?? winner
+        `The winner is: ${game.playersManager.stats.get(winner)?.username ?? winner
         }`,
       );
       setTimeout(() => {
