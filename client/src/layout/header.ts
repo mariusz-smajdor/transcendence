@@ -11,8 +11,8 @@ import {
 	DropdownTitle,
 } from '../components/dropdown-menu';
 import { store } from '../store';
-import Profile from '../views/profile';
 import { getAvatarUrl } from '../utils/avatarUtils';
+import { historyManager } from '../utils/historyManager';
 
 function Menu() {
 	const menu = Wrapper({
@@ -80,6 +80,7 @@ function Menu() {
 		const dropdownProfile = DropdownItem({
 			content: 'Profile',
 		});
+		dropdownProfile.setAttribute('data-link', '/profile');
 		const logoutIcon = Icon({
 			icon: LogOut,
 			size: 'sm',
@@ -109,9 +110,14 @@ function Menu() {
 		});
 
 		dropdownProfile.addEventListener('click', () => {
-			// Close dropdown without changing URL (Profile will manage its own URL state)
+			// Close dropdown and open profile modal
 			(dropdownMenu as any)?.closeMenu?.(false);
-			document.body.appendChild(Profile());
+			// Import and show the modal profile
+			import('../views/profile/index.js').then((module) => {
+				const ProfileModal = module.default;
+				const profileModal = ProfileModal();
+				document.body.appendChild(profileModal);
+			});
 		});
 
 		dropdownProfile.appendChild(profileIcon);

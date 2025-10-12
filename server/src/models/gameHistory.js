@@ -226,12 +226,15 @@ export async function getMatchResults(db, userId) {
     // Transform the data to match frontend expectations
     const transformedMatches = matches.map((match) => {
       const isPlayer1 = match.user_id_1 === userId;
+      const opponentId = isPlayer1 ? match.user_id_2 : match.user_id_1;
       const opponent = isPlayer1
         ? {
+          id: match.user_id_2,
           username: match.player2_username,
           avatar: match.player2_avatar,
         }
         : {
+          id: match.user_id_1,
           username: match.player1_username,
           avatar: match.player1_avatar,
         };
@@ -256,6 +259,7 @@ export async function getMatchResults(db, userId) {
       return {
         id: match.id,
         opponent: {
+          id: opponent.id,
           username: opponent.username,
           avatar: opponent.avatar,
         },
