@@ -236,6 +236,7 @@ function AllFriendsTab() {
 	const wrapper = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-1'],
 	});
+	wrapper.setAttribute('data-friends-wrapper', 'true');
 	const searchInput = Input({
 		type: 'text',
 		name: 'search friends',
@@ -372,60 +373,83 @@ function AllFriendsTab() {
 		});
 	}
 
-	onInvitation((data) => {
-		if (data.type === 'invite' && data.fromUserId) {
-			const friendRow = wrapper.querySelector(
-				`[data-friend-id="${data.fromUserId}"]`
-			);
-			if (friendRow && !friendRow.querySelector('.invitation-to-game-btn')) {
-				const invitationToGame = Button({
-					type: 'button',
-					content: 'Invited to game',
-					classes: [
-						'flex',
-						'gap-2',
-						'items-center',
-						'text-sm',
-						'invitation-to-game-btn',
-					],
-				});
-				invitationToGame.onclick = () => {
-					sendInvitation({
-						type: 'accept',
-						message: 'Invitation accepted',
-						toUserId: data.fromUserId,
+	// Store unsubscribe functions for cleanup
+	const unsubscribeFunctions: (() => void)[] = [];
+
+	// Handle invitation events
+	unsubscribeFunctions.push(
+		onInvitation((data) => {
+			if (data.type === 'invite' && data.fromUserId) {
+				const friendRow = wrapper.querySelector(
+					`[data-friend-id="${data.fromUserId}"]`
+				);
+				if (friendRow && !friendRow.querySelector('.invitation-to-game-btn')) {
+					const invitationToGame = Button({
+						type: 'button',
+						content: 'Invited to game',
+						classes: [
+							'flex',
+							'gap-2',
+							'items-center',
+							'text-sm',
+							'invitation-to-game-btn',
+						],
 					});
-					friendRow.removeChild(invitationToGame);
-				};
-				friendRow.appendChild(invitationToGame);
+					invitationToGame.onclick = () => {
+						sendInvitation({
+							type: 'accept',
+							message: 'Invitation accepted',
+							toUserId: data.fromUserId,
+						});
+						friendRow.removeChild(invitationToGame);
+					};
+					friendRow.appendChild(invitationToGame);
+				}
 			}
-		}
-	});
+		})
+	);
 
-	onInvitation((data) => {
-		if (data.type === 'uninvite' && data.fromUserId) {
-			const friendRow = wrapper.querySelector(
-				`[data-friend-id="${data.fromUserId}"]`
-			);
-			const invitationBtn = friendRow?.querySelector('.invitation-to-game-btn');
-			if (friendRow && invitationBtn) {
-				friendRow.removeChild(invitationBtn);
+	unsubscribeFunctions.push(
+		onInvitation((data) => {
+			if (data.type === 'uninvite' && data.fromUserId) {
+				const friendRow = wrapper.querySelector(
+					`[data-friend-id="${data.fromUserId}"]`
+				);
+				const invitationBtn = friendRow?.querySelector(
+					'.invitation-to-game-btn'
+				);
+				if (friendRow && invitationBtn) {
+					friendRow.removeChild(invitationBtn);
+				}
 			}
-		}
-	});
+		})
+	);
 
-	onInvitation(async (data) => {
-		if (data.type === 'game_start' && data.fromUserId) {
-			// Inviter receives acceptance - create game and send gameId back
-			await handleGameAcceptance(data.fromUserId);
-		}
-	});
+	unsubscribeFunctions.push(
+		onInvitation(async (data) => {
+			if (data.type === 'game_start' && data.fromUserId) {
+				// Inviter receives acceptance - create game and send gameId back
+				await handleGameAcceptance(data.fromUserId);
+			}
+		})
+	);
 
-	onInvitation((data) => {
-		if (data.type === 'game_start_with_id' && data.gameId) {
-			handleGameStart(data.gameId);
-		}
-	});
+	unsubscribeFunctions.push(
+		onInvitation((data) => {
+			if (data.type === 'game_start_with_id' && data.gameId) {
+				handleGameStart(data.gameId);
+			}
+		})
+	);
+
+	// Cleanup function to remove all handlers
+	const cleanup = () => {
+		unsubscribeFunctions.forEach((unsubscribe) => unsubscribe());
+		unsubscribeFunctions.length = 0;
+	};
+
+	// Store cleanup function on the wrapper for later use
+	(wrapper as any).__cleanupInvitationHandlers = cleanup;
 
 	searchInput.addEventListener('input', renderFriends);
 
