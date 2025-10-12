@@ -74,3 +74,49 @@ export async function fetchMatchStats(): Promise<MatchStats> {
 		throw error;
 	}
 }
+
+export interface FriendProfile {
+	id: number;
+	username: string;
+	email: string;
+	avatar: string;
+}
+
+export interface FriendMatchHistory {
+	friend: FriendProfile;
+	matches: MatchResult[];
+	stats: MatchStats | null;
+}
+
+export async function fetchFriendMatchHistory(
+	friendId: number
+): Promise<FriendMatchHistory> {
+	try {
+		const response = await fetch(`/api/friend/${friendId}/match-history`, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const data = await response.json();
+
+		if (!data.success) {
+			throw new Error(data.message || 'Failed to fetch friend match history');
+		}
+
+		return {
+			friend: data.friend,
+			matches: data.matches,
+			stats: data.stats,
+		};
+	} catch (error) {
+		console.error('Error fetching friend match history:', error);
+		throw error;
+	}
+}

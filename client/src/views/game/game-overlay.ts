@@ -10,6 +10,13 @@ export function showGameOverlay(
 	gameType: GameType,
 	roomId: string | null = null
 ) {
+	// Prevent multiple game overlays from being opened
+	const existingOverlay = document.getElementById('game-modal');
+	if (existingOverlay) {
+		console.log('Game overlay already exists, closing existing one');
+		closeGameOverlay();
+	}
+
 	const gameComponentResult = Game(gameId, gameType, roomId);
 	if (!gameComponentResult?.game || !gameComponentResult?.ws) {
 		console.error('Failed to initialize game');
