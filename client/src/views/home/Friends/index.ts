@@ -265,9 +265,47 @@ function AllFriendsTab() {
 					'gap-2',
 					'rounded',
 					'hover:bg-background/25',
+					'cursor-pointer',
 				],
 			});
 			friends.dataset.friendId = String(f.id);
+
+			// Add click handler to open friend profile
+			friends.addEventListener('click', (e) => {
+				// Don't trigger if clicking on buttons
+				if ((e.target as HTMLElement).closest('button')) {
+					return;
+				}
+
+				// Debug: Check if we can access the debug endpoint first
+				fetch('/api/debug/friends', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					credentials: 'include',
+				})
+					.then((res) => res.json())
+					.then((debugData) => {
+						console.log('Debug friends data:', debugData);
+
+						// Import and show friend profile modal
+						import('../../profile/friendProfile.js').then((module) => {
+							const FriendProfile = module.default;
+							const friendProfileModal = FriendProfile(f.id);
+							document.body.appendChild(friendProfileModal);
+						});
+					})
+					.catch((err) => {
+						console.error('Debug friends error:', err);
+						// Still try to open the profile modal
+						import('../../profile/friendProfile.js').then((module) => {
+							const FriendProfile = module.default;
+							const friendProfileModal = FriendProfile(f.id);
+							document.body.appendChild(friendProfileModal);
+						});
+					});
+			});
 
 			const friend = Wrapper({
 				classes: ['flex', 'items-center', 'gap-4', 'relative'],
