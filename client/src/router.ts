@@ -46,6 +46,10 @@ export class Router {
 		historyManager.on('tab', () => {
 			// Tabs handle their own history
 		});
+
+		historyManager.on('modal', () => {
+			// Modals handle their own history
+		});
 	}
 
 	navigateTo(url: string) {

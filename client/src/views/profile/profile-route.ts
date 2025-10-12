@@ -22,6 +22,7 @@ import { Button } from '../../components/button';
 import { Toaster } from '../../components/toaster';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import { getFriends, getFriendRequests } from '../../api/friendRequest';
+import { historyManager } from '../../utils/historyManager';
 import {
 	fetchMatchResults,
 	fetchMatchStats,
@@ -37,130 +38,20 @@ import {
 	TableRow,
 } from '../../components/table';
 
-export default function Profile() {
+export default function ProfileRoute() {
 	const user = store.getState().user;
 
-	const overlay = Wrapper({
-		element: 'section',
-		classes: [
-			'fixed',
-			'inset-0',
-			'bg-black/50',
-			'flex',
-			'items-center',
-			'justify-center',
-			'z-50',
-			'p-4',
-		],
+	// Redirect to home if user is not logged in
+	if (!user) {
+		historyManager.pushState('base', null, '/');
+		return document.createElement('div'); // Return empty div as placeholder
+	}
+
+	const container = Wrapper({
+		classes: ['min-h-screen', 'bg-background', 'p-4', 'py-8'],
 	});
 
-	const closeModal = () => {
-		overlay.remove();
-		document.removeEventListener('keydown', onKeyDown);
-		window.removeEventListener('popstate', onPopState);
-	};
-
-	const onKeyDown = (e: KeyboardEvent) => {
-		if (e.key === 'Escape') {
-			closeModal();
-		}
-	};
-
-	const onPopState = () => {
-		overlay.remove();
-		document.removeEventListener('keydown', onKeyDown);
-		window.removeEventListener('popstate', onPopState);
-	};
-
-	document.addEventListener('keydown', onKeyDown);
-	window.addEventListener('popstate', onPopState);
-
-	// Push URL state indicating modal is open if not already present
-	const currentParam = new URL(window.location.href).searchParams.get('modal');
-	if (currentParam !== 'profile') {
-		const urlOpen = new URL(window.location.href);
-		urlOpen.searchParams.set('modal', 'profile');
-		window.history.pushState(null, '', urlOpen.toString());
-	}
-
-	function ProfileContent() {
-		const modalContainer = Wrapper({
-			classes: [
-				'bg-foreground',
-				'rounded-2xl',
-				'shadow-2xl',
-				'max-w-4xl',
-				'w-full',
-				'max-h-[90vh]',
-				'overflow-y-auto',
-			],
-		});
-
-		// Modal header
-		const header = document.createElement('div');
-		header.className =
-			'flex items-center justify-between p-6 border-b border-accent';
-
-		const titleContainer = Wrapper({
-			classes: ['flex', 'items-center', 'gap-3'],
-		});
-
-		const titleIcon = Icon({
-			icon: User,
-			size: 'lg',
-			classes: ['text-primary', 'glow-primary-animate'],
-		});
-
-		const titleElement = Heading({
-			level: 2,
-			content: 'Profile',
-			classes: ['text-2xl', 'font-bold'],
-		});
-
-		const closeBtn = Button({
-			content: '',
-			variant: 'outline',
-			classes: [
-				'p-2',
-				'rounded-full',
-				'border-accent',
-				'hover:border-primary',
-				'transition-colors',
-			],
-		});
-
-		const closeIcon = Icon({
-			icon: X,
-			size: 'sm',
-		});
-
-		closeBtn.appendChild(closeIcon);
-		closeBtn.addEventListener('click', closeModal);
-
-		titleContainer.appendChild(titleIcon);
-		titleContainer.appendChild(titleElement);
-		header.appendChild(titleContainer);
-		header.appendChild(closeBtn);
-
-		// Modal body
-		const body = document.createElement('div');
-		body.className = 'p-6 space-y-8';
-
-		// Profile header section
-		const profileHeader = createProfileHeader();
-		body.appendChild(profileHeader);
-
-		// Game history section
-		const gameHistory = createGameHistorySection();
-		body.appendChild(gameHistory);
-
-		modalContainer.appendChild(header);
-		modalContainer.appendChild(body);
-
-		return modalContainer;
-	}
-
-	function createProfileHeader() {
+	function ProfileHeader() {
 		const headerCard = Card({
 			classes: [
 				'flex',
@@ -169,9 +60,10 @@ export default function Profile() {
 				'items-center',
 				'gap-6',
 				'p-8',
-				'bg-background',
+				'bg-foreground',
 				'rounded-2xl',
 				'shadow-xl',
+				'mb-8',
 			],
 		});
 
@@ -350,16 +242,17 @@ export default function Profile() {
 		}
 	}
 
-	function createGameHistorySection() {
+	function GameHistorySection() {
 		const historyCard = Card({
 			classes: [
 				'flex',
 				'flex-col',
 				'gap-6',
 				'p-8',
-				'bg-background',
+				'bg-foreground',
 				'rounded-2xl',
 				'shadow-xl',
+				'mb-8',
 			],
 		});
 
@@ -522,9 +415,9 @@ export default function Profile() {
 
 	function createModal(title: string, content: HTMLElement) {
 		// Modal overlay
-		const modalOverlay = document.createElement('div');
-		modalOverlay.className =
-			'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4';
+		const overlay = document.createElement('div');
+		overlay.className =
+			'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
 
 		// Modal container
 		const modalContainer = document.createElement('div');
@@ -568,13 +461,13 @@ export default function Profile() {
 
 		// Close modal function
 		const closeModal = () => {
-			document.body.removeChild(modalOverlay);
+			document.body.removeChild(overlay);
 		};
 
 		// Event listeners
 		closeBtn.addEventListener('click', closeModal);
-		modalOverlay.addEventListener('click', (e) => {
-			if (e.target === modalOverlay) {
+		overlay.addEventListener('click', (e) => {
+			if (e.target === overlay) {
 				closeModal();
 			}
 		});
@@ -592,9 +485,9 @@ export default function Profile() {
 		header.appendChild(closeBtn);
 		modalContainer.appendChild(header);
 		modalContainer.appendChild(body);
-		modalOverlay.appendChild(modalContainer);
+		overlay.appendChild(modalContainer);
 
-		return modalOverlay;
+		return overlay;
 	}
 
 	function createSettingsForm() {
@@ -888,8 +781,8 @@ export default function Profile() {
 						document.body.removeChild(modal);
 					}
 
-					// Close profile modal
-					closeModal();
+					// Redirect to home
+					historyManager.pushState('base', null, '/');
 				} else {
 					Toaster('Failed to logout');
 				}
@@ -908,13 +801,71 @@ export default function Profile() {
 		return form;
 	}
 
-	// Add click outside to close
-	overlay.addEventListener('click', (e) => {
-		if (e.target === overlay) {
-			closeModal();
-		}
-	});
+	function NavigationHeader() {
+		const navCard = Card({
+			classes: [
+				'flex',
+				'items-center',
+				'gap-4',
+				'p-4',
+				'bg-foreground',
+				'rounded-2xl',
+				'shadow-xl',
+				'mb-8',
+			],
+		});
 
-	overlay.appendChild(ProfileContent());
-	return overlay;
+		const backBtn = Button({
+			content: '',
+			variant: 'outline',
+			classes: [
+				'p-2',
+				'rounded-full',
+				'border-accent',
+				'hover:border-primary',
+				'transition-colors',
+			],
+		});
+
+		const backIcon = Icon({
+			icon: ArrowLeft,
+			size: 'sm',
+		});
+
+		const titleContainer = Wrapper({
+			classes: ['flex', 'items-center', 'gap-3', 'flex-1'],
+		});
+
+		const titleIcon = Icon({
+			icon: User,
+			size: 'lg',
+			classes: ['text-primary', 'glow-primary-animate'],
+		});
+
+		const titleContent = Heading({
+			level: 1,
+			classes: ['text-2xl', 'font-bold'],
+			content: 'Profile',
+		});
+
+		backBtn.appendChild(backIcon);
+		backBtn.addEventListener('click', () => {
+			historyManager.back();
+		});
+
+		titleContainer.appendChild(titleIcon);
+		titleContainer.appendChild(titleContent);
+
+		navCard.appendChild(backBtn);
+		navCard.appendChild(titleContainer);
+
+		return navCard;
+	}
+
+	// Add all sections to container
+	container.appendChild(NavigationHeader());
+	container.appendChild(ProfileHeader());
+	container.appendChild(GameHistorySection());
+
+	return container;
 }
