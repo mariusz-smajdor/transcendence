@@ -1,0 +1,38 @@
+{
+  "name": "transcendence-tournament-cli",
+  "version": "1.0.0",
+  "description": "Command Line Interface for Transcendence Tournament Game",
+  "main": "cli-tournament.js",
+  "type": "module",
+  "bin": {
+    "tournament-cli": "./cli-tournament.js"
+  },
+  "scripts": {
+    "start": "node cli-tournament.js",
+    "dev": "node --inspect cli-tournament.js"
+  },
+  "keywords": [
+    "tournament",
+    "pong",
+    "game",
+    "cli",
+    "transcendence"
+  ],
+  "author": "Transcendence Team",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/transcendence7"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/transcendence7/issues"
+  },
+  "homepage": "https://github.com/your-org/transcendence7#readme"
+}
+
