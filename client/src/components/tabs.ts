@@ -92,8 +92,9 @@ export function Tabs({
 			}
 		});
 
-		// Push history state if enabled and not default tab
-		if (enableHistory && pushHistory && value !== defaultValue) {
+		// Push history state if enabled
+		// Always push state when user clicks, even for default tab
+		if (enableHistory && pushHistory) {
 			historyManager.pushState('tab', { tabGroupId, tabValue: value });
 		}
 	};
@@ -106,12 +107,12 @@ export function Tabs({
 		});
 	});
 
-	// Handle back button
+	// Handle back/forward button
 	if (enableHistory) {
 		const handleHistory = (state: any) => {
 			if (state.type === 'tab' && state.data?.tabGroupId === tabGroupId) {
 				activateTab(state.data.tabValue, false);
-			} else if (state.type === 'base' || !state.data) {
+			} else if (state.type === 'base') {
 				// When going back to base state, show default tab
 				activateTab(defaultValue, false);
 			}
@@ -119,10 +120,29 @@ export function Tabs({
 
 		historyManager.on('tab', handleHistory);
 		historyManager.on('base', handleHistory);
+
+		// Store cleanup function on wrapper for potential future cleanup
+		(wrapper as any).__cleanupTabHistory = () => {
+			historyManager.off('tab', handleHistory);
+			historyManager.off('base', handleHistory);
+		};
 	}
 
 	// Initialize with default tab
 	activateTab(defaultValue, false);
+
+	// Initialize the current state to include tab information if history is enabled
+	// This ensures forward/back navigation works correctly
+	if (enableHistory) {
+		const currentState = historyManager.getCurrentState();
+		if (!currentState || currentState.type === 'base') {
+			// Replace base state with tab state for default tab
+			historyManager.replaceState('tab', {
+				tabGroupId,
+				tabValue: defaultValue,
+			});
+		}
+	}
 
 	return wrapper;
 }

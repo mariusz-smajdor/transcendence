@@ -64,10 +64,8 @@ function Menu() {
 		const dropdownMenu = DropdownMenu({
 			dropdownTrigger: avatar,
 			classes: ['top-12', 'right-0'],
-			// Enable URL sync for back/forward navigation
-			syncWithUrl: true,
-			urlParam: 'dropdown',
-			urlValue: 'avatar',
+			// Disable URL sync - popups shouldn't create history entries
+			syncWithUrl: false,
 		});
 		const dropdownTitle = DropdownTitle({
 			content: user.username,
