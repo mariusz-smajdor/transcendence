@@ -70,6 +70,16 @@ const dbConnector = async (fastify, options) => {
 	  FOREIGN KEY (user_id_1) REFERENCES users (id),
 	  FOREIGN KEY (user_id_2) REFERENCES users (id)
 	  );
+
+    CREATE TABLE IF NOT EXISTS blocked_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      blocker_id INTEGER NOT NULL,
+      blocked_id INTEGER NOT NULL,
+      blocked_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (blocker_id) REFERENCES users (id) ON DELETE CASCADE,
+      FOREIGN KEY (blocked_id) REFERENCES users (id) ON DELETE CASCADE,
+      UNIQUE (blocker_id, blocked_id)
+    );
   `);
 
   fastify.decorate('db', db);

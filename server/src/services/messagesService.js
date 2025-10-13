@@ -2,9 +2,19 @@ import {
   sendNotification,
   createMessageNotification,
 } from './notificationService.js';
+import { isBlockedByEither } from './blockingService.js';
 
 export const sendMessage = async (db, senderId, receiverId, message) => {
   try {
+    // Check if users have blocked each other
+    const blocked = await isBlockedByEither(db, senderId, receiverId);
+    if (blocked) {
+      return {
+        success: false,
+        message: 'Cannot send message to this user',
+      };
+    }
+
     // Insert message into database
     const stmt = db.prepare(`
       INSERT INTO messages (sender, receiver, message) 
