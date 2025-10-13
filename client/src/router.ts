@@ -15,7 +15,16 @@ export class Router {
 		// Set up history handlers
 		this.setupHistoryHandlers();
 
-		window.addEventListener('popstate', this.loadRoute.bind(this));
+		// Only reload route on actual navigation (popstate), but filter out tab/modal/game changes
+		window.addEventListener('popstate', (event) => {
+			const state = event.state;
+			// Only reload the route if it's a base state change or actual navigation
+			// Don't reload for tab, modal, or game state changes
+			if (!state || state.type === 'base') {
+				this.loadRoute();
+			}
+		});
+
 		document.body.addEventListener('click', (event) => {
 			const target = event.target as HTMLAnchorElement;
 			if (target.matches('[data-link]')) {
