@@ -6,7 +6,11 @@ import {
 import { broadcastGameState, broadcastMessage } from '../game/broadcast.js';
 import { Room } from './tournaments.js';
 import { clients } from '../routes/invitations.js';
-import { saveClosedMatch, saveMatchResult, saveMatchToBlockchain } from '../models/gameHistory.js';
+import {
+  saveClosedMatch,
+  saveMatchResult,
+  saveMatchToBlockchain,
+} from '../models/gameHistory.js';
 import { GAME_CONFIG } from '../constants/gameConfig.js';
 
 export function tournamentGameLoop(connection, room, match, game, db) {
@@ -26,26 +30,26 @@ export function tournamentGameLoop(connection, room, match, game, db) {
           : 'right';
       try {
         if (match.save) {
-          game.playersManager.updateScore(
-            game.gameState.score,
-            game.gameType,
-          );
+          game.playersManager.updateScore(game.gameState.score, game.gameType);
           const { dbResult } = await saveMatchResult(
             db,
             game.playersManager.stats,
             winner,
             game.gameType,
           );
-          // Always save tournament results to blockchain at match end
-          await saveMatchToBlockchain(
+          // Mark as saved to prevent duplicates
+          match.save = false;
+
+          // Save tournament results to blockchain asynchronously (non-blocking)
+          // Fire-and-forget - don't await to prevent game freezing
+          saveMatchToBlockchain(
             db,
             game.playersManager.stats,
             winner,
             dbResult?.lastInsertRowid,
-          );
-        } else {
-          // No DB save requested, but still save to blockchain (dbRowId omitted)
-          await saveMatchToBlockchain(db, game.playersManager.stats, winner);
+          ).catch((error) => {
+            console.error('Background blockchain save failed:', error);
+          });
         }
       } catch (e) {
         console.error('Error saving match results:', e);
@@ -59,7 +63,8 @@ export function tournamentGameLoop(connection, room, match, game, db) {
       broadcastGameState(game.clients, gameStatePropotional);
       broadcastMessage(
         game.clients,
-        `The winner is: ${game.playersManager.stats.get(winner)?.username ?? winner
+        `The winner is: ${
+          game.playersManager.stats.get(winner)?.username ?? winner
         }`,
       );
       setTimeout(() => {
