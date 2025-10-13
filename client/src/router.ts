@@ -35,6 +35,7 @@ export class Router {
 	private setupHistoryHandlers() {
 		// Handle game overlay close on back button
 		historyManager.on('game', () => {
+			// If going back TO a game state (shouldn't happen normally)
 			// Game overlay is already shown, do nothing
 		});
 
@@ -44,6 +45,12 @@ export class Router {
 		});
 
 		historyManager.on('tab', () => {
+			// Close game overlay if open when navigating to a tab
+			// This handles the browser back button from tournament game
+			const overlay = document.getElementById('game-modal');
+			if (overlay) {
+				closeGameOverlay();
+			}
 			// Tabs handle their own history
 		});
 

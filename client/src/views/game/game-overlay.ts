@@ -58,7 +58,23 @@ export function showGameOverlay(
 	CloseBtn.style.fontSize = '2rem';
 	CloseBtn.onclick = () => {
 		closeGameOverlay();
-		historyManager.back();
+
+		if (gameType === 'tournament') {
+			// For tournament games, restore the previous state to stay on tournament tab
+			const currentState = historyManager.getCurrentState();
+			const previousState = currentState?.data?.previousState;
+
+			if (previousState) {
+				// Restore the previous state (likely the tournament tab state)
+				historyManager.replaceState(previousState.type, previousState.data);
+			} else {
+				// Fallback: just go back
+				historyManager.back();
+			}
+		} else {
+			// For non-tournament games, go back in history normally
+			historyManager.back();
+		}
 	};
 
 	const shareText = Text({
@@ -114,7 +130,13 @@ export function showGameOverlay(
 	}
 
 	// Push history state for back button support
-	historyManager.pushState('game', { gameId, gameType });
+	// For tournament games, store the previous state so we can restore it
+	if (gameType === 'tournament') {
+		const previousState = historyManager.getCurrentState();
+		historyManager.pushState('game', { gameId, gameType, previousState });
+	} else {
+		historyManager.pushState('game', { gameId, gameType });
+	}
 }
 
 export function closeGameOverlay() {
