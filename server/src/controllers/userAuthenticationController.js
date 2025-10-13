@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { deleteAvatarFile } from '../utils/avatarCleanup.js';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import { parseDbError } from '../utils/dbErrorHandler.js';
 
 export const registrationHandler = async (req, res) => {
   const { username, password, confirmPassword, email } = req.body;
@@ -270,8 +271,17 @@ export const updateProfileHandler = async (req, res) => {
       ', ',
     )} WHERE id = ?`;
 
-    const stmt = db.prepare(updateQuery);
-    stmt.run(...updateValues);
+    try {
+      const stmt = db.prepare(updateQuery);
+      stmt.run(...updateValues);
+    } catch (dbError) {
+      // Handle database constraint errors
+      const message = parseDbError(dbError);
+      return res.status(400).send({
+        success: false,
+        message: message,
+      });
+    }
 
     // Get updated user data
     const updatedUser = db
