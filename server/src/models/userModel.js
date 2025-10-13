@@ -2,6 +2,7 @@ import Password from '../services/passwordService.js';
 import { validateUserCredentials } from '../services/userAuthenticationServices.js';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import { parseDbError } from '../utils/dbErrorHandler.js';
 class User {
   constructor(username, password, email) {
     this.username = username;
@@ -38,14 +39,14 @@ class User {
         code: 200,
       };
     } catch (err) {
-      if (err.code === 'SQLITE_CONSTRAINT') {
-        return {
-          success: false,
-          message: 'Username already exists',
-          code: 400,
-        };
-      }
-      return { success: false, message: err.message, code: 500 };
+      const message = parseDbError(err);
+      const isDbError = err.code?.startsWith('SQLITE_');
+
+      return {
+        success: false,
+        message: message,
+        code: isDbError ? 400 : 500,
+      };
     }
   }
 

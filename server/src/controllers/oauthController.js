@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { deleteAvatarFile } from '../utils/avatarCleanup.js';
+import { parseDbError } from '../utils/dbErrorHandler.js';
 
 // Google OAuth handler - redirects to Google's OAuth consent screen
 export const googleOAuthHandler = async (req, res) => {
@@ -66,30 +67,37 @@ export const googleOAuthCallbackHandler = async (req, res) => {
 
     if (!user) {
       // Create new user
-      const insertUser = db.prepare(`
-        INSERT INTO users (username, email, firstName, lastName, avatar, google_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
+      try {
+        const insertUser = db.prepare(`
+          INSERT INTO users (username, email, firstName, lastName, avatar, google_id, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `);
 
-      const result = insertUser.run(
-        userInfo.name || userInfo.email.split('@')[0],
-        userInfo.email,
-        userInfo.given_name || '',
-        userInfo.family_name || '',
-        userInfo.picture || null,
-        userInfo.id,
-        new Date().toISOString(),
-      );
+        const result = insertUser.run(
+          userInfo.name || userInfo.email.split('@')[0],
+          userInfo.email,
+          userInfo.given_name || '',
+          userInfo.family_name || '',
+          userInfo.picture || null,
+          userInfo.id,
+          new Date().toISOString(),
+        );
 
-      user = {
-        id: result.lastInsertRowid,
-        username: userInfo.name || userInfo.email.split('@')[0],
-        email: userInfo.email,
-        firstName: userInfo.given_name || '',
-        lastName: userInfo.family_name || '',
-        avatar: userInfo.picture || null,
-        google_id: userInfo.id,
-      };
+        user = {
+          id: result.lastInsertRowid,
+          username: userInfo.name || userInfo.email.split('@')[0],
+          email: userInfo.email,
+          firstName: userInfo.given_name || '',
+          lastName: userInfo.family_name || '',
+          avatar: userInfo.picture || null,
+          google_id: userInfo.id,
+        };
+      } catch (dbError) {
+        console.error('OAuth user creation error:', parseDbError(dbError));
+        return res.redirect(
+          'https://localhost:8080/?oauth=error&reason=user_creation_failed',
+        );
+      }
     } else {
       // Update existing user with Google info if needed
       if (!user.google_id) {
@@ -98,18 +106,23 @@ export const googleOAuthCallbackHandler = async (req, res) => {
           deleteAvatarFile(user.avatar);
         }
 
-        const updateUser = db.prepare(`
-          UPDATE users 
-          SET google_id = ?, avatar = ?, firstName = COALESCE(firstName, ?), lastName = COALESCE(lastName, ?)
-          WHERE id = ?
-        `);
-        updateUser.run(
-          userInfo.id,
-          userInfo.picture,
-          userInfo.given_name || '',
-          userInfo.family_name || '',
-          user.id,
-        );
+        try {
+          const updateUser = db.prepare(`
+            UPDATE users 
+            SET google_id = ?, avatar = ?, firstName = COALESCE(firstName, ?), lastName = COALESCE(lastName, ?)
+            WHERE id = ?
+          `);
+          updateUser.run(
+            userInfo.id,
+            userInfo.picture,
+            userInfo.given_name || '',
+            userInfo.family_name || '',
+            user.id,
+          );
+        } catch (dbError) {
+          console.error('OAuth user update error:', parseDbError(dbError));
+          // Continue anyway - user can still login with their existing account
+        }
       }
     }
 
