@@ -21,6 +21,7 @@ import { showGameOverlay } from '../../game/game-overlay.js';
 import { store } from '../../../store.js';
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 import { onInvitation } from '../../../api/invitationSocket.js';
+import { showNicknameModal } from '../../../components/nickname-modal.js';
 
 // Transform server match results to client format
 function transformServerMatchResults(
@@ -257,58 +258,80 @@ export function TournamentTab() {
 				});
 
 				joinButton.addEventListener('click', async () => {
-					const response = await fetch('/api/tournament/join', {
-						method: 'POST',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({
-							name: store.getState().user?.username ?? 'Guest',
-							token,
-							sessionId,
-							roomId: room.id,
-						}),
-					});
-					const data = await response.json();
-					console.log(data);
-					if (response.ok) {
-						currentRoomId = data.id;
-						card.innerHTML = '';
-						const players = data.positions ?? [];
+					const isLoggedIn = !!token;
+					
+					const performJoin = async (playerName: string) => {
+						const response = await fetch('/api/tournament/join', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								name: playerName,
+								token,
+								sessionId,
+								roomId: room.id,
+							}),
+						});
+						const data = await response.json();
+						console.log(data);
+						if (response.ok) {
+							currentRoomId = data.id;
+							card.innerHTML = '';
+							const players = data.positions ?? [];
 
-						const bracketComponent = TournamentBracket({
-							numberOfPlayers: data.playersExpected,
-							playersIn: data.playersIn,
-							players,
-							playerStatus: data.playersStatus,
-							onLeaveTournament: async () => {
-								const token = getCookie('access_token') ?? null;
-								const sessionId = getCookie('sessionId') ?? null;
-								if (await leaveRoom(currentRoomId, token, sessionId))
-									await renderTournamentList();
-							},
-							onPlayMatch: async () => {
-								const token = getCookie('access_token') ?? null;
-								const sessionId = getCookie('sessionId') ?? null;
-								const response = await fetch('/api/tournament/play', {
-									method: 'POST',
-									headers: { 'Content-Type': 'application/json' },
-									body: JSON.stringify({
-										roomId: currentRoomId,
-										token,
-										sessionId,
-									}),
-								});
-								const data = await response.json();
-								if (response.ok && data.gameId) {
-									Toaster('Match found! Game ID: ' + data.gameId);
-									showGameOverlay(data.gameId, 'tournament', currentRoomId);
-								} else {
-									Toaster(data.error || 'No match available yet.');
-								}
+							const bracketComponent = TournamentBracket({
+								numberOfPlayers: data.playersExpected,
+								playersIn: data.playersIn,
+								players,
+								playerStatus: data.playersStatus,
+								onLeaveTournament: async () => {
+									const token = getCookie('access_token') ?? null;
+									const sessionId = getCookie('sessionId') ?? null;
+									if (await leaveRoom(currentRoomId, token, sessionId))
+										await renderTournamentList();
+								},
+								onPlayMatch: async () => {
+									const token = getCookie('access_token') ?? null;
+									const sessionId = getCookie('sessionId') ?? null;
+									const response = await fetch('/api/tournament/play', {
+										method: 'POST',
+										headers: { 'Content-Type': 'application/json' },
+										body: JSON.stringify({
+											roomId: currentRoomId,
+											token,
+											sessionId,
+										}),
+									});
+									const data = await response.json();
+									if (response.ok && data.gameId) {
+										Toaster('Match found! Game ID: ' + data.gameId);
+										showGameOverlay(data.gameId, 'tournament', currentRoomId);
+									} else {
+										Toaster(data.error || 'No match available yet.');
+									}
+								},
+							});
+
+							currentBracketComponent = bracketComponent;
+							card.appendChild(bracketComponent);
+						} else {
+							Toaster(data.error || 'Failed to join tournament');
+						}
+					};
+
+					if (!isLoggedIn) {
+						// Show nickname modal for non-logged-in users
+						showNicknameModal({
+							title: 'Enter Nickname',
+							description: 'Please enter your nickname to join the tournament',
+							placeholder: 'Your nickname',
+							onConfirm: (nickname) => {
+								performJoin(nickname);
 							},
 						});
-
-						currentBracketComponent = bracketComponent;
-						card.appendChild(bracketComponent);
+					} else {
+						// Logged-in users can join immediately
+						const playerName = store.getState().user?.username ?? 'Guest';
+						await performJoin(playerName);
 					}
 				});
 
