@@ -5,6 +5,7 @@ export const NOTIFICATION_TYPES = {
 	FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
 	FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
 	FRIEND_REMOVED: 'friend_removed',
+	USER_BLOCKED: 'user_blocked',
 	MESSAGE: 'message',
 	CONNECTION_ESTABLISHED: 'connection_established',
 	FRIEND_ONLINE: 'friend_online',
@@ -17,7 +18,8 @@ type DataChangeEvent =
 	| 'friendsUpdated'
 	| 'messagesUpdated'
 	| 'friendOnline'
-	| 'friendOffline';
+	| 'friendOffline'
+	| 'blockedUsersUpdated';
 
 class EventEmitter {
 	private listeners: Map<DataChangeEvent, Function[]> = new Map();
@@ -165,6 +167,10 @@ class NotificationService {
 				this.handleFriendRemoved(notification);
 				break;
 
+			case NOTIFICATION_TYPES.USER_BLOCKED:
+				this.handleUserBlocked(notification);
+				break;
+
 			case NOTIFICATION_TYPES.MESSAGE:
 				this.handleMessage(notification);
 				break;
@@ -208,6 +214,14 @@ class NotificationService {
 		Toaster(notification.message);
 
 		// Refresh friends list
+		this.refreshFriends();
+	}
+
+	private handleUserBlocked(notification: NotificationData) {
+		// Show toast notification
+		Toaster(notification.message);
+
+		// Refresh friends list (to remove the blocker from friends)
 		this.refreshFriends();
 	}
 

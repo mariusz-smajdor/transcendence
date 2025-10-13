@@ -14,6 +14,7 @@ import oauthRoutes from './src/routes/oauthRoutes.js';
 import gameRoutes from './src/routes/game.js';
 import { avatarRoutes } from './src/routes/avatar.js';
 import matchResultsRoutes from './src/routes/matchResults.js';
+import blockingRoutes from './src/routes/blockingRoutes.js';
 import FastifyWebSocket from '@fastify/websocket';
 import FastifyEnv from '@fastify/env';
 import FastifyStatic from '@fastify/static';
@@ -143,6 +144,7 @@ fastify.register(oauthRoutes); // /login/google, /auth/google/callback
 fastify.register(gameRoutes);
 fastify.register(avatarRoutes); // /avatar/proxy
 fastify.register(matchResultsRoutes); // /match-results, /match-stats
+fastify.register(blockingRoutes); // /block, /unblock, /blocked
 fastify.register(invitations);
 fastify.register(tournamentRoutes);
 

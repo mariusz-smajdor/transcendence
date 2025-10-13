@@ -1,4 +1,12 @@
-import { MessageCircle, UserPlus, Users, UserX, Gamepad2 } from 'lucide';
+import {
+	MessageCircle,
+	UserPlus,
+	Users,
+	UserX,
+	Gamepad2,
+	Ban,
+	ShieldOff,
+} from 'lucide';
 import { Wrapper } from '../../../components/wrapper';
 import { Card } from '../../../components/card';
 import { Heading } from '../../../components/heading';
@@ -15,6 +23,9 @@ import {
 	removeFriend,
 	sendFriendRequest,
 	getOnlineFriends,
+	blockUser,
+	unblockUser,
+	getBlockedUsers,
 } from '../../../api/friendRequest';
 import { getConversations } from '../../../api/messages';
 import { store } from '../../../store';
@@ -345,6 +356,14 @@ function AllFriendsTab() {
 			const inviteIcon = Icon({
 				icon: Gamepad2,
 			});
+			const blockButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-orange-400'],
+			});
+			const blockIcon = Icon({
+				icon: Ban,
+			});
 			const removeButton = Button({
 				type: 'button',
 				variant: 'ghost',
@@ -385,6 +404,18 @@ function AllFriendsTab() {
 				Toaster(`Game invitation sent to ${f.username}`);
 			});
 
+			blockButton.addEventListener('click', async () => {
+				try {
+					await blockUser(f.id);
+				} catch (error) {
+					if (error instanceof Error) {
+						Toaster(error.message);
+					} else {
+						Toaster('Failed to block user.');
+					}
+				}
+			});
+
 			removeButton.addEventListener('click', async () => {
 				try {
 					await removeFriend(f.id);
@@ -399,9 +430,11 @@ function AllFriendsTab() {
 
 			msgButton.appendChild(msgIcon);
 			inviteButton.appendChild(inviteIcon);
+			blockButton.appendChild(blockIcon);
 			removeButton.appendChild(removeIcon);
 			buttonsContainer.appendChild(msgButton);
 			buttonsContainer.appendChild(inviteButton);
+			buttonsContainer.appendChild(blockButton);
 			buttonsContainer.appendChild(removeButton);
 			friend.appendChild(avatar);
 			friend.appendChild(name);
@@ -524,6 +557,108 @@ function AllFriendsTab() {
 	return tab;
 }
 
+function BlockedUsersTab() {
+	const tab = Tab({
+		value: 'blocked-users',
+		classes: ['flex', 'flex-col', 'gap-4'],
+	});
+	const wrapper = Wrapper({
+		classes: ['flex', 'flex-col', 'gap-1'],
+	});
+
+	async function renderBlockedUsers() {
+		wrapper.innerHTML = '';
+
+		const blockedUsers = await getBlockedUsers();
+
+		if (blockedUsers.length === 0) {
+			const emptyMessage = Text({
+				content: 'No blocked users',
+				classes: ['text-muted', 'text-center', 'py-4'],
+			});
+			wrapper.appendChild(emptyMessage);
+			return;
+		}
+
+		blockedUsers.forEach((user: any) => {
+			const userRow = Wrapper({
+				classes: [
+					'flex',
+					'p-2',
+					'items-center',
+					'justify-between',
+					'gap-2',
+					'rounded',
+					'hover:bg-background/25',
+				],
+			});
+
+			const userInfo = Wrapper({
+				classes: ['flex', 'items-center', 'gap-3'],
+			});
+
+			const avatar = Img({
+				src: getAvatarUrl(user.avatar, user.username),
+				alt: user.username,
+				width: 40,
+				height: 40,
+				classes: ['rounded-full', 'border', 'border-accent', 'aspect-square'],
+			});
+
+			const name = Text({
+				element: 'span',
+				content: user.username,
+				classes: ['text-base', 'font-medium'],
+			});
+
+			const unblockButton = Button({
+				type: 'button',
+				variant: 'ghost',
+				classes: ['text-green-400', 'flex', 'items-center', 'gap-1'],
+			});
+			const unblockIcon = Icon({
+				icon: ShieldOff,
+			});
+			const unblockText = Text({
+				element: 'span',
+				content: 'Unblock',
+				classes: ['text-sm'],
+			});
+
+			unblockButton.addEventListener('click', async () => {
+				try {
+					await unblockUser(user.id);
+					await renderBlockedUsers(); // Re-render the list
+				} catch (error) {
+					if (error instanceof Error) {
+						Toaster(error.message);
+					} else {
+						Toaster('Failed to unblock user.');
+					}
+				}
+			});
+
+			unblockButton.appendChild(unblockIcon);
+			unblockButton.appendChild(unblockText);
+			userInfo.appendChild(avatar);
+			userInfo.appendChild(name);
+			userRow.appendChild(userInfo);
+			userRow.appendChild(unblockButton);
+			wrapper.appendChild(userRow);
+		});
+	}
+
+	// Initial render
+	renderBlockedUsers();
+
+	// Listen for blocked users updates
+	dataChangeEmitter.on('blockedUsersUpdated', renderBlockedUsers);
+
+	tab.appendChild(wrapper);
+
+	return tab;
+}
+
 export default function Friends() {
 	const section = Card({
 		element: 'section',
@@ -631,8 +766,9 @@ export default function Friends() {
 			triggers: [
 				Trigger({ content: 'All Friends', value: 'all-friends' }),
 				requestsTrigger,
+				Trigger({ content: 'Blocked', value: 'blocked-users' }),
 			],
-			tabs: [AllFriendsTab(), FriendRequestTab()],
+			tabs: [AllFriendsTab(), FriendRequestTab(), BlockedUsersTab()],
 		})
 	);
 	addFriend.prepend(addIcon);

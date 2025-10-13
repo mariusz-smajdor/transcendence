@@ -237,3 +237,87 @@ export async function removeFriend(friendId: number) {
 		}
 	}
 }
+
+export async function blockUser(userId: number) {
+	try {
+		const res = await fetch('/api/block', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ userId }),
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) {
+			throw new Error(data.message || 'Failed to block user');
+		}
+
+		const currentUser = store.getState().user;
+		if (!currentUser) return;
+
+		// Remove user from friends list if they were friends
+		store.setState({
+			user: {
+				...currentUser,
+				friends: currentUser.friends?.filter((friend) => friend.id !== userId),
+			},
+		});
+
+		// Emit events to update UI
+		dataChangeEmitter.emit('friendsUpdated');
+		dataChangeEmitter.emit('blockedUsersUpdated');
+
+		Toaster('User blocked successfully');
+	} catch (error) {
+		if (error instanceof Error) {
+			Toaster(error.message);
+		} else {
+			Toaster('Failed to block user.');
+		}
+	}
+}
+
+export async function unblockUser(userId: number) {
+	try {
+		const res = await fetch('/api/unblock', {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ userId }),
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) {
+			throw new Error(data.message || 'Failed to unblock user');
+		}
+
+		Toaster('User unblocked successfully');
+	} catch (error) {
+		if (error instanceof Error) {
+			Toaster(error.message);
+		} else {
+			Toaster('Failed to unblock user.');
+		}
+	}
+}
+
+export async function getBlockedUsers(): Promise<any[]> {
+	try {
+		const res = await fetch('/api/blocked', {
+			method: 'GET',
+			credentials: 'include',
+		});
+
+		const data = await res.json();
+		if (!res.ok || !data.success) return [];
+
+		return data.blockedUsers;
+	} catch (error) {
+		console.error('Failed to fetch blocked users:', error);
+		return [];
+	}
+}

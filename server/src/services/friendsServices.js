@@ -5,6 +5,7 @@ import {
   createFriendRequestRejectedNotification,
   createFriendRemovedNotification,
 } from './notificationService.js';
+import { isBlockedByEither } from './blockingService.js';
 
 export const getFriendsList = async (db, userId) => {
   try {
@@ -44,6 +45,15 @@ export const sendFriendRequest = async (db, senderId, receiverUsername) => {
       return {
         success: false,
         message: 'Cannot send friend request to yourself',
+      };
+    }
+
+    // Check if users have blocked each other
+    const blocked = await isBlockedByEither(db, senderId, receiverId);
+    if (blocked) {
+      return {
+        success: false,
+        message: 'Cannot send friend request to this user',
       };
     }
 

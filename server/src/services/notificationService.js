@@ -4,6 +4,7 @@ export const NOTIFICATION_TYPES = {
   FRIEND_REQUEST_ACCEPTED: 'friend_request_accepted',
   FRIEND_REQUEST_REJECTED: 'friend_request_rejected',
   FRIEND_REMOVED: 'friend_removed',
+  USER_BLOCKED: 'user_blocked',
   MESSAGE: 'message',
   FRIEND_ONLINE: 'friend_online',
   FRIEND_OFFLINE: 'friend_offline',
@@ -99,6 +100,20 @@ export const createFriendRemovedNotification = (
       timestamp: Date.now(),
     },
     message: `${removerUsername} removed you from their friends list`,
+  };
+};
+
+export const createUserBlockedNotification = (
+  blockerUsername,
+  blockedUserId,
+) => {
+  return {
+    type: NOTIFICATION_TYPES.USER_BLOCKED,
+    data: {
+      blockerUsername,
+      timestamp: Date.now(),
+    },
+    message: `${blockerUsername} blocked you`,
   };
 };
 
