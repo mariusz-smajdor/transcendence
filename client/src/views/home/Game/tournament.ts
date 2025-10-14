@@ -259,7 +259,7 @@ export function TournamentTab() {
 
 				joinButton.addEventListener('click', async () => {
 					const isLoggedIn = !!token;
-					
+
 					const performJoin = async (playerName: string) => {
 						const response = await fetch('/api/tournament/join', {
 							method: 'POST',
@@ -365,8 +365,8 @@ export function TournamentTab() {
 		);
 
 		const title = document.createElement('div');
-		title.textContent = 'Select number of players';
-		title.classList.add('font-bold', 'mb-2');
+		title.textContent = 'Create Tournament';
+		title.classList.add('font-bold', 'text-xl', 'mb-4');
 
 		const token = getCookie('access_token') ?? null;
 		const sessionId = getCookie('sessionId') ?? null;
@@ -374,6 +374,10 @@ export function TournamentTab() {
 
 		let nicknameInput: HTMLInputElement | null = null;
 
+		// Append title first
+		formWrapper.appendChild(title);
+
+		// Add nickname input for unauthorized users
 		if (!isLoggedIn) {
 			const nicknameWrapper = document.createElement('div');
 			nicknameWrapper.classList.add(
@@ -390,17 +394,37 @@ export function TournamentTab() {
 
 			nicknameInput = document.createElement('input');
 			nicknameInput.type = 'text';
-			nicknameInput.placeholder = 'Nickname';
+			nicknameInput.placeholder = 'Your nickname';
 			nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
 			nicknameInput.maxLength = 20;
+			nicknameInput.required = true;
+
+			// Remove error styling when user starts typing
+			nicknameInput.addEventListener('input', () => {
+				nicknameInput?.classList.remove('border-red-500');
+			});
 
 			nicknameWrapper.appendChild(nicknameLabel);
 			nicknameWrapper.appendChild(nicknameInput);
 			formWrapper.appendChild(nicknameWrapper);
 		}
 
+		// Add number of players selection
+		const selectWrapper = document.createElement('div');
+		selectWrapper.classList.add(
+			'flex',
+			'flex-col',
+			'gap-2',
+			'w-full',
+			'max-w-md'
+		);
+
+		const selectLabel = document.createElement('label');
+		selectLabel.textContent = 'Number of players:';
+		selectLabel.classList.add('text-sm', 'font-medium');
+
 		const select = document.createElement('select');
-		select.classList.add('border', 'rounded', 'p-2');
+		select.classList.add('border', 'rounded', 'p-2', 'w-full');
 		[4, 8].forEach((num) => {
 			const option = document.createElement('option');
 			option.value = num.toString();
@@ -408,8 +432,20 @@ export function TournamentTab() {
 			select.appendChild(option);
 		});
 
+		selectWrapper.appendChild(selectLabel);
+		selectWrapper.appendChild(select);
+		formWrapper.appendChild(selectWrapper);
+
+		// Add buttons
 		const buttons = document.createElement('div');
-		buttons.classList.add('flex', 'gap-2', 'justify-end');
+		buttons.classList.add(
+			'flex',
+			'gap-2',
+			'justify-end',
+			'w-full',
+			'max-w-md',
+			'mt-4'
+		);
 
 		const confirmBtn = document.createElement('button');
 		confirmBtn.textContent = 'Create';
@@ -419,11 +455,9 @@ export function TournamentTab() {
 		cancelBtn.textContent = 'Cancel';
 		cancelBtn.classList.add('btn', 'btn-secondary', 'px-4', 'py-2');
 
-		buttons.appendChild(confirmBtn);
 		buttons.appendChild(cancelBtn);
+		buttons.appendChild(confirmBtn);
 
-		formWrapper.appendChild(title);
-		formWrapper.appendChild(select);
 		formWrapper.appendChild(buttons);
 		card.appendChild(formWrapper);
 
@@ -438,8 +472,17 @@ export function TournamentTab() {
 				if (!nickname) {
 					nicknameInput?.classList.add('border-red-500');
 					nicknameInput?.focus();
+					Toaster('Please enter your nickname');
 					return;
 				}
+				if (nickname.length < 2) {
+					nicknameInput?.classList.add('border-red-500');
+					nicknameInput?.focus();
+					Toaster('Nickname must be at least 2 characters');
+					return;
+				}
+				// Remove error styling if validation passes
+				nicknameInput?.classList.remove('border-red-500');
 				creator = nickname;
 			}
 
