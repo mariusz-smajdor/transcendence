@@ -1,14 +1,4 @@
-import {
-	CloudUpload,
-	UserCog,
-	ArrowLeft,
-	History,
-	Settings,
-	LogOut,
-	User,
-	Mail,
-	X,
-} from 'lucide';
+import { CloudUpload, History, Settings, LogOut, User, Mail, X } from 'lucide';
 import { Wrapper } from '../../components/wrapper';
 import { Card } from '../../components/card';
 import { Icon } from '../../components/icon';
@@ -21,12 +11,12 @@ import { Img } from '../../components/img';
 import { Button } from '../../components/button';
 import { Toaster } from '../../components/toaster';
 import { getAvatarUrl } from '../../utils/avatarUtils';
+import { historyManager } from '../../utils/historyManager';
 import { getFriends, getFriendRequests } from '../../api/friendRequest';
 import {
 	fetchMatchResults,
 	fetchMatchStats,
 	type MatchResult,
-	type MatchStats,
 } from '../../api/matchResults';
 import {
 	Table,
@@ -37,7 +27,7 @@ import {
 	TableRow,
 } from '../../components/table';
 
-export default function Profile() {
+export default function Profile(options?: { pushState?: boolean }) {
 	const user = store.getState().user;
 
 	const overlay = Wrapper({
@@ -53,11 +43,16 @@ export default function Profile() {
 			'p-4',
 		],
 	});
+	// Identify overlay to prevent duplicates on forward navigation reopen
+	overlay.setAttribute('data-profile-modal', 'true');
 
 	const closeModal = () => {
 		overlay.remove();
 		document.removeEventListener('keydown', onKeyDown);
 		window.removeEventListener('popstate', onPopState);
+
+		// Navigate back one entry so forward reopens the modal state
+		historyManager.back();
 	};
 
 	const onKeyDown = (e: KeyboardEvent) => {
@@ -75,12 +70,9 @@ export default function Profile() {
 	document.addEventListener('keydown', onKeyDown);
 	window.addEventListener('popstate', onPopState);
 
-	// Push URL state indicating modal is open if not already present
-	const currentParam = new URL(window.location.href).searchParams.get('modal');
-	if (currentParam !== 'profile') {
-		const urlOpen = new URL(window.location.href);
-		urlOpen.searchParams.set('modal', 'profile');
-		window.history.pushState(null, '', urlOpen.toString());
+	// Push modal state so back/forward works without query params
+	if (options?.pushState !== false) {
+		historyManager.pushState('modal', { modal: 'profile' });
 	}
 
 	function ProfileContent() {
