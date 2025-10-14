@@ -200,6 +200,14 @@ export class Room {
     return i;
   }
 
+  isNicknameTaken(nickname) {
+    // Check if nickname is already taken in this room (case-insensitive)
+    const normalizedNickname = nickname.toLowerCase().trim();
+    return this.players.some(
+      (player) => player.nickname.toLowerCase().trim() === normalizedNickname,
+    );
+  }
+
   addPlayer(connection, nickname, token, sessionId) {
     this.players.push(new Player(connection, nickname, sessionId, token));
 
