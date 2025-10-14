@@ -134,6 +134,12 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
         game.playersManager.stats,
         game.gameType,
       );
+      // Send message about player leaving during active game
+      if (role === 'left') {
+        broadcastMessage(game.clients, 'left_player_disconnected');
+      } else if (role === 'right') {
+        broadcastMessage(game.clients, 'right_player_disconnected');
+      }
     }
     game.playersManager.removePlayer(connection);
     game.clients.delete(connection);
@@ -143,7 +149,12 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
         game.gameState.score.right === GAME_CONFIG.NUMBER_OF_ROUNDS
       )
         resetGameStatus(game, false);
-      broadcastMessage(game.clients, 'left');
+      // Send role-specific disconnect message
+      if (role === 'left') {
+        broadcastMessage(game.clients, 'left_player_disconnected');
+      } else if (role === 'right') {
+        broadcastMessage(game.clients, 'right_player_disconnected');
+      }
       game.readyL = false;
       game.readyR = false;
     } else if (
@@ -173,6 +184,7 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 
   connection.on('error', (err) => {
     console.error('WebSocket error:', err);
+    const role = game.playersManager.getRole(connection);
     game.playersManager.removeRole(connection);
     game.clients.delete(connection);
     if (
@@ -181,7 +193,14 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
     ) {
       stopGameLoop(game);
       game.isRunning = false;
-      broadcastMessage(game.clients, 'game_stop');
+      // Send role-specific error message
+      if (role === 'left') {
+        broadcastMessage(game.clients, 'left_player_disconnected');
+      } else if (role === 'right') {
+        broadcastMessage(game.clients, 'right_player_disconnected');
+      } else {
+        broadcastMessage(game.clients, 'game_stop');
+      }
     }
     if (
       game.playersManager.leftPlayer === null &&

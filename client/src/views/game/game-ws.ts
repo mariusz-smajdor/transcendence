@@ -166,14 +166,44 @@ function manageMessage(
 		case 'left':
 			ui.text.textContent = 'The oponent left the game';
 			break;
+		case 'left_player_disconnected':
+			if (gameState.playerRole === 'right') {
+				ui.text.textContent = `Your opponent (${gameState.leftPlayerName}) disconnected`;
+			} else if (gameState.playerRole === 'spectator') {
+				ui.text.textContent = 'Left player disconnected';
+			} else {
+				ui.text.textContent = 'Player disconnected';
+			}
+			break;
+		case 'right_player_disconnected':
+			if (gameState.playerRole === 'left') {
+				ui.text.textContent = `Your opponent (${gameState.rightPlayerName}) disconnected`;
+			} else if (gameState.playerRole === 'spectator') {
+				ui.text.textContent = 'Right player disconnected';
+			} else {
+				ui.text.textContent = 'Player disconnected';
+			}
+			break;
 		case 'match_finished':
 			ui.text.textContent = 'Result saved! Back to tournament';
 			break;
 		case 'left_error':
-			ui.text.textContent = 'Walkover! Left player left the game';
+			if (gameState.playerRole === 'right') {
+				ui.text.textContent = `Your opponent (${gameState.leftPlayerName}) left the game. You win by walkover!`;
+			} else if (gameState.playerRole === 'spectator') {
+				ui.text.textContent = 'Walkover! Left player left the game';
+			} else {
+				ui.text.textContent = 'Match ended - player disconnected';
+			}
 			break;
 		case 'right_error':
-			ui.text.textContent = 'Walkover! Right player left the game';
+			if (gameState.playerRole === 'left') {
+				ui.text.textContent = `Your opponent (${gameState.rightPlayerName}) left the game. You win by walkover!`;
+			} else if (gameState.playerRole === 'spectator') {
+				ui.text.textContent = 'Walkover! Right player left the game';
+			} else {
+				ui.text.textContent = 'Match ended - player disconnected';
+			}
 			break;
 		default:
 			ui.text.textContent = data.message;
