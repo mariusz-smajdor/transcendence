@@ -193,19 +193,12 @@ export const acceptFriendRequest = async (db, requestId, userId) => {
       .prepare('SELECT username FROM users WHERE id = ?')
       .get(userId);
 
-    // Send notification to original sender
+    // Send notification to original sender (not to the accepter)
     const senderNotification = createFriendRequestAcceptedNotification(
       accepter.username,
       request.sender_id,
     );
     sendNotification(request.sender_id, senderNotification);
-
-    // Also send notification to receiver to refresh their friends list
-    const receiverNotification = createFriendRequestAcceptedNotification(
-      accepter.username,
-      request.receiver_id,
-    );
-    sendNotification(request.receiver_id, receiverNotification);
 
     return { success: true, message: 'Friend request accepted successfully' };
   } catch (error) {
@@ -284,19 +277,12 @@ export const removeFriend = async (db, userId, friendId) => {
         .prepare('SELECT username FROM users WHERE id = ?')
         .get(friendId);
 
-      // Send notification to the removed user
+      // Send notification to the removed user (not to the remover)
       const removedNotification = createFriendRemovedNotification(
         remover.username,
         friendId,
       );
       sendNotification(friendId, removedNotification);
-
-      // Send notification to the remover (to refresh their friends list)
-      const removerNotification = createFriendRemovedNotification(
-        remover.username,
-        userId,
-      );
-      sendNotification(userId, removerNotification);
 
       return { success: true, message: 'Friend removed successfully' };
     } else {

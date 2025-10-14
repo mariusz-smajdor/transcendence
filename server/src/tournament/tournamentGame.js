@@ -5,7 +5,7 @@ import {
   gameLoop,
   updateGameState,
 } from '../game/gameState.js';
-import { broadcastMessage } from '../game/broadcast.js';
+import { broadcastMessage, broadcastStatus } from '../game/broadcast.js';
 import { saveClosedMatch } from '../models/gameHistory.js';
 import { authenticatePlayer } from './utils.js';
 import { tournamentGameLoop } from './tournamentLoop.js';
@@ -239,6 +239,17 @@ function assignPlayer(connection, token, sessionId, match, game) {
     }),
   );
 
+  // Send nicknames to the connecting player immediately
+  connection.send(
+    JSON.stringify({
+      type: 'nickname',
+      object: {
+        left: match.leftPlayer?.nickname ?? 'Left',
+        right: match.rightPlayer?.nickname ?? 'Right',
+      },
+    }),
+  );
+
   if (
     game.playersManager.leftPlayer === null ||
     game.playersManager.rightPlayer === null
@@ -249,6 +260,11 @@ function assignPlayer(connection, token, sessionId, match, game) {
     game.playersManager.rightPlayer != null
   ) {
     broadcastMessage(game.clients, 'waiting_for_readiness');
+    // Broadcast nicknames to all players when both are present
+    broadcastStatus(game.clients, 'nickname', {
+      left: match.leftPlayer?.nickname ?? 'Left',
+      right: match.rightPlayer?.nickname ?? 'Right',
+    });
   }
 }
 
