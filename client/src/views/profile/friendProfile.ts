@@ -1,4 +1,5 @@
 import { User, Mail, History, X } from 'lucide';
+import { historyManager } from '../../utils/historyManager';
 import { Wrapper } from '../../components/wrapper';
 import { Card } from '../../components/card';
 import { Icon } from '../../components/icon';
@@ -9,7 +10,6 @@ import { Button } from '../../components/button';
 import { getAvatarUrl } from '../../utils/avatarUtils';
 import {
 	fetchFriendMatchHistory,
-	type FriendMatchHistory,
 	type MatchResult,
 	type MatchStats,
 } from '../../api/matchResults';
@@ -22,7 +22,10 @@ import {
 	TableRow,
 } from '../../components/table';
 
-export default function FriendProfile(friendId: number) {
+export default function FriendProfile(
+	friendId: number,
+	options?: { pushState?: boolean }
+) {
 	const overlay = Wrapper({
 		element: 'section',
 		classes: [
@@ -36,11 +39,16 @@ export default function FriendProfile(friendId: number) {
 			'p-4',
 		],
 	});
+	// Identify overlay for re-open logic guards
+	overlay.setAttribute('data-friend-profile-modal', 'true');
 
 	const closeModal = () => {
 		overlay.remove();
 		document.removeEventListener('keydown', onKeyDown);
 		window.removeEventListener('popstate', onPopState);
+
+		// Navigate back to previous state so forward reopens the modal
+		historyManager.back();
 	};
 
 	const onKeyDown = (e: KeyboardEvent) => {
@@ -58,12 +66,9 @@ export default function FriendProfile(friendId: number) {
 	document.addEventListener('keydown', onKeyDown);
 	window.addEventListener('popstate', onPopState);
 
-	// Push URL state indicating modal is open if not already present
-	const currentParam = new URL(window.location.href).searchParams.get('modal');
-	if (currentParam !== `friend-${friendId}`) {
-		const urlOpen = new URL(window.location.href);
-		urlOpen.searchParams.set('modal', `friend-${friendId}`);
-		window.history.pushState(null, '', urlOpen.toString());
+	// Push modal state so back/forward navigates between states, unless restored
+	if (options?.pushState !== false) {
+		historyManager.pushState('modal', { modal: 'friendProfile', friendId });
 	}
 
 	function FriendProfileContent() {
