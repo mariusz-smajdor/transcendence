@@ -50,6 +50,13 @@ export async function tournamentRoutes(fastify) {
       res.code(400).send({ error: 'Player is already in another tournament' });
       return;
     }
+
+    // Validate nickname
+    if (!creator || creator.trim().length === 0) {
+      res.code(400).send({ error: 'Nickname is required' });
+      return;
+    }
+
     const avatar = getAvatar(fastify, extractId(fastify, token));
     let roomId = tournaments.createRoom(
       connection,
@@ -78,14 +85,33 @@ export async function tournamentRoutes(fastify) {
       res.code(400).send({ error: 'Player is already in another tournament' });
       return;
     }
+
+    // Validate nickname
+    if (!name || name.trim().length === 0) {
+      res.code(400).send({ error: 'Nickname is required' });
+      return;
+    }
+
     let room = tournaments.getRoom(roomId);
-    if (
-      room === undefined ||
-      room.players.length === room.getExpectedPlayers()
-    ) {
+    if (room === undefined) {
+      res.code(400).send({ error: 'Tournament room not found' });
+      return;
+    }
+
+    if (room.players.length === room.getExpectedPlayers()) {
       res.code(400).send({ error: 'Room is full' });
       return;
     }
+
+    // Check if nickname is already taken in this room
+    if (room.isNicknameTaken(name)) {
+      res.code(400).send({
+        error: 'Nickname already taken',
+        message: `The nickname "${name}" is already taken in this tournament. Please choose a different nickname.`,
+      });
+      return;
+    }
+
     room = tournaments.joinRoom(roomId, connection, name, token, sessionId);
 
     // Always send consistent data format regardless of tournament status

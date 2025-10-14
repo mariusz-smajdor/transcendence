@@ -314,7 +314,25 @@ export function TournamentTab() {
 							currentBracketComponent = bracketComponent;
 							card.appendChild(bracketComponent);
 						} else {
-							Toaster(data.error || 'Failed to join tournament');
+							// Check if it's a nickname already taken error
+							if (data.error === 'Nickname already taken') {
+								// Show the nickname modal again with error message
+								showNicknameModal({
+									title: 'Nickname Taken',
+									description:
+										data.message ||
+										'This nickname is already taken. Please choose a different one.',
+									placeholder: 'Choose a different nickname',
+									onConfirm: (nickname) => {
+										performJoin(nickname);
+									},
+									onCancel: () => {
+										// Just close the modal
+									},
+								});
+							} else {
+								Toaster(data.error || 'Failed to join tournament');
+							}
 						}
 					};
 
