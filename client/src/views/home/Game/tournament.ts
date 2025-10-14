@@ -26,11 +26,13 @@ import { showNicknameModal } from '../../../components/nickname-modal.js';
 // Transform server match results to client format
 function transformServerMatchResults(
 	serverMatches: any[],
-	numberOfPlayers: number
+	numberOfPlayers: number,
+	positions: string[]
 ) {
 	console.log('Transforming server matches:', {
 		serverMatches,
 		numberOfPlayers,
+		positions,
 	});
 	const matchResults: Array<{
 		matchId: string;
@@ -38,36 +40,79 @@ function transformServerMatchResults(
 		loser: string;
 	}> = [];
 
-	// Server matches don't have explicit match IDs, so we need to map them based on tournament structure
-	// For now, we'll create a simple mapping based on the order of matches
+	// Build a quick lookup from player nickname to initial seeding index
+	const playerToIndex: Record<string, number> = {};
+	positions.forEach((p, i) => {
+		if (p) playerToIndex[p] = i;
+	});
+
+	// Helper to determine match id based on player seeding positions
+	function getMatchIdByPlayers(p1: string | undefined, p2: string | undefined) {
+		if (!p1 || !p2) return null;
+		const i1 = playerToIndex[p1];
+		const i2 = playerToIndex[p2];
+		const bothKnown = Number.isInteger(i1) && Number.isInteger(i2);
+		if (!bothKnown) return null;
+
+		const a = Math.min(i1, i2);
+		const b = Math.max(i1, i2);
+
+		if (numberOfPlayers === 4) {
+			// Semifinals are (0,1) and (2,3). Final mixes across groups.
+			if (a === 0 && b === 1) return 'sf1';
+			if (a === 2 && b === 3) return 'sf2';
+			return 'final';
+		}
+
+		if (numberOfPlayers === 8) {
+			// Quarterfinals exact pairs
+			if (a === 0 && b === 1) return 'qf1';
+			if (a === 2 && b === 3) return 'qf2';
+			if (a === 4 && b === 5) return 'qf3';
+			if (a === 6 && b === 7) return 'qf4';
+
+			// Same half but not a QF exact pair => semifinal
+			const inFirstHalf = a >= 0 && b <= 3;
+			const inSecondHalf = a >= 4 && b <= 7;
+			if (inFirstHalf) return 'sf1';
+			if (inSecondHalf) return 'sf2';
+
+			// Across halves => final
+			return 'final';
+		}
+
+		return null;
+	}
+
+	// Map matches based on actual players rather than array index order
 	serverMatches.forEach((match, index) => {
 		if (match.winner) {
-			// Determine match ID based on tournament structure and match index
-			let matchId: string;
-			if (numberOfPlayers === 4) {
-				// For 4 players: sf1, sf2, final
-				if (index === 0) matchId = 'sf1';
-				else if (index === 1) matchId = 'sf2';
-				else if (index === 2) matchId = 'final';
-				else return; // Skip invalid matches
-			} else if (numberOfPlayers === 8) {
-				// For 8 players: qf1, qf2, qf3, qf4, sf1, sf2, final
-				if (index < 4) matchId = `qf${index + 1}`;
-				else if (index < 6) matchId = `sf${index - 3}`;
-				else if (index === 6) matchId = 'final';
-				else return; // Skip invalid matches
-			} else {
-				return; // Unsupported tournament size
+			// Determine match ID based on tournament structure and player positions
+			const left = match.leftPlayer || match.player1;
+			const right = match.rightPlayer || match.player2;
+			let matchId = getMatchIdByPlayers(left, right);
+
+			// Fallback to legacy index-based mapping if we couldn't deduce by players
+			if (!matchId) {
+				if (numberOfPlayers === 4) {
+					if (index === 0) matchId = 'sf1';
+					else if (index === 1) matchId = 'sf2';
+					else if (index === 2) matchId = 'final';
+					else return; // Skip invalid matches
+				} else if (numberOfPlayers === 8) {
+					if (index < 4) matchId = `qf${index + 1}`;
+					else if (index < 6) matchId = `sf${index - 3}`;
+					else if (index === 6) matchId = 'final';
+					else return; // Skip invalid matches
+				} else {
+					return; // Unsupported tournament size
+				}
 			}
 
 			// Now match.winner contains the actual player nickname
 			// Determine the loser from the player information
 			const loser =
-				match.leftPlayer && match.rightPlayer
-					? match.winner === match.leftPlayer
-						? match.rightPlayer
-						: match.leftPlayer
-					: 'Unknown';
+				left && right ? (match.winner === left ? right : left) : 'Unknown';
 
 			matchResults.push({
 				matchId,
@@ -180,7 +225,8 @@ export function TournamentTab() {
 				// Transform server match results to client format
 				const matchResults = transformServerMatchResults(
 					rooms.matches || [],
-					rooms.playersExpected
+					rooms.playersExpected,
+					players
 				);
 
 				const bracketComponent = TournamentBracket({
@@ -592,7 +638,8 @@ function updateTournamentBracket(
 	// Update the tournament bracket with new player data
 	const matchResults = transformServerMatchResults(
 		data.matches || [],
-		data.playersExpected
+		data.playersExpected,
+		data.positions
 	);
 
 	console.log('Transformed match results:', matchResults);
