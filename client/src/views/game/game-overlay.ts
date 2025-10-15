@@ -1,5 +1,4 @@
 import { Button } from '../../components/button';
-import { Text } from '../../components/text';
 import Game from './game';
 import { GameType } from '../../types/game';
 import { cleanupKeyboardState } from './game-keys';
@@ -77,45 +76,6 @@ export function showGameOverlay(
 		}
 	};
 
-	const shareText = Text({
-		content: 'share with a friend: ',
-		classes: [
-			'absolute',
-			'bottom-2',
-			'left-1/2',
-			'-translate-x-1/2',
-			'text-white',
-			'text-md',
-			'px-4',
-			'py-2',
-			'rounded',
-			'text-center',
-			'flex',
-			'items-center',
-			'gap-2',
-		],
-	});
-
-	const gameUrl = `${window.location.origin}/game?gameId=${gameId}`;
-	const link = document.createElement('a');
-	link.href = '#';
-	link.textContent = 'copy link';
-	link.classList.add('text-blue-400', 'underline', 'hover:text-blue-200');
-
-	link.onclick = async (e) => {
-		e.preventDefault();
-		try {
-			await navigator.clipboard.writeText(gameUrl);
-			const oldText = link.textContent;
-			link.textContent = 'copied!';
-			setTimeout(() => {
-				link.textContent = oldText;
-			}, 1500);
-		} catch {
-			link.textContent = 'error';
-		}
-	};
-
 	window.addEventListener('keydown', preventArrowScroll, { passive: false });
 	document.body.appendChild(overlay);
 	if (gameElementForDOM) {
@@ -124,10 +84,6 @@ export function showGameOverlay(
 		console.error('Failed to create game component.');
 	}
 	overlay.appendChild(CloseBtn);
-	if (gameType === 'network') {
-		overlay.appendChild(shareText);
-		shareText.appendChild(link);
-	}
 
 	// Push history state for back button support
 	// For tournament games, store the previous state so we can restore it
