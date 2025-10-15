@@ -13,6 +13,7 @@ import {
 import { store } from '../store';
 import { getAvatarUrl } from '../utils/avatarUtils';
 import { historyManager } from '../utils/historyManager';
+import { deleteCookie } from '../views/game/game-cookies';
 
 function Menu() {
 	const menu = Wrapper({
@@ -97,6 +98,8 @@ function Menu() {
 				});
 
 				if (res.ok) {
+					// Clear access token cookie
+					deleteCookie('access_token');
 					store.setState({ user: null });
 					window.location.href = '/';
 				} else {

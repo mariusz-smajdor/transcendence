@@ -412,48 +412,15 @@ export function TournamentTab() {
 
 		const token = getCookie('access_token') ?? null;
 		const sessionId = getCookie('sessionId') ?? null;
-		const isLoggedIn = !!token;
 
 		let nicknameInput: HTMLInputElement | null = null;
 
 		// Append title first
 		formWrapper.appendChild(title);
 
-		// Add nickname input for unauthorized users
-		if (!isLoggedIn) {
-			const nicknameWrapper = document.createElement('div');
-			nicknameWrapper.classList.add(
-				'flex',
-				'flex-col',
-				'gap-2',
-				'w-full',
-				'max-w-md'
-			);
-
-			const nicknameLabel = document.createElement('label');
-			nicknameLabel.textContent = 'Enter your nickname:';
-			nicknameLabel.classList.add('text-sm', 'font-medium');
-
-			nicknameInput = document.createElement('input');
-			nicknameInput.type = 'text';
-			nicknameInput.placeholder = 'Your nickname';
-			nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
-			nicknameInput.maxLength = 20;
-			nicknameInput.required = true;
-
-			// Remove error styling when user starts typing
-			nicknameInput.addEventListener('input', () => {
-				nicknameInput?.classList.remove('border-red-500');
-			});
-
-			nicknameWrapper.appendChild(nicknameLabel);
-			nicknameWrapper.appendChild(nicknameInput);
-			formWrapper.appendChild(nicknameWrapper);
-		}
-
-		// Add number of players selection
-		const selectWrapper = document.createElement('div');
-		selectWrapper.classList.add(
+		// Add nickname input for all users
+		const nicknameWrapper = document.createElement('div');
+		nicknameWrapper.classList.add(
 			'flex',
 			'flex-col',
 			'gap-2',
@@ -461,22 +428,25 @@ export function TournamentTab() {
 			'max-w-md'
 		);
 
-		const selectLabel = document.createElement('label');
-		selectLabel.textContent = 'Number of players:';
-		selectLabel.classList.add('text-sm', 'font-medium');
+		const nicknameLabel = document.createElement('label');
+		nicknameLabel.textContent = 'Enter your nickname:';
+		nicknameLabel.classList.add('text-sm', 'font-medium');
 
-		const select = document.createElement('select');
-		select.classList.add('border', 'rounded', 'p-2', 'w-full');
-		[4].forEach((num) => {
-			const option = document.createElement('option');
-			option.value = num.toString();
-			option.textContent = num.toString();
-			select.appendChild(option);
+		nicknameInput = document.createElement('input');
+		nicknameInput.type = 'text';
+		nicknameInput.placeholder = 'Your nickname';
+		nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
+		nicknameInput.maxLength = 20;
+		nicknameInput.required = true;
+
+		// Remove error styling when user starts typing
+		nicknameInput.addEventListener('input', () => {
+			nicknameInput?.classList.remove('border-red-500');
 		});
 
-		selectWrapper.appendChild(selectLabel);
-		selectWrapper.appendChild(select);
-		formWrapper.appendChild(selectWrapper);
+		nicknameWrapper.appendChild(nicknameLabel);
+		nicknameWrapper.appendChild(nicknameInput);
+		formWrapper.appendChild(nicknameWrapper);
 
 		// Add buttons
 		const buttons = document.createElement('div');
@@ -508,27 +478,26 @@ export function TournamentTab() {
 		};
 
 		confirmBtn.onclick = async () => {
-			let creator = store.getState().user?.username ?? 'Guest';
-			if (!isLoggedIn) {
-				const nickname = nicknameInput?.value.trim();
-				if (!nickname) {
-					nicknameInput?.classList.add('border-red-500');
-					nicknameInput?.focus();
-					Toaster('Please enter your nickname');
-					return;
-				}
-				if (nickname.length < 2) {
-					nicknameInput?.classList.add('border-red-500');
-					nicknameInput?.focus();
-					Toaster('Nickname must be at least 2 characters');
-					return;
-				}
-				// Remove error styling if validation passes
-				nicknameInput?.classList.remove('border-red-500');
-				creator = nickname;
+			// Always require nickname validation
+			const nickname = nicknameInput?.value.trim();
+			if (!nickname) {
+				nicknameInput?.classList.add('border-red-500');
+				nicknameInput?.focus();
+				Toaster('Please enter your nickname');
+				return;
 			}
+			if (nickname.length < 2) {
+				nicknameInput?.classList.add('border-red-500');
+				nicknameInput?.focus();
+				Toaster('Nickname must be at least 2 characters');
+				return;
+			}
+			// Remove error styling if validation passes
+			nicknameInput?.classList.remove('border-red-500');
+			const creator = nickname;
 
-			const numberOfPlayers = parseInt(select.value, 10);
+			// Hardcode to 4 players
+			const numberOfPlayers = 4;
 			let response = await fetch('/api/tournament/create', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },

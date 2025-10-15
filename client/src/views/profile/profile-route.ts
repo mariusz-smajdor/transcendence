@@ -37,6 +37,7 @@ import {
 	TableHeaderCell,
 	TableRow,
 } from '../../components/table';
+import { deleteCookie } from '../../game/game-cookies';
 
 export default function ProfileRoute() {
 	const user = store.getState().user;
@@ -770,6 +771,9 @@ export default function ProfileRoute() {
 				});
 
 				if (res.ok) {
+					// Clear access token cookie
+					deleteCookie('access_token');
+
 					// Clear local storage
 					localStorage.removeItem('isOAuthUser');
 
