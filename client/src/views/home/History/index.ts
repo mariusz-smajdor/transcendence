@@ -113,8 +113,7 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 					const row = TableRow({});
 
 					const opponentCell = TableCell({
-						content:
-							match.gameType === 'CPU' ? 'nygus' : match.opponent.username,
+						content: match.gameType === 'CPU' ? 'CPU' : match.opponent.username,
 						classes: ['flex', 'items-center', 'gap-2'],
 					});
 
@@ -122,7 +121,7 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 						Img({
 							src: getAvatarUrl(
 								match.opponent.avatar,
-								match.gameType === 'CPU' ? 'nygus' : match.opponent.username
+								match.gameType === 'CPU' ? 'CPU' : match.opponent.username
 							),
 							classes: [
 								'w-8',

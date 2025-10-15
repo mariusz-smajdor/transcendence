@@ -324,14 +324,14 @@ export function ProfileModal(options: ProfileModalOptions) {
 		matches.forEach((match: MatchResult) => {
 			const row = TableRow({});
 			const opponentCell = TableCell({
-				content: match.gameType === 'CPU' ? 'nygus' : match.opponent.username,
+				content: match.gameType === 'CPU' ? 'CPU' : match.opponent.username,
 				classes: ['flex', 'items-center', 'gap-2'],
 			});
 			opponentCell.prepend(
 				Img({
 					src: getAvatarUrl(
 						match.opponent.avatar,
-						match.gameType === 'CPU' ? 'nygus' : match.opponent.username
+						match.gameType === 'CPU' ? 'CPU' : match.opponent.username
 					),
 					classes: ['w-8', 'h-8', 'rounded-full', 'border', 'border-accent'],
 					alt: 'Opponent avatar',
