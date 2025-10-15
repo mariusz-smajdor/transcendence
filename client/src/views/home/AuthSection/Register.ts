@@ -5,6 +5,7 @@ import { Label } from '../../../components/label';
 import { Tab } from '../../../components/tabs';
 import { Text } from '../../../components/text';
 import { Wrapper } from '../../../components/wrapper';
+import { t } from '../../../services/i18n';
 
 function registerUser(
 	form: HTMLFormElement,
@@ -49,8 +50,7 @@ function registerUser(
 				submitMessage.textContent = data.message;
 				form.appendChild(submitMessage);
 			} else {
-				submitMessage.textContent =
-					'Registration successful! Scan the QR code with your authenticator app.';
+				submitMessage.textContent = t('register.success');
 				submitMessage.classList.remove('text-red-400');
 				submitMessage.classList.add('text-green-400');
 				form.appendChild(submitMessage);
@@ -59,7 +59,7 @@ function registerUser(
 				if (data.qrCode && qrCodeContainer) {
 					const qrImg = document.createElement('img');
 					qrImg.src = data.qrCode;
-					qrImg.alt = '2FA QR Code';
+					qrImg.alt = t('register.qr.alt');
 					qrImg.className = 'mx-auto mt-4 max-w-xs';
 					qrCodeContainer.innerHTML = '';
 					qrCodeContainer.appendChild(qrImg);
@@ -90,7 +90,7 @@ export default function Register() {
 	});
 	const heading = Heading({
 		level: 3,
-		content: 'Create your account!',
+		content: t('register.heading'),
 		classes: ['text-[1rem]', 'text-center'],
 	});
 	const form = Wrapper({
@@ -99,47 +99,47 @@ export default function Register() {
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6'],
 	}) as HTMLFormElement;
 	const emailLabel = Label({
-		content: 'Email address:',
+		content: t('register.email.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const emailInput = Input({
 		type: 'email',
 		name: 'set-email',
 		id: 'set-email',
-		placeholder: 'example@email.com',
+		placeholder: t('register.email.placeholder'),
 		required: true,
 	});
 	const usernameLabel = Label({
-		content: 'Username:',
+		content: t('register.username.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const usernameInput = Input({
 		type: 'text',
 		name: 'set-username',
 		id: 'set-username',
-		placeholder: 'your username',
+		placeholder: t('register.username.placeholder'),
 		required: true,
 	});
 	const passwordLabel = Label({
-		content: 'Password:',
+		content: t('register.password.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const passwordInput = Input({
 		type: 'password',
 		name: 'set-password',
 		id: 'set-password',
-		placeholder: '********',
+		placeholder: t('register.password.placeholder'),
 		required: true,
 	});
 	const confirmPasswordLabel = Label({
-		content: 'Confirm Password:',
+		content: t('register.confirmPassword.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const confirmPasswordInput = Input({
 		type: 'password',
 		name: 'set-confirm-password',
 		id: 'set-confirm-password',
-		placeholder: '********',
+		placeholder: t('register.confirmPassword.placeholder'),
 		required: true,
 	});
 
@@ -166,7 +166,7 @@ export default function Register() {
 	form.appendChild(passwordLabel);
 	form.appendChild(confirmPasswordLabel);
 	form.appendChild(qrCodeContainer);
-	form.appendChild(Button({ content: 'Sign up', type: 'submit' }));
+	form.appendChild(Button({ content: t('register.submit'), type: 'submit' }));
 	tab.appendChild(heading);
 	tab.appendChild(form);
 

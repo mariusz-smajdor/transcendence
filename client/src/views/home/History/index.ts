@@ -22,6 +22,8 @@ import {
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 import { formatFullDateTime } from '../../../utils/dateFormatter.js';
 
+import { t } from '../../../services/i18n';
+
 export default function History(user: any) {
 	const section = Card({
 		element: 'section',
@@ -38,9 +40,14 @@ export default function History(user: any) {
 
 	const heading = Heading({
 		level: 2,
-		content: 'Match History',
+		content: t('history.heading'),
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
+	heading.setAttribute('data-i18n', 'history.heading');
+	const histTextSpan = document.createElement('span');
+	histTextSpan.setAttribute('data-i18n-text', '');
+	histTextSpan.textContent = t('history.heading');
+	heading.appendChild(histTextSpan);
 
 	heading.prepend(
 		Icon({
@@ -57,8 +64,9 @@ export default function History(user: any) {
 	// Loading state
 	const loadingDiv = document.createElement('div');
 	loadingDiv.className = 'flex justify-center items-center p-8';
-	loadingDiv.innerHTML =
-		'<div class="text-muted">Loading match history...</div>';
+	loadingDiv.innerHTML = `<div class="text-muted" data-i18n="history.loading">${t(
+		'history.loading'
+	)}</div>`;
 	wrapper.appendChild(loadingDiv);
 
 	// Load match history
@@ -89,20 +97,30 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 		const tableHeader = TableHeader({});
 		const headerRow = TableRow({});
 
-		const opponentHeader = TableHeaderCell({ content: 'Opponent' });
-		const scoreHeader = TableHeaderCell({ content: 'Score' });
-		const typeHeader = TableHeaderCell({ content: 'Type' });
-		const dateHeader = TableHeaderCell({ content: 'Date' });
-		const blockchainHeader = TableHeaderCell({ content: 'Blockchain' });
+		const opponentHeader = TableHeaderCell({
+			content: t('history.table.opponent'),
+		});
+		const scoreHeader = TableHeaderCell({ content: t('history.table.score') });
+		const typeHeader = TableHeaderCell({ content: t('history.table.type') });
+		const dateHeader = TableHeaderCell({ content: t('history.table.date') });
+		const blockchainHeader = TableHeaderCell({
+			content: t('history.table.blockchain'),
+		});
+		opponentHeader.setAttribute('data-i18n', 'history.table.opponent');
+		scoreHeader.setAttribute('data-i18n', 'history.table.score');
+		typeHeader.setAttribute('data-i18n', 'history.table.type');
+		dateHeader.setAttribute('data-i18n', 'history.table.date');
+		blockchainHeader.setAttribute('data-i18n', 'history.table.blockchain');
 
 		const tableBody = TableBody({});
 
 		if (matches.length === 0) {
 			const emptyRow = TableRow({});
 			const emptyCell = TableCell({
-				content: 'No matches found',
+				content: t('history.table.empty'),
 				classes: ['text-center', 'text-muted', 'py-8'],
 			});
+			emptyCell.setAttribute('data-i18n', 'history.table.empty');
 			emptyCell.colSpan = 5;
 			emptyRow.appendChild(emptyCell);
 			tableBody.appendChild(emptyRow);
@@ -113,7 +131,10 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 					const row = TableRow({});
 
 					const opponentCell = TableCell({
-						content: match.gameType === 'CPU' ? 'CPU' : match.opponent.username,
+						content:
+							match.gameType === 'CPU'
+								? t('history.opponent.cpu')
+								: match.opponent.username,
 						classes: ['flex', 'items-center', 'gap-2'],
 					});
 
@@ -130,7 +151,7 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 								'border',
 								'border-accent',
 							],
-							alt: 'Opponent avatar',
+							alt: t('history.opponent.avatar.alt'),
 							loading: 'lazy',
 						})
 					);
@@ -192,10 +213,12 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 	} catch (error) {
 		console.error('Error loading match history:', error);
 		wrapper.innerHTML = `
-			<div class="flex justify-center items-center p-8">
-				<div class="text-red-400">Failed to load match history</div>
-			</div>
-		`;
+				<div class="flex justify-center items-center p-8">
+					<div class="text-red-400" data-i18n="history.loadError">${t(
+						'history.loadError'
+					)}</div>
+				</div>
+			`;
 	}
 }
 
@@ -204,10 +227,14 @@ function createStatsSection(stats: MatchStats): HTMLElement {
 	statsDiv.className = 'grid grid-cols-2 md:grid-cols-4 gap-4 mb-6';
 
 	const statItems = [
-		{ label: 'Total Matches', value: stats.totalMatches },
-		{ label: 'Wins', value: stats.wins, color: 'text-green-400' },
-		{ label: 'Losses', value: stats.losses, color: 'text-red-400' },
-		{ label: 'Win Rate', value: `${stats.winRate}%`, color: 'text-blue-400' },
+		{ key: 'history.stats.total', value: stats.totalMatches },
+		{ key: 'history.stats.wins', value: stats.wins, color: 'text-green-400' },
+		{ key: 'history.stats.losses', value: stats.losses, color: 'text-red-400' },
+		{
+			key: 'history.stats.winRate',
+			value: `${stats.winRate}%`,
+			color: 'text-blue-400',
+		},
 	];
 
 	statItems.forEach((stat) => {
@@ -220,7 +247,8 @@ function createStatsSection(stats: MatchStats): HTMLElement {
 
 		const labelDiv = document.createElement('div');
 		labelDiv.className = 'text-sm text-muted mt-1';
-		labelDiv.textContent = stat.label;
+		labelDiv.textContent = t(stat.key as any);
+		labelDiv.setAttribute('data-i18n', stat.key as any);
 
 		statDiv.appendChild(valueDiv);
 		statDiv.appendChild(labelDiv);

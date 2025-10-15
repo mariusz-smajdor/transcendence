@@ -2,7 +2,7 @@ import { type ComponentProps } from '../types/component';
 import { Wrapper } from './wrapper';
 
 type DropdownMenuProps = ComponentProps & {
-	dropdownTrigger: HTMLElement;
+	dropdownTrigger: Element;
 	// Optional URL sync configuration to support back/forward navigation
 	syncWithUrl?: boolean;
 	urlParam?: string; // e.g., 'dropdown'
@@ -160,8 +160,10 @@ export function DropdownMenu({
 	});
 
 	// Expose programmatic controls for external usage (e.g., close on Profile open)
-	(wrapper as any).closeMenu = (updateUrl: boolean = true) => closeMenu(updateUrl);
-	(wrapper as any).openMenu = (updateUrl: boolean = true) => openMenu(updateUrl);
+	(wrapper as any).closeMenu = (updateUrl: boolean = true) =>
+		closeMenu(updateUrl);
+	(wrapper as any).openMenu = (updateUrl: boolean = true) =>
+		openMenu(updateUrl);
 
 	return wrapper;
 }

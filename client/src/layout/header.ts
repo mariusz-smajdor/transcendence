@@ -14,11 +14,17 @@ import { store } from '../store';
 import { getAvatarUrl } from '../utils/avatarUtils';
 import { historyManager } from '../utils/historyManager';
 import { deleteCookie } from '../views/game/game-cookies';
+import { t } from '../services/i18n';
+import { initLanguage, setCurrentLang } from '../services/languageService';
 
 function Menu() {
 	const menu = Wrapper({
 		classes: ['flex', 'gap-4', 'lg:gap-6', 'items-center'],
 	});
+
+	// Initialize language via service (from localStorage)
+	initLanguage();
+
 	const languagesIcon = Icon({
 		icon: Languages,
 		classes: [
@@ -28,7 +34,46 @@ function Menu() {
 			'hover:text-secondary',
 		],
 	});
-	menu.appendChild(languagesIcon);
+
+	// Languages dropdown
+	const languagesContainer = Wrapper({ classes: ['relative'] });
+	const languagesDropdown = DropdownMenu({
+		dropdownTrigger: languagesIcon,
+		classes: ['top-12', 'right-0'],
+		// Do not sync with URL for language picker
+		syncWithUrl: false,
+	});
+
+	const languagesTitle = DropdownTitle({ content: t('header.language') });
+	const langEn = DropdownItem({ content: t('languages.en') });
+	const langPl = DropdownItem({ content: t('languages.pl') });
+	const langEs = DropdownItem({ content: t('languages.es') });
+
+	// Mark elements for live translation updates
+	languagesTitle.setAttribute('data-i18n', 'header.language');
+	langEn.setAttribute('data-i18n', 'languages.en');
+	langPl.setAttribute('data-i18n', 'languages.pl');
+	langEs.setAttribute('data-i18n', 'languages.es');
+
+	function applyLanguage(langCode: string) {
+		setCurrentLang(langCode);
+		// Close without touching URL history
+		(languagesDropdown as any)?.closeMenu?.(false);
+	}
+
+	langEn.addEventListener('click', () => applyLanguage('en'));
+	langPl.addEventListener('click', () => applyLanguage('pl'));
+	langEs.addEventListener('click', () => applyLanguage('es'));
+
+	languagesDropdown.appendChild(languagesTitle);
+	languagesDropdown.appendChild(DropdownSeparator());
+	languagesDropdown.appendChild(langEn);
+	languagesDropdown.appendChild(langPl);
+	languagesDropdown.appendChild(langEs);
+
+	languagesContainer.appendChild(languagesIcon);
+	languagesContainer.appendChild(languagesDropdown);
+	menu.appendChild(languagesContainer);
 
 	function renderUserMenu() {
 		// Remove existing user menu if it exists
@@ -76,17 +121,15 @@ function Menu() {
 			icon: User,
 			size: 'sm',
 		});
-		const dropdownProfile = DropdownItem({
-			content: 'Profile',
-		});
+		const dropdownProfile = DropdownItem({ content: t('header.profile') });
+		dropdownProfile.setAttribute('data-i18n', 'header.profile');
 		dropdownProfile.setAttribute('data-link', '/profile');
 		const logoutIcon = Icon({
 			icon: LogOut,
 			size: 'sm',
 		});
-		const dropdownLogout = DropdownItem({
-			content: 'Logout',
-		});
+		const dropdownLogout = DropdownItem({ content: t('header.logout') });
+		dropdownLogout.setAttribute('data-i18n', 'header.logout');
 
 		dropdownLogout.addEventListener('click', async (e) => {
 			e.preventDefault();

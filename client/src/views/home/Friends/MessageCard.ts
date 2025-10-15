@@ -15,6 +15,7 @@ import {
 import { type User } from '../../../types/user';
 import { renderMessages } from './renderMessages';
 import { dataChangeEmitter } from '../../../services/notificationService';
+import { t } from '../../../services/i18n';
 
 export const chat = Wrapper({
 	classes: ['flex', 'flex-col', 'gap-2', 'h-72', 'overflow-y-auto'],
@@ -94,16 +95,18 @@ export function MessageCard(friend: User | null) {
 	const input = Input({
 		name: 'message',
 		type: 'text',
-		placeholder: 'Type a message...',
+		placeholder: t('messages.input.placeholder'),
 		classes: ['px-2', 'py-1.5', 'text-sm', 'bg-background'],
 	});
+	input.setAttribute('data-i18n-placeholder', 'messages.input.placeholder');
 	input.classList.remove('px-3', 'py-2');
 	const sendButton = Button({
 		type: 'submit',
 		variant: 'primary',
-		content: 'Send',
+		content: t('messages.send'),
 		classes: ['px-2', 'py-1.5', 'text-sm'],
 	});
+	sendButton.setAttribute('data-i18n', 'messages.send');
 	sendButton.classList.remove('px-3', 'py-2');
 
 	async function loadMessages() {
