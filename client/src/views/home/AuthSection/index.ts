@@ -1,4 +1,5 @@
 import { KeyRound } from 'lucide';
+import { t } from '../../../services/i18n';
 import { Card } from '../../../components/card';
 import { Tabs, Trigger } from '../../../components/tabs';
 import { Heading } from '../../../components/heading';
@@ -17,11 +18,12 @@ export default function Auth() {
 	});
 	const heading = Heading({
 		level: 2,
-		content: 'Authenticate',
+		content: t('auth.authenticate'),
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
+	heading.setAttribute('data-i18n', 'auth.authenticate');
 	const googleButton = Button({
-		content: 'Authenticate with Google',
+		content: t('auth.google'),
 		variant: 'outline',
 		classes: [
 			'flex',
@@ -33,10 +35,12 @@ export default function Auth() {
 	});
 	const googleLogo = Img({
 		src: 'google-logo.svg',
-		alt: 'Google logo',
+		alt: t('auth.google'),
 		width: 18,
 		height: 18,
 	});
+	googleButton.setAttribute('data-i18n', 'auth.google');
+	googleLogo.setAttribute('data-i18n-alt', 'auth.google');
 	googleButton.appendChild(googleLogo);
 	googleButton.addEventListener('click', () => {
 		const api_url = store.getState().api_url;
@@ -52,13 +56,21 @@ export default function Auth() {
 	);
 	section.appendChild(heading);
 
+	const loginTrigger = Trigger({
+		content: t('auth.tabs.login'),
+		value: 'login',
+	});
+	loginTrigger.setAttribute('data-i18n', 'auth.tabs.login');
+	const registerTrigger = Trigger({
+		content: t('auth.tabs.register'),
+		value: 'register',
+	});
+	registerTrigger.setAttribute('data-i18n', 'auth.tabs.register');
+
 	section.appendChild(
 		Tabs({
 			defaultValue: 'login',
-			triggers: [
-				Trigger({ content: 'Login', value: 'login' }),
-				Trigger({ content: 'Register', value: 'register' }),
-			],
+			triggers: [loginTrigger, registerTrigger],
 			tabs: [Login(), Register()],
 		})
 	);

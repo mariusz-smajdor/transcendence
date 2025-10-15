@@ -7,6 +7,7 @@ import { Icon } from '../../../components/icon';
 import { Text } from '../../../components/text';
 import { showGameOverlay } from '../../game/game-overlay';
 import { TournamentTab } from './tournament';
+import { t } from '../../../services/i18n';
 
 function FriendCard() {
 	const card = Card({
@@ -43,14 +44,22 @@ function FriendCard() {
 	const wrapper = Wrapper({});
 	const heading = Heading({
 		level: 3,
-		content: 'Play with Friend',
+		content: t('game.friend.heading'),
 		classes: ['text-[1rem]', 'text-center'],
 	});
+	heading.setAttribute('data-i18n', 'game.friend.heading');
+	// Ensure an inner span to keep icons intact on translation updates
+	const friendTextSpan = document.createElement('span');
+	friendTextSpan.setAttribute('data-i18n-text', '');
+	friendTextSpan.textContent = t('game.friend.heading');
+	heading.innerHTML = '';
+	heading.appendChild(friendTextSpan);
 	const description = Text({
 		element: 'p',
-		content: 'Challenge your friend on the same device',
+		content: t('game.friend.desc'),
 		classes: ['text-sm', 'text-muted', 'text-center'],
 	});
+	description.setAttribute('data-i18n', 'game.friend.desc');
 
 	card.addEventListener('click', async () => {
 		const response = await fetch('/api/game/create');
@@ -100,14 +109,21 @@ function AiCard() {
 	const wrapper = Wrapper({});
 	const heading = Heading({
 		level: 3,
-		content: 'Play with AI',
+		content: t('game.ai.heading'),
 		classes: ['text-[1rem]'],
 	});
+	heading.setAttribute('data-i18n', 'game.ai.heading');
+	const aiTextSpan = document.createElement('span');
+	aiTextSpan.setAttribute('data-i18n-text', '');
+	aiTextSpan.textContent = t('game.ai.heading');
+	heading.innerHTML = '';
+	heading.appendChild(aiTextSpan);
 	const description = Text({
 		element: 'p',
-		content: 'Challenge AI on the same device',
+		content: t('game.ai.desc'),
 		classes: ['text-sm', 'text-muted'],
 	});
+	description.setAttribute('data-i18n', 'game.ai.desc');
 
 	card.addEventListener('click', async () => {
 		const response = await fetch('/api/game/create');
@@ -152,9 +168,16 @@ export default function Game() {
 	});
 	const heading = Heading({
 		level: 2,
-		content: 'Play Pong',
+		content: t('game.heading'),
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
+	heading.setAttribute('data-i18n', 'game.heading');
+	const gameTextSpan = document.createElement('span');
+	gameTextSpan.setAttribute('data-i18n-text', '');
+	gameTextSpan.textContent = t('game.heading');
+	// Remove any initial text to avoid duplicates like "Play Pong Zagraj w Pong"
+	heading.innerHTML = '';
+	heading.appendChild(gameTextSpan);
 
 	heading.prepend(
 		Icon({
@@ -168,8 +191,22 @@ export default function Game() {
 		Tabs({
 			defaultValue: 'quick-play',
 			triggers: [
-				Trigger({ content: 'Quick Play', value: 'quick-play' }),
-				Trigger({ content: 'Tournament', value: 'tournament' }),
+				(() => {
+					const tr = Trigger({
+						content: t('game.quickPlay'),
+						value: 'quick-play',
+					});
+					tr.setAttribute('data-i18n', 'game.quickPlay');
+					return tr;
+				})(),
+				(() => {
+					const tr = Trigger({
+						content: t('game.tournament'),
+						value: 'tournament',
+					});
+					tr.setAttribute('data-i18n', 'game.tournament');
+					return tr;
+				})(),
 			],
 			tabs: [QuickPlayTab(), TournamentTab()],
 			classes: ['h-full'],

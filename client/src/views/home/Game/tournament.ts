@@ -107,6 +107,8 @@ function transformServerMatchResults(
 let currentRoomId: string | null = null;
 let currentBracketComponent: HTMLElement | null = null;
 
+import { t } from '../../../services/i18n';
+
 export function TournamentTab() {
 	const tab = Tab({
 		value: 'tournament',
@@ -131,9 +133,10 @@ export function TournamentTab() {
 
 		const heading = Heading({
 			level: 2,
-			content: 'Tournament',
+			content: t('tournament.heading'),
 			classes: ['flex', 'items-center', 'gap-2'],
 		});
+		heading.setAttribute('data-i18n', 'tournament.heading');
 		heading.prepend(
 			Icon({
 				icon: Trophy,
@@ -148,8 +151,9 @@ export function TournamentTab() {
 
 		const newTournamentButton = Button({
 			variant: 'primary',
-			content: 'New Tournament',
+			content: t('tournament.new'),
 		});
+		newTournamentButton.setAttribute('data-i18n', 'tournament.new');
 
 		newTournamentButton.addEventListener('click', () => {
 			renderCreateForm();
@@ -157,8 +161,9 @@ export function TournamentTab() {
 
 		const refreshButton = Button({
 			variant: 'outline',
-			content: 'Refresh',
+			content: t('tournament.refresh'),
 		});
+		refreshButton.setAttribute('data-i18n', 'tournament.refresh');
 
 		refreshButton.addEventListener('click', async () => {
 			await renderRooms();
@@ -175,9 +180,16 @@ export function TournamentTab() {
 		const table = Table({});
 		const tableHeader = TableHeader({});
 		const headerRow = TableRow({});
-		const creatorHeader = TableHeaderCell({ content: 'Creator' });
-		const playersHeader = TableHeaderCell({ content: 'Players' });
-		const joinHeader = TableHeaderCell({ content: 'Join' });
+		const creatorHeader = TableHeaderCell({
+			content: t('tournament.th.creator'),
+		});
+		const playersHeader = TableHeaderCell({
+			content: t('tournament.th.players'),
+		});
+		const joinHeader = TableHeaderCell({ content: t('tournament.th.join') });
+		creatorHeader.setAttribute('data-i18n', 'tournament.th.creator');
+		playersHeader.setAttribute('data-i18n', 'tournament.th.players');
+		joinHeader.setAttribute('data-i18n', 'tournament.th.join');
 		const tableBody = TableBody({});
 
 		headerRow.appendChild(creatorHeader);
