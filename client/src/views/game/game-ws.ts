@@ -1,5 +1,6 @@
 import { UIElements, GameState, UIActions, GameType } from '../../types/game';
 import { getCookie } from './game-cookies';
+import { cleanupKeyboardState } from './game-keys';
 
 type WebSocketDeps = {
 	gameId: string;
@@ -167,6 +168,8 @@ function manageMessage(
 			ui.text.textContent = 'The oponent left the game';
 			break;
 		case 'left_player_disconnected':
+			// Stop keyboard movement immediately
+			cleanupKeyboardState();
 			if (gameState.playerRole === 'right') {
 				ui.text.textContent = `Your opponent (${gameState.leftPlayerName}) disconnected`;
 			} else if (gameState.playerRole === 'spectator') {
@@ -176,6 +179,8 @@ function manageMessage(
 			}
 			break;
 		case 'right_player_disconnected':
+			// Stop keyboard movement immediately
+			cleanupKeyboardState();
 			if (gameState.playerRole === 'left') {
 				ui.text.textContent = `Your opponent (${gameState.rightPlayerName}) disconnected`;
 			} else if (gameState.playerRole === 'spectator') {
@@ -188,6 +193,8 @@ function manageMessage(
 			ui.text.textContent = 'Result saved! Back to tournament';
 			break;
 		case 'left_error':
+			// Stop keyboard movement immediately
+			cleanupKeyboardState();
 			if (gameState.playerRole === 'right') {
 				ui.text.textContent = `Your opponent (${gameState.leftPlayerName}) left the game. You win by walkover!`;
 			} else if (gameState.playerRole === 'spectator') {
@@ -197,6 +204,8 @@ function manageMessage(
 			}
 			break;
 		case 'right_error':
+			// Stop keyboard movement immediately
+			cleanupKeyboardState();
 			if (gameState.playerRole === 'left') {
 				ui.text.textContent = `Your opponent (${gameState.rightPlayerName}) left the game. You win by walkover!`;
 			} else if (gameState.playerRole === 'spectator') {

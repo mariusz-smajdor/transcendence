@@ -88,6 +88,11 @@ export function manageGameWebSocket(game, connection, games, gameId, fastify) {
 
     //Movement
     if (msg.type === 'move') {
+      // Block movement if game is not running
+      if (!game.isRunning) {
+        return;
+      }
+      
       if (role === 'left') {
         if (msg.direction === 'UP') {
           game.gameState.paddles.left = Math.max(

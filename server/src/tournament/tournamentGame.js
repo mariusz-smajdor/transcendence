@@ -60,6 +60,11 @@ export function tournamentGame(fastify, connection, game, match, room) {
 
     //Movement
     if (msg.type === 'move') {
+      // Block movement if match is finished or game is not running
+      if (match.winner || !game.isRunning) {
+        return;
+      }
+      
       if (role === 'left') {
         if (msg.direction === 'UP') {
           game.gameState.paddles.left = Math.max(
@@ -97,6 +102,10 @@ export function tournamentGame(fastify, connection, game, match, room) {
         return;
       }
 
+      // Stop game loop immediately to prevent further movement
+      stopGameLoop(game);
+      game.isRunning = false;
+
       if (role !== 'spectator') {
         if (role === 'left') {
           broadcastMessage(game.clients, 'left_error');
@@ -106,14 +115,6 @@ export function tournamentGame(fastify, connection, game, match, room) {
       }
 
       game.playersManager.removeTournamentRole(connection);
-
-      if (
-        game.playersManager.leftPlayer === null ||
-        game.playersManager.rightPlayer === null
-      ) {
-        stopGameLoop(game);
-        game.isRunning = false;
-      }
 
       // Fix: Define gameType for tournament matches
       const gameType = 'tournament';
@@ -150,6 +151,10 @@ export function tournamentGame(fastify, connection, game, match, room) {
         return;
       }
 
+      // Stop game loop immediately to prevent further movement
+      stopGameLoop(game);
+      game.isRunning = false;
+
       if (role !== 'spectator') {
         if (role === 'left') {
           broadcastMessage(game.clients, 'left_error');
@@ -159,14 +164,6 @@ export function tournamentGame(fastify, connection, game, match, room) {
       }
 
       game.playersManager.removeTournamentRole(connection);
-
-      if (
-        game.playersManager.leftPlayer === null ||
-        game.playersManager.rightPlayer === null
-      ) {
-        stopGameLoop(game);
-        game.isRunning = false;
-      }
 
       // Fix: Define gameType for tournament matches
       const gameType = 'tournament';
