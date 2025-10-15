@@ -5,7 +5,12 @@
  */
 export function formatMatchDate(dateString: string): string {
 	try {
-		const date = new Date(dateString);
+		// Database stores timestamps in UTC format (YYYY-MM-DD HH:MM:SS)
+		// We need to treat them as UTC by adding 'Z' suffix
+		const utcDateString = dateString.includes('T')
+			? dateString
+			: dateString + 'Z';
+		const date = new Date(utcDateString);
 
 		// Check if date is valid
 		if (isNaN(date.getTime())) {
@@ -61,7 +66,12 @@ export function formatMatchDate(dateString: string): string {
  */
 export function formatFullDateTime(dateString: string): string {
 	try {
-		const date = new Date(dateString);
+		// Database stores timestamps in UTC format (YYYY-MM-DD HH:MM:SS)
+		// We need to treat them as UTC by adding 'Z' suffix
+		const utcDateString = dateString.includes('T')
+			? dateString
+			: dateString + 'Z';
+		const date = new Date(utcDateString);
 
 		if (isNaN(date.getTime())) {
 			return dateString;
@@ -73,6 +83,7 @@ export function formatFullDateTime(dateString: string): string {
 			day: 'numeric',
 			hour: '2-digit',
 			minute: '2-digit',
+			timeZone: 'Europe/Warsaw',
 		});
 	} catch (error) {
 		console.error('Error formatting date:', error);
