@@ -64,23 +64,6 @@ function transformServerMatchResults(
 			return 'final';
 		}
 
-		if (numberOfPlayers === 8) {
-			// Quarterfinals exact pairs
-			if (a === 0 && b === 1) return 'qf1';
-			if (a === 2 && b === 3) return 'qf2';
-			if (a === 4 && b === 5) return 'qf3';
-			if (a === 6 && b === 7) return 'qf4';
-
-			// Same half but not a QF exact pair => semifinal
-			const inFirstHalf = a >= 0 && b <= 3;
-			const inSecondHalf = a >= 4 && b <= 7;
-			if (inFirstHalf) return 'sf1';
-			if (inSecondHalf) return 'sf2';
-
-			// Across halves => final
-			return 'final';
-		}
-
 		return null;
 	}
 
@@ -98,11 +81,6 @@ function transformServerMatchResults(
 					if (index === 0) matchId = 'sf1';
 					else if (index === 1) matchId = 'sf2';
 					else if (index === 2) matchId = 'final';
-					else return; // Skip invalid matches
-				} else if (numberOfPlayers === 8) {
-					if (index < 4) matchId = `qf${index + 1}`;
-					else if (index < 6) matchId = `sf${index - 3}`;
-					else if (index === 6) matchId = 'final';
 					else return; // Skip invalid matches
 				} else {
 					return; // Unsupported tournament size
@@ -489,7 +467,7 @@ export function TournamentTab() {
 
 		const select = document.createElement('select');
 		select.classList.add('border', 'rounded', 'p-2', 'w-full');
-		[4, 8].forEach((num) => {
+		[4].forEach((num) => {
 			const option = document.createElement('option');
 			option.value = num.toString();
 			option.textContent = num.toString();
