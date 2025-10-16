@@ -4,8 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 // Constants
-const SERVER_TARGET = 'https://server:3000';
-const WS_TARGET = 'wss://server:3000';
+const SERVER_TARGET = 'https://10.12.4.4:3000';
+const WS_TARGET = 'wss://10.12.4.4:3000';
 const CLIENT_PORT = 8080;
 
 // Helper functions
