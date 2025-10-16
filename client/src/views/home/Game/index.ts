@@ -14,7 +14,6 @@ function FriendCard() {
 		classes: [
 			'flex',
 			'gap-2',
-			'flex-col',
 			'justify-center',
 			'items-center',
 			'row-span-2',
@@ -45,10 +44,9 @@ function FriendCard() {
 	const heading = Heading({
 		level: 3,
 		content: t('game.friend.heading'),
-		classes: ['text-[1rem]', 'text-center'],
+		classes: ['text-[1rem]'],
 	});
 	heading.setAttribute('data-i18n', 'game.friend.heading');
-	// Ensure an inner span to keep icons intact on translation updates
 	const friendTextSpan = document.createElement('span');
 	friendTextSpan.setAttribute('data-i18n-text', '');
 	friendTextSpan.textContent = t('game.friend.heading');
@@ -144,9 +142,11 @@ function QuickPlayTab() {
 	const tab = Tab({
 		value: 'quick-play',
 		classes: [
-			'grid',
-			'grid-rows-5',
-			'grid-cols-2',
+			'flex',
+			'flex-col',
+			// 'grid',
+			// 'grid-rows-5',
+			// 'grid-cols-2',
 			'gap-4',
 			'h-full',
 			'lg:gap-6',
@@ -164,7 +164,10 @@ function QuickPlayTab() {
 export default function Game() {
 	const section = Card({
 		element: 'section',
-		classes: ['flex', 'flex-col', 'gap-4', 'lg:col-span-3', 'lg:gap-6'],
+		classes: ['flex', 'flex-col', 'gap-4', 
+			'lg:col-span-3', 
+			'lg:gap-6'
+		],
 	});
 	const heading = Heading({
 		level: 2,
@@ -175,7 +178,6 @@ export default function Game() {
 	const gameTextSpan = document.createElement('span');
 	gameTextSpan.setAttribute('data-i18n-text', '');
 	gameTextSpan.textContent = t('game.heading');
-	// Remove any initial text to avoid duplicates like "Play Pong Zagraj w Pong"
 	heading.innerHTML = '';
 	heading.appendChild(gameTextSpan);
 

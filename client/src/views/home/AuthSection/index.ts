@@ -78,7 +78,5 @@ export default function Auth() {
 	section.appendChild(Separator());
 	section.appendChild(googleButton);
 
-	// Language changes are handled automatically by the global i18n system via data-i18n attributes
-
 	return section;
 }
