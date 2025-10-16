@@ -2,7 +2,7 @@ import { Button } from '../../components/button';
 import Game from './game';
 import { GameType } from '../../types/game';
 import { cleanupKeyboardState } from './game-keys';
-import { historyManager } from '../../utils/historyManager';
+import { createGameClient } from './game';
 
 export function showGameOverlay(
 	gameId: string,
@@ -58,22 +58,7 @@ export function showGameOverlay(
 	CloseBtn.onclick = () => {
 		closeGameOverlay();
 
-		if (gameType === 'tournament') {
-			// For tournament games, restore the previous state to stay on tournament tab
-			const currentState = historyManager.getCurrentState();
-			const previousState = currentState?.data?.previousState;
-
-			if (previousState) {
-				// Restore the previous state (likely the tournament tab state)
-				historyManager.replaceState(previousState.type, previousState.data);
-			} else {
-				// Fallback: just go back
-				historyManager.back();
-			}
-		} else {
-			// For non-tournament games, go back in history normally
-			historyManager.back();
-		}
+		// No navigation: do not use historyManager.back() or replaceState
 	};
 
 	window.addEventListener('keydown', preventArrowScroll, { passive: false });
@@ -85,14 +70,7 @@ export function showGameOverlay(
 	}
 	overlay.appendChild(CloseBtn);
 
-	// Push history state for back button support
-	// For tournament games, store the previous state so we can restore it
-	if (gameType === 'tournament') {
-		const previousState = historyManager.getCurrentState();
-		historyManager.pushState('game', { gameId, gameType, previousState });
-	} else {
-		historyManager.pushState('game', { gameId, gameType });
-	}
+	// No history/navigation: do not push state for game overlays
 }
 
 export function closeGameOverlay() {

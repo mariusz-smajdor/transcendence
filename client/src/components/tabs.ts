@@ -1,7 +1,7 @@
 import { type ComponentProps } from '../types/component';
 import { Button } from './button';
 import { Wrapper } from './wrapper';
-import { historyManager } from '../utils/historyManager';
+// navigation removed: no history manager required
 
 type TriggersArray = [
 	HTMLButtonElement,
@@ -27,6 +27,8 @@ type TabsProps = ComponentProps & {
 	// Optional: enable back button support for tabs
 	enableHistory?: boolean;
 	tabGroupId?: string; // Unique identifier for this tab group
+	// Optional: URL paths for each tab
+	tabUrls?: Record<string, string>;
 };
 
 export function Tab({ value, classes }: TabProps) {
@@ -52,8 +54,7 @@ export function Tabs({
 	defaultValue,
 	triggers,
 	tabs,
-	enableHistory = false,
-	tabGroupId = 'default',
+	// navigation options removed
 }: TabsProps) {
 	const wrapper = Wrapper({
 		classes: ['flex', 'flex-col', 'gap-4', 'lg:gap-6', ...classes!],
@@ -73,7 +74,7 @@ export function Tabs({
 		wrapper.appendChild(tab);
 	});
 
-	const activateTab = (value: string, pushHistory = false) => {
+	const activateTab = (value: string) => {
 		currentTab = value;
 
 		tabs.forEach((tab) => {
@@ -92,57 +93,20 @@ export function Tabs({
 			}
 		});
 
-		// Push history state if enabled
-		// Always push state when user clicks, even for default tab
-		if (enableHistory && pushHistory) {
-			historyManager.pushState('tab', { tabGroupId, tabValue: value });
-		}
+		// No-op: navigation/history removed - do not push state
 	};
 
 	triggers.forEach((trigger) => {
 		trigger.addEventListener('click', () => {
 			if (trigger.dataset.value && trigger.dataset.value !== currentTab) {
-				activateTab(trigger.dataset.value, true);
+				activateTab(trigger.dataset.value);
 			}
 		});
 	});
 
-	// Handle back/forward button
-	if (enableHistory) {
-		const handleHistory = (state: any) => {
-			if (state.type === 'tab' && state.data?.tabGroupId === tabGroupId) {
-				activateTab(state.data.tabValue, false);
-			} else if (state.type === 'base') {
-				// When going back to base state, show default tab
-				activateTab(defaultValue, false);
-			}
-		};
-
-		historyManager.on('tab', handleHistory);
-		historyManager.on('base', handleHistory);
-
-		// Store cleanup function on wrapper for potential future cleanup
-		(wrapper as any).__cleanupTabHistory = () => {
-			historyManager.off('tab', handleHistory);
-			historyManager.off('base', handleHistory);
-		};
-	}
-
+	// Initialize with default tab or URL-based tab
 	// Initialize with default tab
-	activateTab(defaultValue, false);
-
-	// Initialize the current state to include tab information if history is enabled
-	// This ensures forward/back navigation works correctly
-	if (enableHistory) {
-		const currentState = historyManager.getCurrentState();
-		if (!currentState || currentState.type === 'base') {
-			// Replace base state with tab state for default tab
-			historyManager.replaceState('tab', {
-				tabGroupId,
-				tabValue: defaultValue,
-			});
-		}
-	}
+	activateTab(defaultValue);
 
 	return wrapper;
 }

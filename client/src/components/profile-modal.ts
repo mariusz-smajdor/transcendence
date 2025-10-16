@@ -73,15 +73,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 	document.addEventListener('keydown', onKeyDown);
 	window.addEventListener('popstate', onPopState);
 
-	// Push modal state for history navigation
-	if (options.pushState !== false) {
-		if (options.mode === 'friend')
-			historyManager.pushState('modal', {
-				modal: 'friendProfile',
-				friendId: options.friendId,
-			});
-		else historyManager.pushState('modal', { modal: 'profile' });
-	}
+	// No history/navigation: do not push state for modals
 
 	function ProfileHeaderSelf() {
 		const user = store.getState().user;

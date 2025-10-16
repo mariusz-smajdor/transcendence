@@ -37,7 +37,6 @@ import {
 	handleGameAcceptance,
 	handleGameStart,
 } from '../../../utils/gameInvitationHandler';
-import { historyManager } from '../../../utils/historyManager';
 
 // Track which friends have unread messages
 const unreadMessages = new Set<number>();
@@ -454,28 +453,7 @@ function AllFriendsTab() {
 	// Store unsubscribe functions for cleanup
 	const unsubscribeFunctions: (() => void)[] = [];
 
-	// Reopen friend modal on forward navigation if modal state exists
-	const handleModalState = (state: any) => {
-		if (
-			state?.data?.modal === 'friendProfile' &&
-			typeof state.data.friendId === 'number'
-		) {
-			// Guard: don't open a duplicate modal
-			if (!document.querySelector('[data-friend-profile-modal="true"]')) {
-				import('../../profile/friendProfile.js').then((module) => {
-					const FriendProfile = module.default;
-					const friendProfileModal = FriendProfile(state.data.friendId, {
-						pushState: false,
-					});
-					document.body.appendChild(friendProfileModal);
-				});
-			}
-		}
-	};
-	unsubscribeFunctions.push(() =>
-		historyManager.off('modal', handleModalState as any)
-	);
-	historyManager.on('modal', handleModalState as any);
+	// No navigation: modal state handling removed
 
 	// Handle invitation events
 	unsubscribeFunctions.push(
