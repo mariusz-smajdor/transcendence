@@ -27,7 +27,7 @@ export function setupWebSocket({
 }: WebSocketDeps): WebSocket {
 	const ws: WebSocket = new WebSocket(
 		roomId
-			? `wss://localhost:8080/tournament/match?gameId=${gameId}&roomId=${roomId}`
+			? `wss://10.12.4.4:8080/tournament/match?gameId=${gameId}&roomId=${roomId}`
 			: `${setWebsocketURL(gameType)}${gameId}`
 	);
 
@@ -223,12 +223,12 @@ function manageMessage(
 function setWebsocketURL(gameType: GameType) {
 	switch (gameType) {
 		case 'network':
-			return 'wss://localhost:8080/game?gameId=';
+			return 'wss://10.12.4.4:8080/game?gameId=';
 		case 'local':
-			return 'wss://localhost:8080/localgame?gameId=';
+			return 'wss://10.12.4.4:8080/localgame?gameId=';
 		case 'ai':
-			return 'wss://localhost:8080/aigame?gameId=';
+			return 'wss://10.12.4.4:8080/aigame?gameId=';
 		case 'tournament':
-			return 'wss://localhost:8080/tournament/match?gameId=';
+			return 'wss://10.12.4.4:8080/tournament/match?gameId=';
 	}
 }

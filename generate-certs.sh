@@ -47,7 +47,7 @@ generate_cert() {
     # Generate certificate
     openssl req -new -x509 -key "$key_file" -out "$crt_file" -days $DAYS_VALID \
         -subj "/C=US/ST=State/L=City/O=Organization/CN=$common_name" \
-        -addext "subjectAltName=DNS:localhost,DNS:$common_name,IP:127.0.0.1,IP:0.0.0.0"
+        -addext "subjectAltName=DNS:localhost,DNS:$common_name,IP:127.0.0.1,IP:0.0.0.0,IP:10.12.4.4"
     
     # Set appropriate permissions
     chmod 600 "$key_file"

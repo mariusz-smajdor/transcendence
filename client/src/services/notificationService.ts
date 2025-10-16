@@ -92,7 +92,7 @@ class NotificationService {
 				return;
 			}
 
-			const wsUrl = `wss://localhost:8080/notifications?token=${encodeURIComponent(
+			const wsUrl = `wss://10.12.4.4:8080/notifications?token=${encodeURIComponent(
 				token
 			)}`;
 			this.ws = new WebSocket(wsUrl);
