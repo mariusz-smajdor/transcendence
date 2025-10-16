@@ -97,7 +97,9 @@ export async function saveMatchToBlockchain(db, stats, winner, dbRowId) {
 
     const intScore1 = parseInt(user_1.score, 10);
     const intScore2 = parseInt(user_2.score, 10);
-    if (!validateEncoding(cleanNickname1, cleanNickname2, intScore1, intScore2)) {
+    if (
+      !validateEncoding(cleanNickname1, cleanNickname2, intScore1, intScore2)
+    ) {
       throw new Error('Data encoding validation failed');
     }
 
@@ -115,7 +117,10 @@ export async function saveMatchToBlockchain(db, stats, winner, dbRowId) {
     console.log('Transaction sent:', tx.hash);
 
     const receipt = await tx.wait();
-    console.log('Transaction confirmed:', receipt.status === 1 ? 'success' : 'failed');
+    console.log(
+      'Transaction confirmed:',
+      receipt.status === 1 ? 'success' : 'failed',
+    );
 
     if (dbRowId) {
       const updateStm = db.prepare(`
@@ -229,15 +234,15 @@ export async function getMatchResults(db, userId) {
       const opponentId = isPlayer1 ? match.user_id_2 : match.user_id_1;
       const opponent = isPlayer1
         ? {
-          id: match.user_id_2,
-          username: match.player2_username,
-          avatar: match.player2_avatar,
-        }
+            id: match.user_id_2,
+            username: match.player2_username,
+            avatar: match.player2_avatar,
+          }
         : {
-          id: match.user_id_1,
-          username: match.player1_username,
-          avatar: match.player1_avatar,
-        };
+            id: match.user_id_1,
+            username: match.player1_username,
+            avatar: match.player1_avatar,
+          };
 
       const playerScore = isPlayer1
         ? match.score_player_1
@@ -246,12 +251,22 @@ export async function getMatchResults(db, userId) {
         ? match.score_player_2
         : match.score_player_1;
 
-      // Determine winner
+      // Determine winner and check for walkover
       let winner;
+      let isWalkover = false;
+
       if (playerScore > opponentScore) {
         winner = isPlayer1 ? match.player1_username : match.player2_username;
+        // Check if it's a walkover (3-0 score and opponent has 0)
+        if (playerScore === 3 && opponentScore === 0) {
+          isWalkover = true;
+        }
       } else if (opponentScore > playerScore) {
         winner = isPlayer1 ? match.player2_username : match.player1_username;
+        // Check if it's a walkover (3-0 score and player has 0)
+        if (opponentScore === 3 && playerScore === 0) {
+          isWalkover = true;
+        }
       } else {
         winner = 'Draw';
       }
@@ -265,7 +280,9 @@ export async function getMatchResults(db, userId) {
         },
         playerScore,
         opponentScore,
-        score: `${playerScore} - ${opponentScore}`,
+        score: isWalkover
+          ? `${playerScore} - ${opponentScore} (Walkover)`
+          : `${playerScore} - ${opponentScore}`,
         winner,
         date: match.match_date,
         gameType: match.game_type,
@@ -340,6 +357,14 @@ export function saveClosedMatch(db, looser, stats, gameType) {
     // no-op if stats map doesn't have this shape
   }
   const winner = looser === 'left' ? 'right' : 'left';
+
+  // For walkover, set appropriate scores: winner gets 3 points, loser gets 0
+  const winnerStats = stats.get(winner);
+  const loserStats = stats.get(looser);
+
+  if (winnerStats) winnerStats.score = 3;
+  if (loserStats) loserStats.score = 0;
+
   return saveMatchResult(db, stats, winner, gameType);
 }
 
