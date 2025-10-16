@@ -85,6 +85,9 @@ class User {
               id: user.id,
               username: user.username,
               email: user.email,
+              firstName: user.firstName || null,
+              lastName: user.lastName || null,
+              google_id: user.google_id || null,
             },
             code: 401,
           };
@@ -114,6 +117,9 @@ class User {
           id: user.id,
           username: user.username,
           email: user.email,
+          firstName: user.firstName || null,
+          lastName: user.lastName || null,
+          google_id: user.google_id || null,
         },
         code: 200,
       };
