@@ -200,7 +200,7 @@ export const updateProfileHandler = async (req, res) => {
           writeStream.on('error', reject);
         });
 
-        avatarPath = `https://localhost:3000/uploads/avatars/${filename}`;
+        avatarPath = `https://10.12.4.4:3000/uploads/avatars/${filename}`;
         updateData.avatar = avatarPath;
       } else if (part.type === 'field') {
         // Handle text fields

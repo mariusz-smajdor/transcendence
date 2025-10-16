@@ -8,7 +8,7 @@ export const googleOAuthHandler = async (req, res) => {
     const oauth2Client = new google.auth.OAuth2(
       req.server.config.GOOGLE_CLIENT_ID,
       req.server.config.GOOGLE_CLIENT_SECRET,
-      `https://localhost:3000/auth/google/callback`,
+      `https://10.12.4.4:3000/auth/google/callback`,
     );
 
     const scopes = [
@@ -47,7 +47,7 @@ export const googleOAuthCallbackHandler = async (req, res) => {
     const oauth2Client = new google.auth.OAuth2(
       req.server.config.GOOGLE_CLIENT_ID,
       req.server.config.GOOGLE_CLIENT_SECRET,
-      `https://localhost:3000/auth/google/callback`,
+      `https://10.12.4.4:3000/auth/google/callback`,
     );
 
     // Exchange authorization code for tokens
@@ -95,7 +95,7 @@ export const googleOAuthCallbackHandler = async (req, res) => {
       } catch (dbError) {
         console.error('OAuth user creation error:', parseDbError(dbError));
         return res.redirect(
-          'https://localhost:8080/?oauth=error&reason=user_creation_failed',
+          'https://10.12.4.4:8080/?oauth=error&reason=user_creation_failed',
         );
       }
     } else {
@@ -146,9 +146,9 @@ export const googleOAuthCallbackHandler = async (req, res) => {
     });
 
     // Redirect to client with success
-    return res.redirect('https://localhost:8080/?oauth=success');
+    return res.redirect('https://10.12.4.4:8080/?oauth=success');
   } catch (error) {
     console.error('Google OAuth callback error:', error);
-    return res.redirect('https://localhost:8080/?oauth=error');
+    return res.redirect('https://10.12.4.4:8080/?oauth=error');
   }
 };

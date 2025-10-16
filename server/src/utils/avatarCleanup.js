@@ -13,13 +13,13 @@ export function deleteAvatarFile(avatarPath) {
   // Don't delete Google OAuth avatars (they start with https or external http)
   if (
     avatarPath.startsWith('https') ||
-    !avatarPath.startsWith('http://localhost:3000')
+    !avatarPath.startsWith('http://10.12.4.4:3000')
   )
     return false;
 
   try {
     // Convert database path to filesystem path
-    const relativePath = avatarPath.replace('http://localhost:3000', '');
+    const relativePath = avatarPath.replace('http://10.12.4.4:3000', '');
     const fullPath = path.join(
       path.dirname(fileURLToPath(import.meta.url)),
       '..',
@@ -67,9 +67,9 @@ export function cleanupOrphanedAvatars(db) {
       users
         .map((user) => user.avatar)
         .filter(
-          (avatar) => avatar && avatar.startsWith('http://localhost:3000'),
+          (avatar) => avatar && avatar.startsWith('http://10.12.4.4:3000'),
         ) // Only uploaded avatars
-        .map((avatar) => avatar.replace('http://localhost:3000', '')),
+        .map((avatar) => avatar.replace('http://10.12.4.4:3000', '')),
     );
 
     // Get all files in uploads directory
