@@ -1,6 +1,8 @@
 import { Container } from '../../components/container';
 import { Text } from '../../components/text';
 import { Button } from '../../components/button';
+import { t } from '../../services/i18n';
+import { onLanguageChange } from '../../services/languageService';
 import {
 	GameState,
 	UIElements,
@@ -35,8 +37,8 @@ export function createGameUI(gameType: GameType): GameUI {
 		scoreRight: 0,
 		playerRole: 'spectator',
 		gameOver: false,
-		leftPlayerName: 'Left',
-		rightPlayerName: 'Right',
+		leftPlayerName: t('game.left'),
+		rightPlayerName: t('game.right'),
 	};
 
 	const paddleWidth = 0.016;
@@ -180,9 +182,7 @@ export function createGameUI(gameType: GameType): GameUI {
 			ctx.shadowColor = '#E879F9';
 			ctx.shadowBlur = 20;
 			ctx.fillText(
-				`${
-					gameState.scoreLeft > gameState.scoreRight ? 'LEFT' : 'RIGHT'
-				} WINNER`,
+				gameState.scoreLeft > gameState.scoreRight ? t('game.leftWinner') : t('game.rightWinner'),
 				w / 2,
 				h / 2
 			);
@@ -222,6 +222,22 @@ export function createGameUI(gameType: GameType): GameUI {
 		drawScene,
 		resizeCanvas,
 	};
+
+	// Set up language change listener
+	const defaultLeftName = t('game.left');
+	const defaultRightName = t('game.right');
+	
+	onLanguageChange(() => {
+		// Update default player names only if they are still using the default values
+		if (gameState.leftPlayerName === defaultLeftName) {
+			gameState.leftPlayerName = t('game.left');
+		}
+		if (gameState.rightPlayerName === defaultRightName) {
+			gameState.rightPlayerName = t('game.right');
+		}
+		// Redraw the scene to reflect the language change
+		drawScene();
+	});
 
 	return { ui, gameState, actions };
 }

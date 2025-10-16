@@ -6,6 +6,7 @@ import { Tab } from '../../../components/tabs';
 import { Text } from '../../../components/text';
 import { Wrapper } from '../../../components/wrapper';
 import { t } from '../../../services/i18n';
+import { onLanguageChange } from '../../../services/languageService';
 
 function loginUser(
 	form: HTMLFormElement,
@@ -143,10 +144,32 @@ export default function Login() {
 	form.appendChild(usernameLabel);
 	form.appendChild(passwordLabel);
 	form.appendChild(totpLabel);
-	form.appendChild(Button({ content: t('login.submit'), type: 'submit' }));
+	
+	const submitButton = Button({ content: t('login.submit'), type: 'submit' });
+	submitButton.setAttribute('data-i18n', 'login.submit');
+	form.appendChild(submitButton);
 
 	tab.appendChild(heading);
 	tab.appendChild(form);
+
+	// Add language change listener
+	onLanguageChange(() => {
+		// Update heading
+		heading.textContent = t('login.heading');
+		
+		// Update labels
+		usernameLabel.firstChild!.textContent = t('login.username.label');
+		passwordLabel.firstChild!.textContent = t('login.password.label');
+		totpLabel.firstChild!.textContent = t('login.totp.label');
+		
+		// Update placeholders
+		usernameInput.placeholder = t('login.username.placeholder');
+		passwordInput.placeholder = t('login.password.placeholder');
+		totpInput.placeholder = t('login.totp.placeholder');
+		
+		// Update submit button
+		submitButton.textContent = t('login.submit');
+	});
 
 	return tab;
 }

@@ -26,6 +26,8 @@ import { getFriends, getFriendRequests } from '../api/friendRequest';
 import { Toaster } from './toaster';
 import { Input } from './input';
 import { Label } from './label';
+import { t } from '../services/i18n';
+import { onLanguageChange } from '../services/languageService';
 
 type ProfileModalOptions =
 	| { mode: 'self'; pushState?: boolean }
@@ -128,7 +130,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		const emailIcon = Icon({ icon: Mail, size: 'sm' });
 		const emailText = Text({
-			content: user?.email || 'No email',
+			content: user?.email || t('profile.noEmail'),
 			classes: ['text-lg'],
 		});
 		emailDisplay.appendChild(emailIcon);
@@ -139,7 +141,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 
 		const actionButtons = Wrapper({ classes: ['flex', 'gap-4', 'mt-6'] });
 		const settingsBtn = Button({
-			content: 'Settings',
+			content: t('profile.settings'),
 			variant: 'outline',
 			classes: [
 				'flex',
@@ -152,6 +154,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 				'transition-colors',
 			],
 		});
+		settingsBtn.setAttribute('data-i18n', 'profile.settings');
 		const settingsIcon = Icon({ icon: Settings, size: 'sm' });
 		settingsBtn.prepend(settingsIcon);
 		settingsBtn.addEventListener('click', () => showSettingsModal());
@@ -257,7 +260,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		const emailIcon = Icon({ icon: Mail, size: 'sm' });
 		const emailText = Text({
-			content: friend.email || 'No email',
+			content: friend.email || t('profile.noEmail'),
 			classes: ['text-lg'],
 		});
 		emailDisplay.appendChild(emailIcon);
@@ -314,11 +317,11 @@ export function ProfileModal(options: ProfileModalOptions) {
 		const table = Table({});
 		const tableHeader = TableHeader({});
 		const headerRow = TableRow({});
-		const opponentHeader = TableHeaderCell({ content: 'Opponent' });
-		const scoreHeader = TableHeaderCell({ content: 'Score' });
-		const typeHeader = TableHeaderCell({ content: 'Type' });
-		const dateHeader = TableHeaderCell({ content: 'Date' });
-		const blockchainHeader = TableHeaderCell({ content: 'Blockchain' });
+		const opponentHeader = TableHeaderCell({ content: t('profile.table.opponent') });
+		const scoreHeader = TableHeaderCell({ content: t('profile.table.score') });
+		const typeHeader = TableHeaderCell({ content: t('profile.table.type') });
+		const dateHeader = TableHeaderCell({ content: t('profile.table.date') });
+		const blockchainHeader = TableHeaderCell({ content: t('profile.table.blockchain') });
 		const tableBody = TableBody({});
 
 		matches.forEach((match: MatchResult) => {
@@ -418,9 +421,10 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		const titleElement = Heading({
 			level: 2,
-			content: 'Profile',
+			content: t('profile.heading'),
 			classes: ['text-2xl', 'font-bold'],
 		});
+		titleElement.setAttribute('data-i18n', 'profile.heading');
 		const closeBtn = Button({
 			content: '',
 			variant: 'outline',
@@ -463,9 +467,10 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		const historyTitle = Heading({
 			level: 2,
-			content: 'Game History',
+			content: t('profile.gameHistory'),
 			classes: ['text-2xl', 'font-bold'],
 		});
+		historyTitle.setAttribute('data-i18n', 'profile.gameHistory');
 		historyHeader.appendChild(historyIcon);
 		historyHeader.appendChild(historyTitle);
 		const historyContainer = Wrapper({ classes: ['overflow-x-auto'] });
@@ -489,7 +494,7 @@ export function ProfileModal(options: ProfileModalOptions) {
 			} catch (error) {
 				console.error('Error loading game history:', error);
 				historyContainer.innerHTML =
-					'<div class="flex justify-center items-center p-8"><div class="text-red-400">Failed to load game history</div></div>';
+					`<div class="flex justify-center items-center p-8"><div class="text-red-400">${t('profile.failedToLoadHistory')}</div></div>`;
 			}
 		})();
 		historyCard.appendChild(historyHeader);
@@ -525,9 +530,10 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		const titleElement = Heading({
 			level: 2,
-			content: 'Friend Profile',
+			content: t('profile.friendProfile'),
 			classes: ['text-2xl', 'font-bold'],
 		});
+		titleElement.setAttribute('data-i18n', 'profile.friendProfile');
 		const closeBtn = Button({
 			content: '',
 			variant: 'outline',
@@ -837,6 +843,36 @@ export function ProfileModal(options: ProfileModalOptions) {
 		});
 		document.body.appendChild(createModal('Settings', form));
 	}
+
+	// Add language change listener
+	onLanguageChange(() => {
+		// Update titles and headings
+		const profileTitle = overlay.querySelector('[data-i18n="profile.heading"]') as HTMLElement;
+		const friendProfileTitle = overlay.querySelector('[data-i18n="profile.friendProfile"]') as HTMLElement;
+		const gameHistoryTitle = overlay.querySelector('[data-i18n="profile.gameHistory"]') as HTMLElement;
+		const settingsBtn = overlay.querySelector('[data-i18n="profile.settings"]') as HTMLElement;
+		
+		if (profileTitle) profileTitle.textContent = t('profile.heading');
+		if (friendProfileTitle) friendProfileTitle.textContent = t('profile.friendProfile');
+		if (gameHistoryTitle) gameHistoryTitle.textContent = t('profile.gameHistory');
+		if (settingsBtn) settingsBtn.textContent = t('profile.settings');
+		
+		// Update table headers
+		const tableHeaders = overlay.querySelectorAll('th');
+		tableHeaders.forEach((header, index) => {
+			switch (index) {
+				case 0: header.textContent = t('profile.table.opponent'); break;
+				case 1: header.textContent = t('profile.table.score'); break;
+				case 2: header.textContent = t('profile.table.type'); break;
+				case 3: header.textContent = t('profile.table.date'); break;
+				case 4: header.textContent = t('profile.table.blockchain'); break;
+			}
+		});
+		
+		// Update "No email" text
+		const emailTexts = overlay.querySelectorAll('[data-i18n="profile.noEmail"]');
+		emailTexts.forEach(el => el.textContent = t('profile.noEmail'));
+	});
 
 	// Logout modal removed
 
