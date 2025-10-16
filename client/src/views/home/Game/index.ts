@@ -212,6 +212,10 @@ export default function Game() {
 			classes: ['h-full'],
 			enableHistory: true,
 			tabGroupId: 'game-tabs',
+			tabUrls: {
+				'quick-play': '/play',
+				'tournament': '/tournament',
+			},
 		})
 	);
 

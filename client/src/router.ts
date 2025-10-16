@@ -1,7 +1,7 @@
 import Header from './layout/header';
 import Home from './views/home';
+import NotFound from './views/404';
 import { closeGameOverlay } from './views/game/game-overlay';
-import { historyManager } from './utils/historyManager';
 
 export class Router {
 	private rootElement: HTMLElement | null = document.getElementById('app');
@@ -12,80 +12,62 @@ export class Router {
 			'/': Home,
 		};
 
-		// Set up history handlers
-		this.setupHistoryHandlers();
-
-		// Only reload route on actual navigation (popstate), but filter out tab/modal/game changes
-		window.addEventListener('popstate', (event) => {
-			const state = event.state;
-			// Only reload the route if it's a base state change or actual navigation
-			// Don't reload for tab, modal, or game state changes
-			if (!state || state.type === 'base') {
-				this.loadRoute();
-			}
+		// Add browser navigation support
+		window.addEventListener('popstate', () => {
+			this.loadRoute();
 		});
 
 		document.body.addEventListener('click', (event) => {
 			const target = event.target as HTMLAnchorElement;
 			if (target.matches('[data-link]')) {
 				event.preventDefault();
-				this.navigateTo(target.href);
+				// prefer pathname to avoid full reloads
+				this.navigateTo(target.getAttribute('href') || target.pathname || '/');
 			}
 		});
 
-		// Initialize with base state
-		if (!history.state) {
-			historyManager.replaceState('base', null, '/');
-		}
+		// No history initialization needed
 
 		this.loadRoute();
 	}
 
-	private setupHistoryHandlers() {
-		// Handle game overlay close on back button
-		historyManager.on('game', () => {
-			// If going back TO a game state (shouldn't happen normally)
-			// Game overlay is already shown, do nothing
-		});
-
-		historyManager.on('base', () => {
-			// Close any open overlays when going back to base state
-			closeGameOverlay();
-		});
-
-		historyManager.on('tab', () => {
-			// Close game overlay if open when navigating to a tab
-			// This handles the browser back button from tournament game
-			const overlay = document.getElementById('game-modal');
-			if (overlay) {
-				closeGameOverlay();
-			}
-			// Tabs handle their own history
-		});
-
-		historyManager.on('modal', () => {
-			// Modals handle their own history
-		});
-	}
+	// history handlers removed - navigation is purely client-side rendering
 
 	navigateTo(url: string) {
-		historyManager.pushState('base', null, url);
+		// Accept either full URL or path; normalize to pathname
+		try {
+			const parsed = new URL(url, window.location.origin);
+			url = parsed.pathname;
+		} catch (e) {
+			// ignore and use as-is
+		}
+		
+		// Update browser history
+		history.pushState({ type: 'navigate' }, '', url);
+		
+		// Load the route
 		this.loadRoute();
 	}
 
 	private loadRoute() {
 		// Close any active game overlay when navigating to different routes
-		const currentState = historyManager.getCurrentState();
-		if (currentState?.type !== 'game') {
-			closeGameOverlay();
-		}
+		closeGameOverlay();
 
 		// Cleanup any existing invitation handlers before re-rendering
 		this.cleanupInvitationHandlers();
 
 		const path = location.pathname;
 
-		const view = this.routes[path] || this.routes['/'];
+		// Only allow home route, redirect everything else to 404
+		let view: (() => Node) | undefined;
+		
+		if (path === '/') {
+			view = this.routes['/'];
+		} else {
+			// Any URL other than "/" goes to 404
+			view = NotFound;
+		}
+
 		if (this.rootElement) {
 			this.rootElement.innerHTML = '';
 			this.rootElement.appendChild(Header());

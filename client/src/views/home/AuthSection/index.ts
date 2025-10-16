@@ -1,6 +1,5 @@
 import { KeyRound } from 'lucide';
 import { t } from '../../../services/i18n';
-import { onLanguageChange } from '../../../services/languageService';
 import { Card } from '../../../components/card';
 import { Tabs, Trigger } from '../../../components/tabs';
 import { Heading } from '../../../components/heading';
@@ -79,19 +78,7 @@ export default function Auth() {
 	section.appendChild(Separator());
 	section.appendChild(googleButton);
 
-	// Add language change listener
-	onLanguageChange(() => {
-		// Update heading
-		heading.textContent = t('auth.authenticate');
-		
-		// Update tab triggers
-		loginTrigger.textContent = t('auth.tabs.login');
-		registerTrigger.textContent = t('auth.tabs.register');
-		
-		// Update Google button
-		googleButton.textContent = t('auth.google');
-		googleLogo.alt = t('auth.google');
-	});
+	// Language changes are handled automatically by the global i18n system via data-i18n attributes
 
 	return section;
 }

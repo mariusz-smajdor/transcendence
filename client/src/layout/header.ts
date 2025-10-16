@@ -12,7 +12,6 @@ import {
 } from '../components/dropdown-menu';
 import { store } from '../store';
 import { getAvatarUrl } from '../utils/avatarUtils';
-import { historyManager } from '../utils/historyManager';
 import { deleteCookie } from '../views/game/game-cookies';
 import { t } from '../services/i18n';
 import { initLanguage, setCurrentLang } from '../services/languageService';
@@ -179,19 +178,7 @@ function Menu() {
 	// Initial render
 	renderUserMenu();
 
-	// Reopen profile modal on forward navigation without duplicating state
-	const handleModalState = (state: any) => {
-		if (state?.data?.modal === 'profile') {
-			if (!document.querySelector('[data-profile-modal="true"]')) {
-				import('../views/profile/index.js').then((module) => {
-					const ProfileModal = module.default;
-					const profileModal = ProfileModal({ pushState: false });
-					document.body.appendChild(profileModal);
-				});
-			}
-		}
-	};
-	historyManager.on('modal', handleModalState as any);
+	// No navigation: do not handle modal state
 
 	// Listen for user updates
 	store.on('userUpdated', renderUserMenu);

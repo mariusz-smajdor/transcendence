@@ -44,7 +44,7 @@ export default function ProfileRoute() {
 
 	// Redirect to home if user is not logged in
 	if (!user) {
-		historyManager.pushState('base', null, '/');
+		// No navigation: do not push state
 		return document.createElement('div'); // Return empty div as placeholder
 	}
 
@@ -791,8 +791,7 @@ export default function ProfileRoute() {
 						document.body.removeChild(modal);
 					}
 
-					// Redirect to home
-					historyManager.pushState('base', null, '/');
+					// No navigation: do not push state
 				} else {
 					Toaster('Failed to logout');
 				}
