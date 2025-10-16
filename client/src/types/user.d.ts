@@ -3,6 +3,7 @@ export type UserData = {
 	username: string;
 	email: string;
 	avatar?: string;
+	google_id?: string | null;
 	friendRequests?: {
 		id: number;
 		senderId: number;

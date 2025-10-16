@@ -43,6 +43,7 @@ export const loginHandler = async (req, res) => {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
+    google_id: user.google_id || null,
   };
   const token = req.jwt.sign(payload, { expiresIn: '1h' });
   res.setCookie('access_token', token, {
@@ -128,6 +129,7 @@ export const meHandler = async (req, res) => {
     username: user.username,
     email: user.email,
     avatar: user.avatar,
+    google_id: user.google_id,
   };
 
   return res.status(200).send({ payload });
@@ -158,9 +160,9 @@ export const updateProfileHandler = async (req, res) => {
   const db = req.context.config.db;
 
   try {
-    // Get current user data to check for existing avatar
+    // Get current user data to check for existing avatar and OAuth status
     const currentUser = db
-      .prepare('SELECT avatar FROM users WHERE id = ?')
+      .prepare('SELECT avatar, google_id FROM users WHERE id = ?')
       .get(userId);
 
     const parts = req.parts();
@@ -209,6 +211,24 @@ export const updateProfileHandler = async (req, res) => {
         } else if (part.fieldname === 'password' && part.value) {
           updateData.password = part.value;
         }
+      }
+    }
+
+    // Check if user is OAuth user and restrict username/password changes
+    const isOAuthUser = currentUser?.google_id !== null;
+    if (isOAuthUser) {
+      // OAuth users can only change avatar, not username or password
+      if (updateData.username) {
+        return res.status(400).send({
+          success: false,
+          message: 'OAuth users cannot change their username',
+        });
+      }
+      if (updateData.password) {
+        return res.status(400).send({
+          success: false,
+          message: 'OAuth users cannot change their password',
+        });
       }
     }
 

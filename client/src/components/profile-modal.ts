@@ -666,7 +666,9 @@ export function ProfileModal(options: ProfileModalOptions) {
 	}
 
 	function showSettingsModal() {
-		const isOAuthUser = localStorage.getItem('isOAuthUser') === 'true';
+		const user = store.getState().user;
+		const isOAuthUser =
+			user?.google_id !== null && user?.google_id !== undefined;
 		const form = Wrapper({
 			element: 'form',
 			method: 'POST',
@@ -676,7 +678,6 @@ export function ProfileModal(options: ProfileModalOptions) {
 			content: 'Avatar:',
 			classes: ['flex', 'items-center', 'gap-4', 'cursor-pointer'],
 		});
-		const user = store.getState().user;
 		const avatarImg = Img({
 			src: getAvatarUrl(user?.avatar, user?.username || 'User'),
 			alt: 'Avatar',
