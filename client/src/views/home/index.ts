@@ -4,6 +4,10 @@ import { store } from '../../store';
 import Friends from './Friends';
 import History from './History';
 import Game from './Game';
+import {
+	getCurrentLang,
+	onLanguageChange,
+} from '../../services/languageService';
 
 export default function Home() {
 	// const USER = {
@@ -25,8 +29,18 @@ export default function Home() {
 
 	const user = store.getState().user;
 
+	// Log current language initially
+	console.log('[Home] current lang:', getCurrentLang());
+	// Listen for language changes and log
+	onLanguageChange((lang) => {
+		console.log('[Home] language changed:', lang);
+	});
+
 	container.appendChild(Game());
 	container.appendChild(user ? Friends() : Auth());
 	user && container.appendChild(History(user));
+
+	// Optional: clean up listener if Home component supports unmount lifecycle elsewhere.
+	// Returning container only as this component is currently a pure function.
 	return container;
 }

@@ -1,5 +1,6 @@
 import { Wrapper } from '../../../components/wrapper';
 import { Text } from '../../../components/text';
+import { t } from '../../../services/i18n';
 import { store } from '../../../store';
 
 export function renderMessages(
@@ -13,9 +14,10 @@ export function renderMessages(
 
 	if (messages.length === 0) {
 		const noMessages = Text({
-			content: 'No messages yet. Start the conversation!',
+			content: t('messages.noMessages'),
 			classes: ['text-muted', 'text-center', 'py-8'],
 		});
+		noMessages.setAttribute('data-i18n', 'messages.noMessages');
 		chat.appendChild(noMessages);
 		return;
 	}

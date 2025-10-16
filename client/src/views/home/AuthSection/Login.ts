@@ -5,6 +5,7 @@ import { Label } from '../../../components/label';
 import { Tab } from '../../../components/tabs';
 import { Text } from '../../../components/text';
 import { Wrapper } from '../../../components/wrapper';
+import { t } from '../../../services/i18n';
 
 function loginUser(
 	form: HTMLFormElement,
@@ -45,7 +46,7 @@ function loginUser(
 			if (!data.success) {
 				if (data.requires2FA) {
 					// 2FA is required
-					submitMessage.textContent = 'Please enter your 2FA code';
+					submitMessage.textContent = t('login.2fa.prompt');
 					submitMessage.classList.remove('text-red-400');
 					submitMessage.classList.add('text-blue-400');
 				} else {
@@ -53,7 +54,7 @@ function loginUser(
 				}
 				form.appendChild(submitMessage);
 			} else {
-				submitMessage.textContent = 'Login successful!';
+				submitMessage.textContent = t('login.success');
 				submitMessage.classList.remove('text-red-400');
 				submitMessage.classList.add('text-green-400');
 				form.appendChild(submitMessage);
@@ -67,8 +68,7 @@ function loginUser(
 			if (error instanceof Error) {
 				submitMessage.textContent = error.message;
 			} else {
-				submitMessage.textContent =
-					'An unknown error occurred. Please try again.';
+				submitMessage.textContent = t('login.unknownError');
 			}
 			form.appendChild(submitMessage);
 		}
@@ -82,7 +82,7 @@ export default function Login() {
 	});
 	const heading = Heading({
 		level: 3,
-		content: 'Welcome back!',
+		content: t('login.heading'),
 		classes: ['text-[1rem]', 'text-center'],
 	});
 	const form = Wrapper({
@@ -93,40 +93,40 @@ export default function Login() {
 
 	// Username field
 	const usernameLabel = Label({
-		content: 'Username:',
+		content: t('login.username.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const usernameInput = Input({
 		type: 'text',
 		name: 'username',
 		id: 'username',
-		placeholder: 'your username',
+		placeholder: t('login.username.placeholder'),
 		required: true,
 	});
 
 	// Password field
 	const passwordLabel = Label({
-		content: 'Password:',
+		content: t('login.password.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const passwordInput = Input({
 		type: 'password',
 		name: 'password',
 		id: 'password',
-		placeholder: '********',
+		placeholder: t('login.password.placeholder'),
 		required: true,
 	});
 
 	// 2FA field
 	const totpLabel = Label({
-		content: '2FA Code:',
+		content: t('login.totp.label'),
 		classes: ['flex', 'flex-col', 'gap-2'],
 	});
 	const totpInput = Input({
 		type: 'text',
 		name: 'totp',
 		id: 'totp',
-		placeholder: '123456',
+		placeholder: t('login.totp.placeholder'),
 		required: false,
 	});
 
@@ -143,7 +143,7 @@ export default function Login() {
 	form.appendChild(usernameLabel);
 	form.appendChild(passwordLabel);
 	form.appendChild(totpLabel);
-	form.appendChild(Button({ content: 'Sign in', type: 'submit' }));
+	form.appendChild(Button({ content: t('login.submit'), type: 'submit' }));
 
 	tab.appendChild(heading);
 	tab.appendChild(form);
