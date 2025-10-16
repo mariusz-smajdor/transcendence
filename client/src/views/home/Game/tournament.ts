@@ -4,6 +4,7 @@ import { Button } from '../../../components/button.js';
 import { Card } from '../../../components/card';
 import { Heading } from '../../../components/heading';
 import { Icon } from '../../../components/icon';
+import { store } from '../../../store';
 import {
 	Table,
 	TableBody,
@@ -18,7 +19,6 @@ import { Toaster } from '../../../components/toaster.js';
 import { TournamentBracket } from '../../../components/tournament-bracket';
 import { getCookie } from '../../game/game-cookies.js';
 import { showGameOverlay } from '../../game/game-overlay.js';
-import { store } from '../../../store.js';
 import { getAvatarUrl } from '../../../utils/avatarUtils.js';
 import { onInvitation } from '../../../api/invitationSocket.js';
 import { showNicknameModal } from '../../../components/nickname-modal.js';
@@ -412,41 +412,68 @@ export function TournamentTab() {
 
 		const token = getCookie('access_token') ?? null;
 		const sessionId = getCookie('sessionId') ?? null;
+		const user = store.getState().user;
+		const isAuthenticated = user !== null;
 
 		let nicknameInput: HTMLInputElement | null = null;
 
 		// Append title first
 		formWrapper.appendChild(title);
 
-		// Add nickname input for all users
-		const nicknameWrapper = document.createElement('div');
-		nicknameWrapper.classList.add(
-			'flex',
-			'flex-col',
-			'gap-2',
-			'w-full',
-			'max-w-md'
-		);
+		// Add nickname input only for unauthenticated users
+		if (!isAuthenticated) {
+			const nicknameWrapper = document.createElement('div');
+			nicknameWrapper.classList.add(
+				'flex',
+				'flex-col',
+				'gap-2',
+				'w-full',
+				'max-w-md'
+			);
 
-		const nicknameLabel = document.createElement('label');
-		nicknameLabel.textContent = 'Enter your nickname:';
-		nicknameLabel.classList.add('text-sm', 'font-medium');
+			const nicknameLabel = document.createElement('label');
+			nicknameLabel.textContent = 'Enter your nickname:';
+			nicknameLabel.classList.add('text-sm', 'font-medium');
 
-		nicknameInput = document.createElement('input');
-		nicknameInput.type = 'text';
-		nicknameInput.placeholder = 'Your nickname';
-		nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
-		nicknameInput.maxLength = 20;
-		nicknameInput.required = true;
+			nicknameInput = document.createElement('input');
+			nicknameInput.type = 'text';
+			nicknameInput.placeholder = 'Your nickname';
+			nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
+			nicknameInput.maxLength = 20;
+			nicknameInput.required = true;
 
-		// Remove error styling when user starts typing
-		nicknameInput.addEventListener('input', () => {
-			nicknameInput?.classList.remove('border-red-500');
-		});
+			// Remove error styling when user starts typing
+			nicknameInput.addEventListener('input', () => {
+				nicknameInput?.classList.remove('border-red-500');
+			});
 
-		nicknameWrapper.appendChild(nicknameLabel);
-		nicknameWrapper.appendChild(nicknameInput);
-		formWrapper.appendChild(nicknameWrapper);
+			nicknameWrapper.appendChild(nicknameLabel);
+			nicknameWrapper.appendChild(nicknameInput);
+			formWrapper.appendChild(nicknameWrapper);
+		} else {
+			// Show authenticated user info
+			const userInfoWrapper = document.createElement('div');
+			userInfoWrapper.classList.add(
+				'flex',
+				'flex-col',
+				'gap-2',
+				'w-full',
+				'max-w-md',
+				'text-center'
+			);
+
+			const userInfoLabel = document.createElement('div');
+			userInfoLabel.textContent = 'Creating tournament as:';
+			userInfoLabel.classList.add('text-sm', 'font-medium', 'text-muted');
+
+			const usernameDisplay = document.createElement('div');
+			usernameDisplay.textContent = user.username;
+			usernameDisplay.classList.add('text-lg', 'font-semibold', 'text-primary');
+
+			userInfoWrapper.appendChild(userInfoLabel);
+			userInfoWrapper.appendChild(usernameDisplay);
+			formWrapper.appendChild(userInfoWrapper);
+		}
 
 		// Add buttons
 		const buttons = document.createElement('div');
@@ -478,23 +505,30 @@ export function TournamentTab() {
 		};
 
 		confirmBtn.onclick = async () => {
-			// Always require nickname validation
-			const nickname = nicknameInput?.value.trim();
-			if (!nickname) {
-				nicknameInput?.classList.add('border-red-500');
-				nicknameInput?.focus();
-				Toaster('Please enter your nickname');
-				return;
+			let creator: string;
+
+			if (isAuthenticated) {
+				// Use authenticated user's username
+				creator = user.username;
+			} else {
+				// Validate nickname for unauthenticated users
+				const nickname = nicknameInput?.value.trim();
+				if (!nickname) {
+					nicknameInput?.classList.add('border-red-500');
+					nicknameInput?.focus();
+					Toaster('Please enter your nickname');
+					return;
+				}
+				if (nickname.length < 2) {
+					nicknameInput?.classList.add('border-red-500');
+					nicknameInput?.focus();
+					Toaster('Nickname must be at least 2 characters');
+					return;
+				}
+				// Remove error styling if validation passes
+				nicknameInput?.classList.remove('border-red-500');
+				creator = nickname;
 			}
-			if (nickname.length < 2) {
-				nicknameInput?.classList.add('border-red-500');
-				nicknameInput?.focus();
-				Toaster('Nickname must be at least 2 characters');
-				return;
-			}
-			// Remove error styling if validation passes
-			nicknameInput?.classList.remove('border-red-500');
-			const creator = nickname;
 
 			// Hardcode to 4 players
 			const numberOfPlayers = 4;
