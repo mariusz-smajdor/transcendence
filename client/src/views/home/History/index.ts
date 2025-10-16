@@ -139,11 +139,15 @@ async function loadMatchHistory(wrapper: HTMLElement, user: any) {
 						match.winner === user.username
 							? TableCell({
 									content: match.score,
-									classes: ['text-green-400'],
+									classes: match.score.includes('Walkover')
+										? ['text-green-400', 'font-bold']
+										: ['text-green-400'],
 							  })
 							: TableCell({
 									content: match.score.split(' - ').reverse().join(' - '),
-									classes: ['text-red-400'],
+									classes: match.score.includes('Walkover')
+										? ['text-red-400', 'font-bold']
+										: ['text-red-400'],
 							  });
 
 					const typeSpan = Text({

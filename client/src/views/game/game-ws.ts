@@ -198,7 +198,7 @@ function manageMessage(
 			if (gameState.playerRole === 'right') {
 				ui.text.textContent = `Your opponent (${gameState.leftPlayerName}) left the game. You win by walkover!`;
 			} else if (gameState.playerRole === 'spectator') {
-				ui.text.textContent = 'Walkover! Left player left the game';
+				ui.text.textContent = `Walkover! ${gameState.leftPlayerName} left the game. ${gameState.rightPlayerName} wins!`;
 			} else {
 				ui.text.textContent = 'Match ended - player disconnected';
 			}
@@ -209,7 +209,7 @@ function manageMessage(
 			if (gameState.playerRole === 'left') {
 				ui.text.textContent = `Your opponent (${gameState.rightPlayerName}) left the game. You win by walkover!`;
 			} else if (gameState.playerRole === 'spectator') {
-				ui.text.textContent = 'Walkover! Right player left the game';
+				ui.text.textContent = `Walkover! ${gameState.rightPlayerName} left the game. ${gameState.leftPlayerName} wins!`;
 			} else {
 				ui.text.textContent = 'Match ended - player disconnected';
 			}
