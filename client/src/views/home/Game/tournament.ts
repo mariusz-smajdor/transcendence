@@ -261,9 +261,10 @@ export function TournamentTab() {
 			if (tournaments.length === 0) {
 				const noTournamentsRow = TableRow({});
 				const noTournamentsCell = TableCell({
-					content: 'No tournaments found',
+					content: t('tournament.noTournamentsFound'),
 					classes: ['text-center', 'text-muted', 'py-8'],
 				});
+				noTournamentsCell.setAttribute('data-i18n', 'tournament.noTournamentsFound');
 				noTournamentsCell.setAttribute('colspan', '3');
 				noTournamentsRow.appendChild(noTournamentsCell);
 				tableBody.appendChild(noTournamentsRow);

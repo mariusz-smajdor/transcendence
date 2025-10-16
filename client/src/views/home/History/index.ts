@@ -44,10 +44,6 @@ export default function History(user: any) {
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
 	heading.setAttribute('data-i18n', 'history.heading');
-	const histTextSpan = document.createElement('span');
-	histTextSpan.setAttribute('data-i18n-text', '');
-	histTextSpan.textContent = t('history.heading');
-	heading.appendChild(histTextSpan);
 
 	heading.prepend(
 		Icon({

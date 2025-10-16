@@ -1,6 +1,7 @@
 import { UIElements, GameState, UIActions, GameType } from '../../types/game';
 import { getCookie } from './game-cookies';
 import { cleanupKeyboardState } from './game-keys';
+import { t } from '../../services/i18n';
 
 type WebSocketDeps = {
 	gameId: string;
@@ -39,14 +40,14 @@ export function setupWebSocket({
 				gameState.playerRole = data.role;
 				console.log(data.role);
 				if (gameState.playerRole === 'left') {
-					ui.roleText.textContent = 'Role: Left player';
+					ui.roleText.textContent = t('game.role.left');
 				} else if (gameState.playerRole === 'right') {
-					ui.roleText.textContent = 'Role: Right player';
+					ui.roleText.textContent = t('game.role.right');
 				} else {
-					ui.roleText.textContent = 'Role: Spectator';
+					ui.roleText.textContent = t('game.role.spectator');
 				}
 
-				ui.text.textContent = "Connected to server! Press 'R' to play.";
+				ui.text.textContent = t('game.connected');
 			} else if (data.type === 'gameState') {
 				gameState.leftPaddleY = data.data.paddles.left;
 				gameState.rightPaddleY = data.data.paddles.right;
@@ -78,12 +79,12 @@ export function setupWebSocket({
 		if (gameType === 'network')
 			ui.text.textContent =
 				'Connected to server. Waiting for role assignment...';
-		else ui.text.textContent = "Game ready. Press 'R' to start.";
+		else ui.text.textContent = t('game.ready');
 	};
 
 	ws.onclose = () => {
-		ui.text.textContent = 'Disconnected from server!';
-		ui.roleText.textContent = 'Role: disconnected';
+		ui.text.textContent = t('game.disconnected');
+		ui.roleText.textContent = t('game.role.disconnected');
 	};
 
 	ui.restartBtn.onclick = () => {
@@ -100,41 +101,38 @@ function manageMessage(
 ) {
 	switch (data.message) {
 		case 'game_on':
-			ui.text.textContent = 'Game is on!';
+			ui.text.textContent = t('game.isOn');
 			break;
 		case 'waiting_for_second_player':
-			ui.text.textContent = 'Waiting for a second player to join.';
+			ui.text.textContent = t('game.waitingPlayer');
 			break;
 		case 'waiting_for_readiness':
 			if (gameState.playerRole === 'left' || gameState.playerRole === 'right') {
-				ui.text.textContent =
-					"Waiting for players to confirm they are ready. Press 'R' if you are ready.";
+				ui.text.textContent = t('game.waitingReadyWithAction');
 			} else {
-				ui.text.textContent = 'Waiting for players to confirm they are ready.';
+				ui.text.textContent = t('game.waitingReady');
 			}
 			break;
 		case 'left_player_ready':
 			if (gameState.playerRole === 'right') {
-				ui.text.textContent =
-					"Left player is ready. Press 'R' if you are ready.";
+				ui.text.textContent = t('game.leftPlayerReady');
 			} else if (gameState.playerRole === 'left') {
-				ui.text.textContent = 'Waiting for the second player to be ready.';
+				ui.text.textContent = t('game.waitingSecondPlayer');
 			}
 
 			break;
 		case 'right_player_ready':
 			if (gameState.playerRole === 'left') {
-				ui.text.textContent =
-					"Right player is ready. Press 'R' if you are ready.";
+				ui.text.textContent = t('game.rightPlayerReady');
 			} else if (gameState.playerRole === 'right') {
-				ui.text.textContent = 'Waiting for the second player to be ready.';
+				ui.text.textContent = t('game.waitingSecondPlayer');
 			}
 			break;
 		case 'count_to_start':
 			let count = 3;
 			const doCounting = () => {
 				if (count > 0) {
-					ui.text.textContent = `Prepare yourself! Game starts in ${count}`;
+					ui.text.textContent = t('game.prepareCountdown').replace('{count}', count.toString());
 					count--;
 					setTimeout(doCounting, 1000);
 				}
@@ -147,22 +145,21 @@ function manageMessage(
 			break;
 		case 'rematch':
 			if (gameState.playerRole === 'spectator')
-				ui.text.textContent =
-					'Rematch proposed! Waiting for players to confirm.';
+				ui.text.textContent = t('game.rematchProposedSpectator');
 			else
-				ui.text.textContent = "Rematch proposed! Press 'R' if you are ready.";
+				ui.text.textContent = t('game.rematchProposed');
 			break;
 		case 'winner_left':
-			ui.text.textContent = 'Left player won!';
+			ui.text.textContent = t('game.winnerLeft');
 			break;
 		case 'winner_right':
-			ui.text.textContent = 'Right player won!';
+			ui.text.textContent = t('game.winnerRight');
 			break;
 		case 'error_please_reload':
-			ui.text.textContent = 'Error occured. Please reload game.';
+			ui.text.textContent = t('game.errorReload');
 			break;
 		case 'reset':
-			ui.text.textContent = 'Reseting the game... The oponent left the game.';
+			ui.text.textContent = t('game.reset');
 			break;
 		case 'left':
 			ui.text.textContent = 'The oponent left the game';

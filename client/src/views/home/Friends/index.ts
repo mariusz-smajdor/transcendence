@@ -603,9 +603,10 @@ function BlockedUsersTab() {
 
 		if (blockedUsers.length === 0) {
 			const emptyMessage = Text({
-				content: 'No blocked users',
+				content: t('friends.noBlockedUsers'),
 				classes: ['text-muted', 'text-center', 'py-4'],
 			});
+			emptyMessage.setAttribute('data-i18n', 'friends.noBlockedUsers');
 			wrapper.appendChild(emptyMessage);
 			return;
 		}
@@ -708,10 +709,6 @@ export default function Friends() {
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
 	heading.setAttribute('data-i18n', 'home.friends.heading');
-	const friendsTextSpan = document.createElement('span');
-	friendsTextSpan.setAttribute('data-i18n-text', '');
-	friendsTextSpan.textContent = t('home.friends.heading');
-	heading.appendChild(friendsTextSpan);
 	const form = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -731,13 +728,16 @@ export default function Friends() {
 	const friendUsername = Input({
 		type: 'text',
 		name: 'friend-username',
-		placeholder: 'Add friend by username...',
+		placeholder: t('friends.addByUsernamePlaceholder'),
 		classes: ['text-sm', 'bg-background'],
 	});
+	friendUsername.setAttribute('data-i18n-placeholder', 'friends.addByUsernamePlaceholder');
+	friendUsername.setAttribute('data-i18n-placeholder', 'friends.addByUsernamePlaceholder');
 	const requestsTrigger = Trigger({
-		content: 'Requests',
+		content: t('friends.requests'),
 		value: 'requests',
 	});
+	requestsTrigger.setAttribute('data-i18n', 'friends.requests');
 
 	function updateRequestsCount() {
 		const { user } = store.getState();
@@ -800,9 +800,17 @@ export default function Friends() {
 		Tabs({
 			defaultValue: 'all-friends',
 			triggers: [
-				Trigger({ content: 'All Friends', value: 'all-friends' }),
+				(() => {
+					const trigger = Trigger({ content: t('friends.allFriends'), value: 'all-friends' });
+					trigger.setAttribute('data-i18n', 'friends.allFriends');
+					return trigger;
+				})(),
 				requestsTrigger,
-				Trigger({ content: 'Blocked', value: 'blocked-users' }),
+				(() => {
+					const trigger = Trigger({ content: t('friends.blocked'), value: 'blocked-users' });
+					trigger.setAttribute('data-i18n', 'friends.blocked');
+					return trigger;
+				})(),
 			],
 			tabs: [AllFriendsTab(), FriendRequestTab(), BlockedUsersTab()],
 		})

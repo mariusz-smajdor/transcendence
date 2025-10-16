@@ -6,6 +6,7 @@ import { Tab } from '../../../components/tabs';
 import { Text } from '../../../components/text';
 import { Wrapper } from '../../../components/wrapper';
 import { t } from '../../../services/i18n';
+import { onLanguageChange } from '../../../services/languageService';
 
 function registerUser(
 	form: HTMLFormElement,
@@ -166,9 +167,34 @@ export default function Register() {
 	form.appendChild(passwordLabel);
 	form.appendChild(confirmPasswordLabel);
 	form.appendChild(qrCodeContainer);
-	form.appendChild(Button({ content: t('register.submit'), type: 'submit' }));
+	
+	const submitButton = Button({ content: t('register.submit'), type: 'submit' });
+	submitButton.setAttribute('data-i18n', 'register.submit');
+	form.appendChild(submitButton);
+	
 	tab.appendChild(heading);
 	tab.appendChild(form);
+
+	// Add language change listener
+	onLanguageChange(() => {
+		// Update heading
+		heading.textContent = t('register.heading');
+		
+		// Update labels
+		emailLabel.firstChild!.textContent = t('register.email.label');
+		usernameLabel.firstChild!.textContent = t('register.username.label');
+		passwordLabel.firstChild!.textContent = t('register.password.label');
+		confirmPasswordLabel.firstChild!.textContent = t('register.confirmPassword.label');
+		
+		// Update placeholders
+		emailInput.placeholder = t('register.email.placeholder');
+		usernameInput.placeholder = t('register.username.placeholder');
+		passwordInput.placeholder = t('register.password.placeholder');
+		confirmPasswordInput.placeholder = t('register.confirmPassword.placeholder');
+		
+		// Update submit button
+		submitButton.textContent = t('register.submit');
+	});
 
 	return tab;
 }
