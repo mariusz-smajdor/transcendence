@@ -11,7 +11,7 @@ export async function connectInvitationSocket(): Promise<void> {
 
 	return new Promise((resolve, reject) => {
 		// Always connect to get sessionId, even without valid token
-		socket = new WebSocket('wss://localhost:8080/invitations');
+		socket = new WebSocket('wss://10.12.4.4:8080/invitations');
 
 		let sessionIdReceived = false;
 		const timeout = setTimeout(() => {
