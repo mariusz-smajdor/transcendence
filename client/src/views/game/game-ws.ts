@@ -25,10 +25,11 @@ export function setupWebSocket({
 	actions,
 	roomId,
 }: WebSocketDeps): WebSocket {
+	const baseUrl = import.meta.env.VITE_WS_URL || 'wss://localhost:8080';
 	const ws: WebSocket = new WebSocket(
 		roomId
-			? `wss://localhost:8080/tournament/match?gameId=${gameId}&roomId=${roomId}`
-			: `${setWebsocketURL(gameType)}${gameId}`
+			? `${baseUrl}/tournament/match?gameId=${gameId}&roomId=${roomId}`
+			: `${setWebsocketURL(gameType, baseUrl)}${gameId}`
 	);
 
 	ws.onmessage = (event: MessageEvent) => {
@@ -220,15 +221,15 @@ function manageMessage(
 	}
 }
 
-function setWebsocketURL(gameType: GameType) {
+function setWebsocketURL(gameType: GameType, baseUrl: string) {
 	switch (gameType) {
 		case 'network':
-			return 'wss://localhost:8080/game?gameId=';
+			return `${baseUrl}/game?gameId=`;
 		case 'local':
-			return 'wss://localhost:8080/localgame?gameId=';
+			return `${baseUrl}/localgame?gameId=`;
 		case 'ai':
-			return 'wss://localhost:8080/aigame?gameId=';
+			return `${baseUrl}/aigame?gameId=`;
 		case 'tournament':
-			return 'wss://localhost:8080/tournament/match?gameId=';
+			return `${baseUrl}/tournament/match?gameId=`;
 	}
 }

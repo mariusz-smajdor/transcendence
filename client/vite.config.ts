@@ -45,6 +45,13 @@ export default defineConfig({
 			key: fs.readFileSync(path.join(__dirname, 'certs', 'localhost.key')),
 			cert: fs.readFileSync(path.join(__dirname, 'certs', 'localhost.crt')),
 		},
+		// Prevent serving source files
+		fs: {
+			strict: true,
+			allow: ['..']
+		},
+		// Additional security settings
+		middlewareMode: false,
 		proxy: {
 			// API proxy with logging
 			'/api': {
@@ -53,6 +60,8 @@ export default defineConfig({
 				secure: false,
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				configure: createProxyLogger,
+				timeout: 30000,
+				proxyTimeout: 30000,
 			},
 			// WebSocket proxies
 			...Object.fromEntries(

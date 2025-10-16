@@ -92,7 +92,8 @@ class NotificationService {
 				return;
 			}
 
-			const wsUrl = `wss://localhost:8080/notifications?token=${encodeURIComponent(
+			const baseUrl = import.meta.env.VITE_WS_URL || 'wss://localhost:8080';
+			const wsUrl = `${baseUrl}/notifications?token=${encodeURIComponent(
 				token
 			)}`;
 			this.ws = new WebSocket(wsUrl);
