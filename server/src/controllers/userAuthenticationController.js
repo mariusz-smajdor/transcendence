@@ -28,7 +28,7 @@ export const registrationHandler = async (req, res) => {
 
 export const loginHandler = async (req, res) => {
   const { username, password, totpToken } = req.body;
-  const userData = new User(username, password);
+  const userData = new User(username, password, ''); // Pass empty email since we don't need it for login
 
   const { success, message, user, code } = await userData.login(
     req.context.config.db,
