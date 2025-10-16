@@ -62,6 +62,7 @@ fastify.register(FastifyEnv, {
       'COOKIES_SECRET',
       'GOOGLE_CLIENT_ID',
       'GOOGLE_CLIENT_SECRET',
+      'CLIENT_URL',
     ],
     properties: {
       PORT: { type: 'number', default: 3000 },
@@ -69,6 +70,7 @@ fastify.register(FastifyEnv, {
       COOKIES_SECRET: { type: 'string' },
       GOOGLE_CLIENT_ID: { type: 'string' },
       GOOGLE_CLIENT_SECRET: { type: 'string' },
+      CLIENT_URL: { type: 'string' },
     },
   },
   dotenv: true, // Automatically load .env file
@@ -99,11 +101,27 @@ fastify.register(FastifyStatic, {
   root: path.join(path.dirname(fileURLToPath(import.meta.url)), 'uploads'),
   prefix: '/uploads/',
 });
-fastify.register(cors, {
-  origin: ['http://localhost:8080', 'https://localhost:8080'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+fastify.after(() => {
+  fastify.register(cors, {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+
+      const allowedOrigins = [
+        'http://localhost:8080',
+        'https://localhost:8080',
+        fastify.config.CLIENT_URL,
+      ];
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
 });
 
 fastify.addHook('preHandler', (req, res, next) => {

@@ -4,8 +4,11 @@ import fs from 'fs';
 import path from 'path';
 
 // Constants
-const SERVER_TARGET = 'https://server:3000';
-const WS_TARGET = 'wss://server:3000';
+const SERVER_TARGET = process.env.VITE_SERVER_URL || 'https://server:3000';
+const WS_TARGET = SERVER_TARGET.replace('https://', 'wss://').replace(
+	'http://',
+	'ws://'
+);
 const CLIENT_PORT = 8080;
 
 // Helper functions
