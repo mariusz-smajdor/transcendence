@@ -90,7 +90,7 @@ function transformServerMatchResults(
 			// Now match.winner contains the actual player nickname
 			// Determine the loser from the player information
 			const loser =
-				left && right ? (match.winner === left ? right : left) : 'Unknown';
+				left && right ? (match.winner === left ? right : left) : t('tournament.unknown');
 
 			matchResults.push({
 				matchId,
@@ -291,8 +291,9 @@ export function TournamentTab() {
 
 				const joinButton = Button({
 					variant: 'primary',
-					content: 'Join',
+					content: t('tournament.th.join'),
 				});
+				joinButton.setAttribute('data-i18n', 'tournament.th.join');
 
 				joinButton.addEventListener('click', async () => {
 					const isLoggedIn = !!token;
@@ -355,11 +356,11 @@ export function TournamentTab() {
 							if (data.error === 'Nickname already taken') {
 								// Show the nickname modal again with error message
 								showNicknameModal({
-									title: 'Nickname Taken',
+									title: t('tournament.nicknameTaken'),
 									description:
 										data.message ||
-										'This nickname is already taken. Please choose a different one.',
-									placeholder: 'Choose a different nickname',
+										t('tournament.nicknameAlreadyTaken'),
+									placeholder: t('tournament.chooseDifferentNickname'),
 									onConfirm: (nickname) => {
 										performJoin(nickname);
 									},
@@ -368,7 +369,7 @@ export function TournamentTab() {
 									},
 								});
 							} else {
-								Toaster(data.error || 'Failed to join tournament');
+								Toaster(data.error || t('tournament.failedToJoin'));
 							}
 						}
 					};
@@ -376,9 +377,9 @@ export function TournamentTab() {
 					if (!isLoggedIn) {
 						// Show nickname modal for non-logged-in users
 						showNicknameModal({
-							title: 'Enter Nickname',
-							description: 'Please enter your nickname to join the tournament',
-							placeholder: 'Your nickname',
+							title: t('tournament.enterNickname'),
+							description: t('tournament.joinDescription'),
+							placeholder: t('tournament.nicknamePlaceholder'),
 							onConfirm: (nickname) => {
 								performJoin(nickname);
 							},
@@ -420,8 +421,9 @@ export function TournamentTab() {
 		);
 
 		const title = document.createElement('div');
-		title.textContent = 'Create Tournament';
+		title.textContent = t('tournament.createTitle');
 		title.classList.add('font-bold', 'text-xl', 'mb-4');
+		title.setAttribute('data-i18n', 'tournament.createTitle');
 
 		const token = getCookie('access_token') ?? null;
 		const sessionId = getCookie('sessionId') ?? null;
@@ -445,15 +447,17 @@ export function TournamentTab() {
 			);
 
 			const nicknameLabel = document.createElement('label');
-			nicknameLabel.textContent = 'Enter your nickname:';
+			nicknameLabel.textContent = t('tournament.enterNickname');
 			nicknameLabel.classList.add('text-sm', 'font-medium');
+			nicknameLabel.setAttribute('data-i18n', 'tournament.enterNickname');
 
 			nicknameInput = document.createElement('input');
 			nicknameInput.type = 'text';
-			nicknameInput.placeholder = 'Your nickname';
+			nicknameInput.placeholder = t('tournament.nicknamePlaceholder');
 			nicknameInput.classList.add('border', 'rounded', 'p-2', 'w-full');
 			nicknameInput.maxLength = 20;
 			nicknameInput.required = true;
+			nicknameInput.setAttribute('data-i18n-placeholder', 'tournament.nicknamePlaceholder');
 
 			// Remove error styling when user starts typing
 			nicknameInput.addEventListener('input', () => {
@@ -476,8 +480,9 @@ export function TournamentTab() {
 			);
 
 			const userInfoLabel = document.createElement('div');
-			userInfoLabel.textContent = 'Creating tournament as:';
+			userInfoLabel.textContent = t('tournament.creatingAs');
 			userInfoLabel.classList.add('text-sm', 'font-medium', 'text-muted');
+			userInfoLabel.setAttribute('data-i18n', 'tournament.creatingAs');
 
 			const usernameDisplay = document.createElement('div');
 			usernameDisplay.textContent = user.username;
@@ -500,12 +505,14 @@ export function TournamentTab() {
 		);
 
 		const confirmBtn = document.createElement('button');
-		confirmBtn.textContent = 'Create';
+		confirmBtn.textContent = t('tournament.createBtn');
 		confirmBtn.classList.add('btn', 'btn-primary', 'px-4', 'py-2');
+		confirmBtn.setAttribute('data-i18n', 'tournament.createBtn');
 
 		const cancelBtn = document.createElement('button');
-		cancelBtn.textContent = 'Cancel';
+		cancelBtn.textContent = t('tournament.cancelBtn');
 		cancelBtn.classList.add('btn', 'btn-secondary', 'px-4', 'py-2');
+		cancelBtn.setAttribute('data-i18n', 'tournament.cancelBtn');
 
 		buttons.appendChild(cancelBtn);
 		buttons.appendChild(confirmBtn);
@@ -529,13 +536,13 @@ export function TournamentTab() {
 				if (!nickname) {
 					nicknameInput?.classList.add('border-red-500');
 					nicknameInput?.focus();
-					Toaster('Please enter your nickname');
+					Toaster(t('tournament.pleaseEnterNickname'));
 					return;
 				}
 				if (nickname.length < 2) {
 					nicknameInput?.classList.add('border-red-500');
 					nicknameInput?.focus();
-					Toaster('Nickname must be at least 2 characters');
+					Toaster(t('tournament.nicknameMinLength'));
 					return;
 				}
 				// Remove error styling if validation passes
@@ -589,10 +596,10 @@ export function TournamentTab() {
 					});
 					const data = await response.json();
 					if (response.ok && data.gameId) {
-						Toaster('Match found! Game ID: ' + data.gameId);
+						Toaster(t('tournament.matchFound') + data.gameId);
 						showGameOverlay(data.gameId, 'tournament', currentRoomId);
 					} else {
-						Toaster(data.error || 'No match available yet.');
+						Toaster(data.error || t('tournament.noMatchAvailable'));
 					}
 				},
 			});
@@ -663,10 +670,10 @@ function updateTournamentBracket(
 			});
 			const responseData = await response.json();
 			if (response.ok && responseData.gameId) {
-				Toaster('Match found! Game ID: ' + responseData.gameId);
+				Toaster(t('tournament.matchFound') + responseData.gameId);
 				showGameOverlay(responseData.gameId, 'tournament', currentRoomId);
 			} else {
-				Toaster(responseData.error || 'No match available yet.');
+				Toaster(responseData.error || t('tournament.noMatchAvailable'));
 			}
 		},
 	});

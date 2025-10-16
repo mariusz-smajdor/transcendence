@@ -5,6 +5,7 @@ import { Button } from './button';
 import { Icon } from './icon';
 import { Cross, Trophy } from 'lucide';
 import { store } from '../store';
+import { t } from '../services/i18n';
 
 type MatchResult = {
 	matchId: string;
@@ -86,8 +87,8 @@ function createBracketMatches(
 		if (sf1Winner || sf2Winner || finalWinner) {
 			matches.push({
 				id: 'final',
-				player1: sf1Winner || 'TBD',
-				player2: sf2Winner || 'TBD',
+				player1: sf1Winner || t('tournament.tbd'),
+				player2: sf2Winner || t('tournament.tbd'),
 				winner: finalWinner || undefined,
 				isCompleted: !!finalWinner,
 				round: 'final',
@@ -97,8 +98,8 @@ function createBracketMatches(
 			// No semifinals completed yet, show placeholder
 			matches.push({
 				id: 'final',
-				player1: 'TBD',
-				player2: 'TBD',
+				player1: t('tournament.tbd'),
+				player2: t('tournament.tbd'),
 				round: 'final',
 				position: { x: 1, y: 0.5 },
 			});
@@ -160,7 +161,7 @@ function MatchCard({
 			classes: player1Classes,
 		});
 		const vsText = Text({
-			content: 'vs',
+			content: t('tournament.vs'),
 			classes: ['text-xs', 'text-gray-400', 'mb-1'],
 		});
 		const player2Text = Text({
@@ -180,29 +181,29 @@ function MatchCard({
 			});
 			card.appendChild(winnerIndicator);
 		}
-	} else if (match.player1 === 'TBD' && match.player2 === 'TBD') {
+	} else if (match.player1 === t('tournament.tbd') && match.player2 === t('tournament.tbd')) {
 		// Show TBD for both players
 		const tbdText = Text({
-			content: 'TBD vs TBD',
+			content: `${t('tournament.tbd')} ${t('tournament.vs')} ${t('tournament.tbd')}`,
 			classes: ['text-xs', 'text-gray-500'],
 		});
 		card.appendChild(tbdText);
-	} else if (match.player1 && match.player1 !== 'TBD') {
+	} else if (match.player1 && match.player1 !== t('tournament.tbd')) {
 		// Show advancing player waiting for opponent
 		const advancingText = Text({
 			content: match.player1,
 			classes: ['text-xs', 'font-bold', 'text-green-300', 'mb-1'],
 		});
 		const waitingText = Text({
-			content: 'vs TBD',
+			content: `${t('tournament.vs')} ${t('tournament.tbd')}`,
 			classes: ['text-xs', 'text-gray-500'],
 		});
 		card.appendChild(advancingText);
 		card.appendChild(waitingText);
-	} else if (match.player2 && match.player2 !== 'TBD') {
+	} else if (match.player2 && match.player2 !== t('tournament.tbd')) {
 		// Show advancing player waiting for opponent
 		const waitingText = Text({
-			content: 'TBD vs',
+			content: `${t('tournament.tbd')} ${t('tournament.vs')}`,
 			classes: ['text-xs', 'text-gray-500', 'mb-1'],
 		});
 		const advancingText = Text({
@@ -241,8 +242,9 @@ export function TournamentBracket({
 
 	// Title
 	const title = document.createElement('div');
-	title.textContent = `Tournament bracket (${playersIn}/${numberOfPlayers} players)`;
+	title.textContent = `${t('tournament.bracket.title')} (${playersIn}/${numberOfPlayers} ${t('tournament.bracket.players')})`;
 	title.classList.add('font-bold', 'mb-4', 'text-lg', 'text-white');
+	title.setAttribute('data-i18n', 'tournament.bracket.title');
 	container.appendChild(title);
 
 	// Bracket container
@@ -293,18 +295,20 @@ export function TournamentBracket({
 	buttonContainer.classList.add('flex', 'flex-col', 'gap-4', 'mt-6');
 
 	const leaveBtn = Button({
-		content: 'Leave tournament',
+		content: t('tournament.leave'),
 		variant: 'outline',
 		classes: ['px-4', 'py-2'],
 	});
 	leaveBtn.onclick = onLeaveTournament;
+	leaveBtn.setAttribute('data-i18n', 'tournament.leave');
 
 	const playBtn = Button({
-		content: 'Play Match',
+		content: t('tournament.playMatch'),
 		variant: 'primary',
 		classes: ['px-4', 'py-2'],
 	});
 	playBtn.onclick = onPlayMatch;
+	playBtn.setAttribute('data-i18n', 'tournament.playMatch');
 
 	buttonContainer.appendChild(leaveBtn);
 	buttonContainer.appendChild(playBtn);
