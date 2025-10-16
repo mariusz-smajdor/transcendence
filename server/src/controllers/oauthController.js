@@ -133,6 +133,7 @@ export const googleOAuthCallbackHandler = async (req, res) => {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      google_id: user.google_id,
     };
 
     const token = req.jwt.sign(payload, { expiresIn: '1h' });

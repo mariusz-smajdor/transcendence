@@ -495,7 +495,9 @@ export default function ProfileRoute() {
 	}
 
 	function createSettingsForm() {
-		const isOAuthUser = localStorage.getItem('isOAuthUser') === 'true';
+		const user = store.getState().user;
+		const isOAuthUser =
+			user?.google_id !== null && user?.google_id !== undefined;
 
 		const form = Wrapper({
 			element: 'form',
@@ -773,9 +775,6 @@ export default function ProfileRoute() {
 				if (res.ok) {
 					// Clear access token cookie
 					deleteCookie('access_token');
-
-					// Clear local storage
-					localStorage.removeItem('isOAuthUser');
 
 					// Clear the store
 					store.setState({ user: null });
