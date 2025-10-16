@@ -39,7 +39,7 @@ export async function avatarRoutes(fastify) {
       // Set appropriate headers
       res.header('Content-Type', contentType);
       res.header('Cache-Control', 'public, max-age=86400'); // Cache for 1 day
-      res.header('Access-Control-Allow-Origin', 'https://localhost:8080');
+      res.header('Access-Control-Allow-Origin', 'https://10.12.4.4:8080');
       res.header('Access-Control-Allow-Credentials', 'true');
 
       return res.send(Buffer.from(imageBuffer));
