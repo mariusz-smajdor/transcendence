@@ -41,6 +41,7 @@ import { historyManager } from '../../../utils/historyManager';
 
 // Track which friends have unread messages
 const unreadMessages = new Set<number>();
+import { t } from '../../../services/i18n';
 
 // Helper function to create online indicator
 function createOnlineIndicator(): HTMLDivElement {
@@ -146,9 +147,10 @@ function FriendRequestTab() {
 	});
 	const wrapper = Wrapper({ classes: ['flex', 'flex-col', 'gap-1'] });
 	const noFriendsMessage = Text({
-		content: 'No friend requests',
+		content: t('friends.noRequests'),
 		classes: ['text-muted', 'text-center', 'py-4', 'lg:py-6'],
 	});
+	noFriendsMessage.setAttribute('data-i18n', 'friends.noRequests');
 
 	function renderFriendRequests() {
 		wrapper.innerHTML = '';
@@ -252,9 +254,13 @@ function AllFriendsTab() {
 	const searchInput = Input({
 		type: 'text',
 		name: 'search friends',
-		placeholder: 'Search friends...',
+		placeholder: t('friends.search.placeholder'),
 		classes: ['text-sm', 'bg-background'],
 	});
+	searchInput.setAttribute(
+		'data-i18n-placeholder',
+		'friends.search.placeholder'
+	);
 
 	function renderFriends() {
 		wrapper.innerHTML = '';
@@ -698,9 +704,14 @@ export default function Friends() {
 	});
 	const heading = Heading({
 		level: 2,
-		content: 'Friends',
+		content: t('home.friends.heading'),
 		classes: ['flex', 'items-center', 'gap-2'],
 	});
+	heading.setAttribute('data-i18n', 'home.friends.heading');
+	const friendsTextSpan = document.createElement('span');
+	friendsTextSpan.setAttribute('data-i18n-text', '');
+	friendsTextSpan.textContent = t('home.friends.heading');
+	heading.appendChild(friendsTextSpan);
 	const form = Wrapper({
 		element: 'form',
 		method: 'POST',
@@ -713,9 +724,10 @@ export default function Friends() {
 	});
 	const addFriend = Button({
 		type: 'submit',
-		content: 'Add',
+		content: t('friends.add'),
 		classes: ['flex', 'gap-2', 'items-center', 'text-sm'],
 	});
+	addFriend.setAttribute('data-i18n', 'friends.add');
 	const friendUsername = Input({
 		type: 'text',
 		name: 'friend-username',

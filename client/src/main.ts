@@ -2,9 +2,12 @@ import { getFriendRequests, getFriends } from './api/friendRequest';
 import { connectInvitationSocket } from './api/invitationSocket';
 import { fetchMe } from './api/me';
 import { Router } from './router';
+import { initI18n } from './services/i18n';
 import { notificationService } from './services/notificationService';
 
 document.addEventListener('DOMContentLoaded', async () => {
+	// Initialize i18n translation handling
+	initI18n();
 	// Check for OAuth redirect parameters
 	const urlParams = new URLSearchParams(window.location.search);
 	const oauthStatus = urlParams.get('oauth');

@@ -78,14 +78,12 @@ export function onInvitation(handler: InvitationHandler) {
 		);
 		return () => {}; // Return empty cleanup function
 	}
-
 	handlers.push(handler);
 	return () => {
 		const idx = handlers.indexOf(handler);
 		if (idx !== -1) handlers.splice(idx, 1);
 	};
 }
-
 export function sendInvitation(payload: any) {
 	if (socket && socket.readyState === WebSocket.OPEN) {
 		socket.send(JSON.stringify(payload));
