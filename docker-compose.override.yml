@@ -1,0 +1,24 @@
+# Docker Compose Override for Remote Development
+# This file extends the base docker-compose.yml for network accessibility
+
+version: '3.8'
+
+services:
+  server:
+    ports:
+      - '3000:3000' # HTTP
+      - '3443:3000' # HTTPS
+    environment:
+      - NODE_ENV=development
+      - SERVER_HOST=0.0.0.0
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+  client:
+    ports:
+      - '8080:8080'
+    environment:
+      - NODE_ENV=development
+      - VITE_CLIENT_HOST=0.0.0.0
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'

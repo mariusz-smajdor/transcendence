@@ -100,9 +100,37 @@ fastify.register(FastifyStatic, {
   prefix: '/uploads/',
 });
 fastify.register(cors, {
-  origin: ['http://localhost:8080', 'https://localhost:8080'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin, callback) => {
+    // Allow requests from localhost and any IP address for development
+    const allowedOrigins = [
+      'http://localhost:8080',
+      'https://localhost:8080',
+      /^https?:\/\/192\.168\.\d+\.\d+:8080$/,
+      /^https?:\/\/10\.\d+\.\d+\.\d+:8080$/,
+      /^https?:\/\/172\.(1[6-9]|2\d|3[01])\.\d+\.\d+:8080$/,
+    ];
+
+    // Allow requests without origin (e.g., mobile apps, Postman)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some((allowedOrigin) => {
+      if (typeof allowedOrigin === 'string') {
+        return origin === allowedOrigin;
+      } else if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'), false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 });
 
