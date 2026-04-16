@@ -1,6 +1,17 @@
+# Dependencies directory (Node.js packages)
 node_modules
+
+# SQLite / local database file
 database.db
+
+# Environment variables file (contains secrets like API keys, DB credentials)
 .env
+
+# Uploaded files directory (user-generated or runtime media files)
 uploads/*
+
+# Database folder (local or generated database assets)
 database
+
+# SSL/TLS certificates (private keys and certificates should never be committed)
 certs/*
