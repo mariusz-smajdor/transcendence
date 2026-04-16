@@ -60,4 +60,10 @@ The goal of this project is to explore full-stack development, real-time communi
 - Private game rooms
 - Dynamic scoring system
 
+### 💬 Chat System
+- Global chat room
+- Private messaging
+- Block / mute users
+- Online status indicators
+
 ---
