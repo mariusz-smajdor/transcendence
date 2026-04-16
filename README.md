@@ -66,4 +66,10 @@ The goal of this project is to explore full-stack development, real-time communi
 - Block / mute users
 - Online status indicators
 
+### 📊 User System
+- Profile pages
+- Match history
+- Win/loss statistics
+- Leaderboard ranking
+
 ---
