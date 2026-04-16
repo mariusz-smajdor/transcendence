@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SSL Certificate Generation Script for Transcendence Project
+# SSL Certificate Generation Script
 # This script generates self-signed SSL certificates for both client and server
 
 set -e  # Exit on any error
