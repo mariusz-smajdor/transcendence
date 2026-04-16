@@ -54,4 +54,10 @@ The goal of this project is to explore full-stack development, real-time communi
 - 2FA (optional enhancement)
 - OAuth (Google)
 
+### 🕹️ Game System
+- Real-time Pong gameplay
+- Matchmaking system
+- Private game rooms
+- Dynamic scoring system
+
 ---
