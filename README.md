@@ -15,3 +15,31 @@ The project is a multiplayer Pong platform featuring authentication, matchmaking
 - Chat with other users (public & private messaging)
 - Track statistics, rankings, and match history
 - Customize user profiles
+
+The goal of this project is to explore full-stack development, real-time communication, and scalable architecture.
+
+---
+
+## 🧱 Tech Stack
+
+### Frontend
+- TypeScript
+- Vite
+- TailwindCSS
+- WebSockets
+
+### Backend
+- Node.js
+- FastifyJS
+- WebSockets
+- JWT Authentication
+- REST API
+
+### Database
+- PostgreSQL
+
+### DevOps
+- Docker & Docker Compose
+
+### Blockchain
+- Avalanche
