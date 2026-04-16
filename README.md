@@ -43,3 +43,15 @@ The goal of this project is to explore full-stack development, real-time communi
 
 ### Blockchain
 - Avalanche
+
+---
+
+## 🎮 Features
+
+### 👤 Authentication
+- Signup / Login
+- JWT-based authentication
+- 2FA (optional enhancement)
+- OAuth (Google)
+
+---
