@@ -73,3 +73,41 @@ The goal of this project is to explore full-stack development, real-time communi
 - Leaderboard ranking
 
 ---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone repository
+```bash
+git clone https://github.com/your-username/transcendence.git
+cd transcendence
+```
+
+### 2. Environment variables
+
+Create .env files for backend and frontend:
+
+backend .env
+```bash
+PORT=3000
+DATABASE_URL=postgresql://user:password@localhost:5432/transcendence
+JWT_SECRET=your_secret_key
+```
+
+frontend .env
+```bash
+VITE_API_URL=http://localhost:3000
+```
+
+### 3. Run with Docker
+```bash
+docker-compose up --build
+```
+
+---
+
+## 🧠 Architecture
+REST API for authentication & user management
+WebSockets for real-time game + chat
+Stateless backend using JWT
+Separate game state synchronization layer
+Containerized microservices (optional advanced version)
